@@ -280,6 +280,16 @@ TOOLS = {
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
 }
+
+# Load custom tools from tools/custom directory (one-time setup for local customizations)
+try:
+    from tools.custom import get_custom_tools
+    custom_tools = get_custom_tools()
+    TOOLS.update(custom_tools)
+    logger.info(f"Loaded {len(custom_tools)} custom tools: {list(custom_tools.keys())}")
+except Exception as e:
+    logger.info(f"No custom tools loaded: {e}")
+
 TOOLS = filter_disabled_tools(TOOLS)
 
 # Rich prompt templates for all tools

@@ -307,6 +307,10 @@ isort --check-only .
 - `simulator_tests/` - Individual test modules
 - `tests/` - Unit test suite
 - `tools/` - MCP tool implementations
+- `tools/custom/` - Custom plugin-style tools (zero merge conflicts)
+- `tools/tmp/` - ⚠️ **PROTECTED** - Development ADRs and architecture docs (local-only)
+- `backup_adrs.sh` - Local ADR backup script
+- `restore_adrs.sh` - ADR recovery script
 - `providers/` - AI provider implementations
 - `systemprompts/` - System prompt definitions
 - `logs/` - Server log files
@@ -316,5 +320,40 @@ isort --check-only .
 - Python 3.9+ with virtual environment
 - All dependencies from `requirements.txt` installed
 - Proper API keys configured in `.env` file
+
+### Local Development Protection
+
+The repository includes protection for work-in-progress custom tools and ADRs:
+
+#### Protected Files (Local-Only)
+```bash
+# These files are kept local until explicitly ready for PR:
+tools/tmp/          # Architecture Decision Records  
+tools/custom/       # Custom tools development
+docs/local-customizations.md  # Enhanced documentation
+```
+
+#### Backup and Recovery
+```bash
+# Create local backup of ADR files
+./backup_adrs.sh
+
+# Restore from backup if accidentally deleted
+./restore_adrs.sh
+
+# Backup location: ~/.zen_mcp_adrs_backup/
+```
+
+#### Git Protection Features
+- **`.git/info/exclude`**: Prevents accidental staging of protected files
+- **Pre-commit hook**: Warns when protected files are staged
+- **Local backups**: Automatic timestamped backups outside git
+
+#### When Ready for PR
+```bash
+# Explicitly include protected files in commit
+git add tools/tmp/ tools/custom/ docs/local-customizations.md
+git commit --no-verify -m "Add custom tools implementation"
+```
 
 This guide provides everything needed to efficiently work with the Zen MCP Server codebase using Claude. Always run quality checks before and after making changes to ensure code integrity.
