@@ -83,6 +83,51 @@ ignore = [
 "tests/*" = ["B011"]
 "tests/conftest.py" = ["E402"]  # Module level imports not at top of file - needed for test setup
 
+# Coverage configuration
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "tests/*",
+    "simulator_tests/*",
+    ".zen_venv/*",
+    "test_simulation_files/*",
+    "logs/*",
+    "*.pyc",
+    "*/__pycache__/*",
+    ".github/*",
+    "docs/*",
+    "scripts/*",
+    "run-server.sh",
+    "code_quality_checks.sh",
+    "run_integration_tests.sh",
+    "communication_simulator_test.py"
+]
+branch = true
+parallel = true
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.html]
+directory = "htmlcov"
+
 [build-system]
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"

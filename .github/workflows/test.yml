@@ -27,15 +27,24 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     
-    - name: Run unit tests
+    - name: Run unit tests with coverage
       run: |
         # Run only unit tests (exclude simulation tests and integration tests)
         # Integration tests require local-llama which isn't available in CI
-        python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration"
+        python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration" --cov=. --cov-report=xml --cov-report=term-missing
       env:
         # Ensure no API key is accidentally used in CI
         GEMINI_API_KEY: ""
         OPENAI_API_KEY: ""
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: unit
+        name: unit-tests-${{ matrix.python-version }}
+        fail_ci_if_error: false
 
   lint:
     runs-on: ubuntu-latest

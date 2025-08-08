@@ -85,19 +85,31 @@ echo ""
 echo "🧪 Step 2: Running Complete Unit Test Suite"
 echo "---------------------------------------------"
 
-echo "🏃 Running unit tests (excluding integration tests)..."
-$PYTHON_CMD -m pytest tests/ -v -x -m "not integration"
+echo "🏃 Running unit tests with coverage (excluding integration tests)..."
+$PYTHON_CMD -m pytest tests/ -v -x -m "not integration" --cov=. --cov-report=term-missing --cov-report=html
 
-echo "✅ Step 2 Complete: All unit tests passed!"
+echo "✅ Step 2 Complete: All unit tests passed with coverage report!"
 echo ""
 
-# Step 3: Final Summary
+# Step 3: Coverage Analysis (Optional - for local development)
+if command -v coverage &> /dev/null; then
+    echo "📊 Step 3: Coverage Summary"
+    echo "----------------------------"
+    echo "📈 Generating coverage report..."
+    coverage report --precision=2
+    echo ""
+    echo "💡 HTML coverage report available at: htmlcov/index.html"
+    echo ""
+fi
+
+# Step 4: Final Summary
 echo "🎉 All Code Quality Checks Passed!"
 echo "=================================="
 echo "✅ Linting (ruff): PASSED"
 echo "✅ Formatting (black): PASSED" 
 echo "✅ Import sorting (isort): PASSED"
 echo "✅ Unit tests: PASSED"
+echo "✅ Coverage report: GENERATED"
 echo ""
 echo "🚀 Your code is ready for commit and GitHub Actions!"
 echo "💡 Remember to add simulator tests if you modified tools"

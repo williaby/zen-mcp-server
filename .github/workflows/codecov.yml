@@ -1,0 +1,120 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install coverage[toml]
+    
+    - name: Run unit tests with coverage
+      run: |
+        coverage run -m pytest tests/ -v -m "not integration" --tb=short
+        coverage xml -o coverage-unit.xml
+    
+    - name: Upload unit test coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage-unit.xml
+        flags: unit
+        name: unit-tests-${{ matrix.python-version }}
+        fail_ci_if_error: false
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install Ollama
+      run: |
+        curl -fsSL https://ollama.com/install.sh | sh
+        ollama serve &
+        sleep 10
+        ollama pull llama3.2
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install coverage[toml]
+    
+    - name: Run integration tests with coverage
+      env:
+        CUSTOM_API_URL: "http://localhost:11434"
+      run: |
+        coverage run -m pytest tests/ -v -m "integration" --tb=short
+        coverage xml -o coverage-integration.xml
+    
+    - name: Upload integration test coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage-integration.xml
+        flags: integration
+        name: integration-tests
+        fail_ci_if_error: false
+
+  simulator-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install coverage[toml]
+    
+    - name: Run simulator tests with coverage (quick mode)
+      env:
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      run: |
+        coverage run communication_simulator_test.py --quick
+        coverage xml -o coverage-simulator.xml
+    
+    - name: Upload simulator test coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage-simulator.xml
+        flags: simulator
+        name: simulator-tests
+        fail_ci_if_error: false

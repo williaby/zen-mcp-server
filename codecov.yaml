@@ -1,0 +1,193 @@
+# Codecov Configuration for Zen MCP Server
+# See: https://docs.codecov.com/docs/codecov-yaml
+# Validation: https://codecov.io/validate
+
+codecov:
+  # Token is provided via CODECOV_TOKEN environment variable in GitHub Actions
+  ci:
+    - github
+  branch: main
+  max_report_age: "24h"  # Increased for better historical coverage
+  notify:
+    after_n_builds: 3  # Wait for unit, integration, and simulator tests
+    wait_for_ci: true   # Wait for CI to stabilize comparisons
+  require_ci_to_pass: false  # Allow uploads even if CI hasn't completed
+  # Handle missing base commits gracefully
+  assume_all_flags: false  # Only process flags that are uploaded
+  # Improve commit comparison
+  disable_default_path_fixes: false
+  strict_yaml_branch: main
+
+coverage:
+  precision: 2
+  round: down
+  range: 70...95
+
+  status:
+    project:
+      default:
+        # Primary blocking check - combines all parallel test results
+        target: auto  # Compare against base commit (main branch)
+        threshold: 2%  # Allow 2% drop without failing (MCP tools can vary)
+        if_not_found: success
+        informational: false  # This is blocking
+    patch:
+      default:
+        # Ensure new code has good coverage
+        target: 80%  # Slightly lower than PromptCraft due to MCP complexity
+        threshold: 3%
+        if_not_found: success
+        only_pulls: true
+        informational: false  # This is blocking
+
+  ignore:
+    - "tests/"
+    - "simulator_tests/"
+    - "scripts/"
+    - "docs/"
+    - "htmlcov/"
+    - "*.html"
+    - "*.js"
+    - "*.css"
+    - "*/__pycache__/"
+    - "*/migrations/"
+    - "*/vendor/"
+    - "*/node_modules/"
+    - ".github/"
+    - "docker/"
+    - "*.yaml"
+    - "*.yml"
+    - "*.toml"
+    - "*.cfg"
+    - "*.ini"
+    - "Dockerfile*"
+    - ".env*"
+    - "requirements*.txt"
+    - "pyproject.toml"
+    - "run-server.sh"
+    - "code_quality_checks.sh"
+    - "run_integration_tests.sh"
+    - "communication_simulator_test.py"
+    - "test_simulation_files/"
+    - "logs/"
+
+# Component definitions for different parts of the MCP server codebase
+# Components provide automatic groupings based on file paths and flags
+component_management:
+  individual_components:
+    - component_id: mcp_tools
+      name: "MCP Tools (Core & Custom)"
+      paths:
+        - tools/
+      flag_regexes:
+        - unit
+        - simulator
+
+    - component_id: providers
+      name: "AI Provider Integration"
+      paths:
+        - providers/
+      flag_regexes:
+        - unit
+        - integration
+
+    - component_id: utils
+      name: "Utility Modules"
+      paths:
+        - utils/
+      flag_regexes:
+        - unit
+        - integration
+
+    - component_id: systemprompts
+      name: "System Prompts"
+      paths:
+        - systemprompts/
+      flag_regexes:
+        - unit
+
+    - component_id: server_core
+      name: "Server Core Logic"
+      paths:
+        - server.py
+        - server_setup.py
+      flag_regexes:
+        - unit
+        - integration
+
+    - component_id: configuration
+      name: "Configuration Management"
+      paths:
+        - conf/
+        - config/
+      flag_regexes:
+        - unit
+
+# Flag definitions for different test types with carryforward enabled
+# This is the KEY to solving coverage discrepancy across test types
+flags:
+  # Unit tests - focus on individual module testing
+  unit:
+    paths:
+      - .  # Measure all source code for comprehensive comparison
+    carryforward: true  # CRITICAL: This enables intelligent merging of partial reports
+
+  # Integration tests - focus on API integration and provider testing
+  integration:
+    paths:
+      - .  # Measure all source code for comprehensive comparison
+    carryforward: true  # CRITICAL: This enables intelligent merging of partial reports
+
+  # Simulator tests - focus on end-to-end MCP tool workflows
+  simulator:
+    paths:
+      - .  # Measure all source code for comprehensive comparison
+    carryforward: true  # CRITICAL: This enables intelligent merging of partial reports
+
+# Parser configurations for Python coverage reports
+parsers:
+  gcov:
+    branch_detection:
+      conditional: true
+      loop: true
+      method: false
+      macro: false
+
+  javascript:
+    enable_partials: false
+
+# Comment configuration for PR updates
+comment:
+  layout: "reach, diff, flags, files, footer"
+  behavior: default
+  require_changes: false
+  require_base: false  # Don't require base commit for comparison
+  require_head: true
+  branches:
+    - main
+    - develop
+    - "feature/*"
+    - "fix/*"
+  # Show which flags were carried forward for transparency
+  show_carryforward_flags: true
+  # Additional flag visibility settings
+  after_n_builds: 2  # Wait for multiple test types
+
+# Notification settings
+github_checks:
+  annotations: true
+
+fixes:
+  - "tools/::tools/"
+  - "providers/::providers/"
+  - "utils/::utils/"
+  - "tests/::tests/"
+  - "simulator_tests/::simulator_tests/"
+
+# Profiling settings for critical MCP components
+profiling:
+  critical_files_paths:
+    - tools/
+    - providers/
+    - utils/
+    - server.py
