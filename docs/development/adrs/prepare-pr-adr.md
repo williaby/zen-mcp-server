@@ -140,7 +140,7 @@ WORKFLOW_MODEL_ROLES = {
 - Detailed cost tracking per workflow phase
 
 ### ADR-007: Architecture Approach - Plugin-Style Implementation
-**Decision**: Use plugin-style architecture following the new local-customizations approach
+**Decision**: Use plugin-style architecture following the new custom-tools approach
 
 **Implementation Structure**:
 - **Location**: `tools/custom/prepare_pr.py`

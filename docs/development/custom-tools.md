@@ -337,7 +337,7 @@ This section documents all custom tools added to this local installation:
     - `tools/custom/quickreview.py` - Main implementation (507 lines)
     - `tools/custom/test_quickreview.py` - Self-contained tests (77 lines)
     - `tools/custom/__init__.py` - Auto-discovery system (44 lines)
-    - `tools/tmp/quickreview.md` - Architecture Decision Record
+    - `docs/development/adrs/quickreview.md` - Architecture Decision Record
   - **Integration**: Minimal server.py modification (5 lines only)
   - **Interface Optimization**: Custom `get_input_schema()` excludes 7 internal fields
 
@@ -351,7 +351,7 @@ This section documents all custom tools added to this local installation:
   - Roles: Security, Development, Architecture, Operations
   - Cost: Moderate
   - **Architecture**: Plugin-style (zero merge conflicts)
-  - **ADR**: `tools/tmp/review.md` - Complete architecture plan
+  - **ADR**: `docs/development/adrs/review.md` - Complete architecture plan
 
 - **`criticalreview`**: Critical decision analysis using premium models (6+ models)
   - Purpose: Major design decisions, root cause analysis, comprehensive remediation
@@ -359,7 +359,7 @@ This section documents all custom tools added to this local installation:
   - Roles: Lead Architect, Technical Director, Security Chief, Research Lead, System Integration, Risk Analysis
   - Cost: Premium
   - **Architecture**: Plugin-style (zero merge conflicts)
-  - **ADR**: `tools/tmp/criticalreview.md` - Complete architecture plan
+  - **ADR**: `docs/development/adrs/criticalreview.md` - Complete architecture plan
 
 **Dependencies**: 
 - Dynamic model selection from [current_models.md](./current_models.md)
@@ -367,12 +367,12 @@ This section documents all custom tools added to this local installation:
 - Cost tracking and budget controls
 
 **Development Workspace**: 
-- **`tools/tmp/`** - ⚠️ **PROTECTED DIRECTORY** - Contains critical ADRs
-  - `tools/tmp/review.md` - Review tool architecture plan
-  - `tools/tmp/criticalreview.md` - CriticalReview tool architecture plan
-  - `tools/tmp/future.md` - Future enhancements roadmap
-  - `tools/tmp/prepare-pr.md` - PR preparation checklist
-  - `tools/tmp/README.md` - Directory protection guide
+- **`docs/development/adrs/`** - Architecture Decision Records for all custom tools
+  - `docs/development/adrs/review.md` - Review tool architecture plan
+  - `docs/development/adrs/criticalreview.md` - CriticalReview tool architecture plan
+  - `docs/development/adrs/future.md` - Future enhancements roadmap
+  - `docs/development/adrs/prepare-pr.md` - PR preparation checklist
+  - `docs/development/adrs/README.md` - ADR documentation guide
 
 ### Adding New Tools to Registry
 When adding custom tools, document:

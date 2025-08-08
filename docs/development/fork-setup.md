@@ -41,7 +41,7 @@ git remote -v
 git push -u origin main
 
 # Push custom tools and ADRs (override protection for this initial push)
-git add -f tools/custom/ tools/tmp/ docs/local-customizations.md
+git add -f tools/custom/ docs/development/adrs/ docs/custom-tools.md
 git add backup_adrs.sh restore_adrs.sh CLAUDE.md
 git commit --no-verify -m "Add custom tools plugin architecture with QuickReview
 
@@ -59,12 +59,12 @@ git push origin main
 ### Daily Development
 ```bash
 # Work on custom tools normally
-vim tools/tmp/review.md
+vim docs/development/adrs/review.md
 vim tools/custom/review.py
 ./backup_adrs.sh  # Still create local backups as safety net
 
 # Commit custom work to your fork
-git add tools/custom/ tools/tmp/
+git add tools/custom/ docs/development/adrs/
 git commit -m "Implement review tool (tier 2)"
 git push origin main
 ```

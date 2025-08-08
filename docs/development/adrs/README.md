@@ -28,7 +28,7 @@ This directory serves as the development workspace and documentation hub for cus
 - Regular commits preserve development history
 
 ### 2. Documentation References
-- `docs/local-customizations.md` references these ADR files
+- `docs/custom-tools.md` references these ADR files
 - CLAUDE.md mentions this directory in development workflow
 - README files link to this documentation
 
@@ -60,15 +60,15 @@ This directory serves as the development workspace and documentation hub for cus
 
 If this directory is accidentally deleted:
 
-1. **Check git history**: `git log --follow tools/tmp/`
-2. **Restore from git**: `git checkout HEAD~1 -- tools/tmp/`
+1. **Check git history**: `git log --follow docs/development/adrs/`
+2. **Restore from git**: `git checkout HEAD~1 -- docs/development/adrs/`
 3. **Recreate from conversation**: ADR contents are in Claude conversation history
 4. **Validate completeness**: Ensure all 5 ADR files are restored
 
 ## Integration Points
 
 This directory is referenced by:
-- `docs/local-customizations.md` - Custom tool registry
+- `docs/custom-tools.md` - Custom tool registry
 - Development workflow documentation
 - Future custom tool implementations
 - PR preparation processes

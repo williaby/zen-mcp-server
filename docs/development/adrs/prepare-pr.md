@@ -12,7 +12,7 @@ Checklist for preparing PRs for the tiered consensus analysis system implementat
 - [x] **Plugin Architecture**: Zero-conflict custom tools system implemented
 - [x] **QuickReview Tool**: Complete implementation with optimized MCP interface  
 - [x] **Auto-Discovery**: Automatic tool registration system
-- [x] **Documentation**: Comprehensive local-customizations.md updates
+- [x] **Documentation**: Comprehensive custom-tools.md updates
 - [x] **MCP Interface Optimization**: Reduced parameters from 19 to 12 (37% improvement)
 - [x] **Testing Framework**: Self-contained test system
 - [x] **ADR Documentation**: Restored architecture decision records
@@ -26,12 +26,12 @@ Checklist for preparing PRs for the tiered consensus analysis system implementat
 - [x] `server.py` - Minimal integration (5 lines added)
 
 #### Documentation Files  
-- [x] `docs/local-customizations.md` - Comprehensive custom tools guide
-- [x] `tools/tmp/quickreview.md` - QuickReview ADR with lessons learned
-- [x] `tools/tmp/review.md` - Review tool architecture plan
-- [x] `tools/tmp/criticalreview.md` - CriticalReview tool architecture plan
-- [x] `tools/tmp/future.md` - Future enhancements roadmap
-- [x] `tools/tmp/prepare-pr.md` - This checklist
+- [x] `docs/custom-tools.md` - Comprehensive custom tools guide
+- [x] `docs/development/adrs/quickreview.md` - QuickReview ADR with lessons learned
+- [x] `docs/development/adrs/review.md` - Review tool architecture plan
+- [x] `docs/development/adrs/criticalreview.md` - CriticalReview tool architecture plan
+- [x] `docs/development/adrs/future.md` - Future enhancements roadmap
+- [x] `docs/development/adrs/prepare-pr.md` - This checklist
 
 ## Pre-PR Validation Checklist
 
@@ -55,7 +55,7 @@ Checklist for preparing PRs for the tiered consensus analysis system implementat
 
 ### Documentation
 - [ ] All ADR files complete and accurate
-- [ ] local-customizations.md reflects current implementation
+- [ ] custom-tools.md reflects current implementation
 - [ ] Code comments are clear and helpful
 - [ ] Usage examples are accurate
 
@@ -85,8 +85,8 @@ Implements a zero-merge-conflict plugin architecture for custom tools and delive
 - `tools/custom/__init__.py` - Auto-discovery system
 - `tools/custom/quickreview.py` - QuickReview implementation  
 - `tools/custom/test_quickreview.py` - Self-contained tests
-- `docs/local-customizations.md` - Comprehensive custom tools guide
-- `tools/tmp/*.md` - Architecture Decision Records
+- `docs/custom-tools.md` - Comprehensive custom tools guide
+- `docs/development/adrs/*.md` - Architecture Decision Records
 
 ### Modified Files
 - `server.py` - Added 5 lines for custom tool loading

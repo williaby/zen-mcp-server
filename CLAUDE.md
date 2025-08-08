@@ -308,9 +308,8 @@ isort --check-only .
 - `tests/` - Unit test suite
 - `tools/` - MCP tool implementations
 - `tools/custom/` - Custom plugin-style tools (zero merge conflicts)
-- `tools/tmp/` - ⚠️ **PROTECTED** - Development ADRs and architecture docs (local-only)
-- `backup_adrs.sh` - Local ADR backup script
-- `restore_adrs.sh` - ADR recovery script
+- `docs/development/adrs/` - Development ADRs and architecture docs
+- `docs/development/` - Custom tools development documentation
 - `providers/` - AI provider implementations
 - `systemprompts/` - System prompt definitions
 - `logs/` - Server log files
@@ -328,20 +327,19 @@ The repository includes protection for work-in-progress custom tools and ADRs:
 #### Protected Files (Local-Only)
 ```bash
 # These files are kept local until explicitly ready for PR:
-tools/tmp/          # Architecture Decision Records  
-tools/custom/       # Custom tools development
-docs/local-customizations.md  # Enhanced documentation
+docs/development/adrs/  # Architecture Decision Records  
+tools/custom/           # Custom tools development
+docs/development/custom-tools.md  # Custom tools development guide
 ```
 
-#### Backup and Recovery
+#### Version Control (Fork Strategy)
 ```bash
-# Create local backup of ADR files
-./backup_adrs.sh
-
-# Restore from backup if accidentally deleted
-./restore_adrs.sh
-
-# Backup location: ~/.zen_mcp_adrs_backup/
+# All custom tools and ADRs are now version controlled in the fork
+# Git provides backup/restore functionality - no separate scripts needed
+git status  # Check development files
+git add docs/development/ tools/custom/
+git commit -m "Update custom tools"
+git push origin main  # Push to your fork
 ```
 
 #### Git Protection Features
@@ -352,7 +350,7 @@ docs/local-customizations.md  # Enhanced documentation
 #### When Ready for PR
 ```bash
 # Explicitly include protected files in commit
-git add tools/tmp/ tools/custom/ docs/local-customizations.md
+git add docs/development/ tools/custom/
 git commit --no-verify -m "Add custom tools implementation"
 ```
 

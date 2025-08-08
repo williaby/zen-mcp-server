@@ -134,7 +134,7 @@ Based on Phase 3 results, consider additional conversions:
 
 ## Implementation Methodology
 
-### Established Patterns (from local-customizations.md)
+### Established Patterns (from custom-tools.md)
 1. **Additive-Only Strategy**: Maintain upstream compatibility
 2. **ADR Documentation**: Comprehensive Architecture Decision Records
 3. **Cost-Aware Design**: Tier-based model selection with budget controls  
@@ -142,11 +142,11 @@ Based on Phase 3 results, consider additional conversions:
 5. **Git-Safe Development**: Preserved upstream update capability
 
 ### Development Process
-1. **ADR Creation**: Document architectural decisions in `/tools/tmp/`
+1. **ADR Creation**: Document architectural decisions in `/docs/development/adrs/`
 2. **Implementation**: Follow WorkflowTool or SimpleTool patterns
 3. **Registration**: Add to `tools/__init__.py` and `server.py`  
 4. **Testing**: Simulator tests and quality validation
-5. **Documentation**: Update local-customizations.md registry
+5. **Documentation**: Update custom-tools.md registry
 
 ## Risk Management
 
