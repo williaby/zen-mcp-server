@@ -29,7 +29,7 @@ from tools.workflow.base import WorkflowTool
 logger = logging.getLogger(__name__)
 
 # Free models from current configuration (cost = $0)
-# This list is updated based on /docs/current_models.md
+# This list is updated based on /docs/models/available-models.md
 FREE_MODELS = [
     "deepseek/deepseek-r1-distill-llama-70b:free",  # Best free reasoning
     "meta-llama/llama-3.1-405b-instruct:free",      # Largest free model (80.5% HumanEval)
