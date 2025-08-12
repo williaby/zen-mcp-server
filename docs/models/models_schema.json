@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Models Data Schema",
+  "description": "Schema for validating AI model data structure",
+  "type": "object",
+  "properties": {
+    "models": {
+      "type": "array",
+      "description": "Array of AI model configurations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Ranking position of the model (1 = best)"
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9/_:.-]+$",
+            "description": "Unique model identifier"
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["premium", "high_perf", "open_source", "free_champion", "free_tier", "supporting"],
+            "description": "Model tier classification"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["paid", "free"],
+            "description": "Cost status of the model"
+          },
+          "context_window": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 2000000,
+            "description": "Context window size in tokens"
+          },
+          "input_cost": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Input cost per million tokens in USD"
+          },
+          "output_cost": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Output cost per million tokens in USD"
+          },
+          "org_level": {
+            "type": "string",
+            "enum": ["junior", "senior", "executive"],
+            "description": "Organizational level assignment"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["coding", "reasoning", "general", "vision", "debugging", "conversation", "security"],
+            "description": "Primary model specialization"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "code_reviewer", "technical_validator", "security_checker",
+              "senior_developer", "system_architect", "security_analyst", "devops_engineer", "qa_engineer",
+              "technical_director", "lead_architect", "research_lead", "security_chief", "risk_analyst", "it_director"
+            ],
+            "description": "Primary role assignment"
+          },
+          "strength": {
+            "type": "string",
+            "description": "Primary strength or capability"
+          },
+          "humaneval_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "HumanEval benchmark score percentage"
+          },
+          "swe_bench_score": {
+            "type": "number", 
+            "minimum": 0,
+            "maximum": 100,
+            "description": "SWE-bench benchmark score percentage"
+          },
+          "openrouter_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Direct URL to the model's OpenRouter page"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when model data was last updated"
+          },
+          "price_tier": {
+            "type": "string",
+            "enum": ["free", "economy", "value", "premium"],
+            "description": "Computed price tier classification"
+          }
+        },
+        "required": [
+          "rank", "name", "tier", "status", "context_window", 
+          "input_cost", "output_cost", "org_level", "specialization", 
+          "role", "strength", "openrouter_url", "last_updated"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["models"],
+  "additionalProperties": false
+}

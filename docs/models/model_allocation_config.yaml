@@ -1,0 +1,247 @@
+# Model Allocation Configuration for 25-Model Curated Set
+# Defines the structure and requirements for maintaining optimal model distribution
+
+allocation_strategy:
+  total_models: 25
+  framework_version: "1.0"
+  last_updated: "2025-08-11"
+
+# Price Tier Distribution with Rationale
+price_tier_allocation:
+  free:
+    target_count: 8
+    percentage: 32
+    rationale: "Higher redundancy due to frequent availability issues with free models"
+    min_count: 6
+    max_count: 10
+    
+  value:
+    target_count: 6  
+    percentage: 24
+    rationale: "Balanced cost/performance for regular production workloads"
+    min_count: 5
+    max_count: 8
+    
+  premium:
+    target_count: 6
+    percentage: 24
+    rationale: "High-performance models for critical executive and complex tasks"
+    min_count: 4
+    max_count: 8
+    
+  specialized:
+    target_count: 5
+    percentage: 20
+    rationale: "Niche capabilities (multimodal, reasoning, domain-specific)"
+    min_count: 3
+    max_count: 7
+
+# Organizational Level Distribution
+org_level_allocation:
+  junior:
+    target_count: 8
+    primary_tiers: ["free", "value"]
+    rationale: "Cost-effective models for basic development tasks"
+    performance_threshold:
+      humaneval_min: 60
+      cost_max: 1.0
+      
+  senior:
+    target_count: 10
+    primary_tiers: ["value", "premium"] 
+    rationale: "Professional-grade models for production development"
+    performance_threshold:
+      humaneval_min: 75
+      cost_max: 5.0
+      
+  executive:
+    target_count: 7
+    primary_tiers: ["premium", "specialized"]
+    rationale: "Top-tier models for strategic analysis and critical decisions"
+    performance_threshold:
+      humaneval_min: 85
+      cost_tolerance: "unlimited"
+
+# Capability Matrix Requirements
+capability_allocation:
+  general_purpose:
+    target_count: 8
+    percentage: 32
+    description: "Broad task handling across domains"
+    key_benchmarks: ["mmlu", "hellaswag", "arc"]
+    min_performance:
+      mmlu: 70
+      hellaswag: 75
+      
+  coding_specialists:
+    target_count: 6
+    percentage: 24
+    description: "Software development and engineering tasks"
+    key_benchmarks: ["humaneval", "swe_bench", "mbpp"]
+    min_performance:
+      humaneval: 75
+      swe_bench: 50
+      
+  reasoning_experts:
+    target_count: 5
+    percentage: 20
+    description: "Complex analysis and logical reasoning"
+    key_benchmarks: ["gsm8k", "math", "logic_reasoning"]
+    min_performance:
+      gsm8k: 80
+      math: 60
+      
+  multimodal:
+    target_count: 3
+    percentage: 12
+    description: "Vision + text processing capabilities"
+    key_benchmarks: ["mmmu", "vqav2", "textcaps"]
+    requirements: ["vision_support", "image_analysis"]
+    
+  conversation:
+    target_count: 3
+    percentage: 12  
+    description: "Optimized for chat and dialogue"
+    key_benchmarks: ["chatbot_arena", "mt_bench"]
+    requirements: ["conversation_tuning", "safety_alignment"]
+
+# Provider Diversity Requirements
+provider_distribution:
+  max_models_per_provider: 6
+  min_providers_required: 4
+  target_providers: 5-6
+  
+  # Strategic Model Retention Policy
+  protected_models:
+    tier_1_providers: ["openai", "anthropic", "google"]
+    min_models_per_tier1: 2  # Always retain 2 best performing models from each
+    protection_criteria:
+      - "Always keep top 2 performing models from OpenAI, Anthropic, Google"
+      - "For same-generation upgrades (e.g., Opus 4 -> 4.1), replace if no cost increase"
+      - "For new generations, may replace multiple deprecated models"
+      - "Evaluate end-of-life announcements as mandatory replacement triggers"
+  
+  preferred_providers:
+    - name: "openai"
+      max_models: 6
+      min_protected: 2
+      rationale: "Leading performance and reliability"
+      protection_strategy: "Retain flagship and most cost-effective models"
+      
+    - name: "anthropic"  
+      max_models: 5
+      min_protected: 2
+      rationale: "Strong safety and reasoning capabilities"
+      protection_strategy: "Retain latest Opus and Sonnet generations"
+      
+    - name: "google"
+      max_models: 4
+      min_protected: 2
+      rationale: "Large context windows and multimodal"
+      protection_strategy: "Retain latest Gemini Pro and Flash models"
+      
+    - name: "meta"
+      max_models: 4
+      rationale: "Open source leadership and free models"
+      
+    - name: "deepseek"
+      max_models: 3
+      rationale: "Excellent reasoning capabilities"
+      
+    - name: "others"
+      max_models: 3
+      rationale: "Innovation and niche capabilities"
+
+# Quality Thresholds by Tier
+quality_thresholds:
+  free_tier:
+    min_humaneval: 60
+    min_mmlu: 65
+    min_context: 32000
+    max_cost: 0.0
+    reliability_min: 90  # percentage uptime
+    
+  value_tier:
+    min_humaneval: 70
+    min_mmlu: 72
+    min_context: 65000
+    cost_range: [0.1, 2.0]
+    reliability_min: 95
+    
+  premium_tier:
+    min_humaneval: 80
+    min_mmlu: 80
+    min_context: 128000
+    min_cost: 2.0
+    reliability_min: 99
+
+# Replacement Decision Thresholds  
+replacement_thresholds:
+  # Standard replacement criteria
+  performance_improvement_min: 10  # percentage improvement required
+  cost_efficiency_improvement_min: 20  # percentage cost reduction with same performance
+  
+  weighted_scoring:
+    performance_weight: 0.4
+    cost_efficiency_weight: 0.3
+    strategic_value_weight: 0.2
+    operational_benefit_weight: 0.1
+    
+  replacement_score_threshold: 7.5  # out of 10
+  
+  # Protected Model Special Rules
+  protected_model_rules:
+    tier_1_providers: ["openai", "anthropic", "google"]
+    
+    same_generation_upgrade:
+      # For upgrades like Opus 4 -> Opus 4.1, GPT-4 -> GPT-4 Turbo
+      criteria: "Replace if no cost increase, regardless of performance improvement size"
+      cost_increase_threshold: 0  # 0% - no cost increase allowed
+      performance_threshold: 0.1  # Any measurable improvement
+      
+    cross_generation_replacement:
+      # For major releases like GPT-5 replacing GPT-4 series
+      criteria: "May replace multiple deprecated models from same provider"
+      max_models_replaced_per_provider: 4
+      requires_eol_announcement: false  # Can replace without EOL if significantly better
+      
+    protection_exceptions:
+      # When protected models can be replaced
+      - condition: "Provider announces end-of-life/deprecation"
+        action: "immediate_replacement_planning"
+      - condition: "Model unavailable for >7 days"  
+        action: "emergency_replacement"
+      - condition: "Cost increase >100% with no performance gain"
+        action: "strategic_replacement_review"
+  
+  mandatory_replacement_triggers:
+    - performance_degradation: -15  # percentage
+    - cost_increase: 50  # percentage  
+    - api_deprecation: true
+    - reliability_drop: 85  # percentage uptime
+    - end_of_life_announcement: true  # Provider deprecation notice
+
+# Monitoring and Maintenance
+maintenance_schedule:
+  model_performance_check: "daily"
+  availability_monitoring: "real-time"  
+  benchmark_update: "weekly"
+  allocation_review: "monthly"
+  framework_assessment: "quarterly"
+  
+health_metrics:
+  target_availability: 99
+  max_response_time_ms: 100
+  min_capability_coverage: 95  # percentage of capability matrix filled
+  max_provider_concentration: 40  # percentage from single provider
+
+# Emergency Procedures
+emergency_protocols:
+  min_viable_models: 15  # absolute minimum for system operation
+  critical_capabilities_required: ["general_purpose", "coding_specialists"]  
+  emergency_fallback_providers: ["openai", "anthropic", "google"]
+  
+  escalation_triggers:
+    - available_models_below: 20
+    - capability_gap: "critical"  
+    - provider_outage_duration: "4_hours"
