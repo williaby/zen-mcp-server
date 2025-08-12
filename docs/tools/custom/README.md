@@ -18,49 +18,40 @@ Each level uses appropriate models, budgets, and roles that match real-world org
 
 | Tool | Organizational Level | Cost Range | Models Used | Use Cases |
 |------|---------------------|-------------|-------------|-----------|
-| **`basic_consensus`** | Junior Developer | $0.00-0.50 | 3 free models | Development decisions, code reviews, basic validation |
-| **`review_consensus`** | Senior Staff | $1.00-5.00 | 5 professional models | Production decisions, architecture reviews, system design |
-| **`critical_consensus`** | Executive Leadership | $5.00-25.00 | 6 premium models | Strategic decisions, technology selection, enterprise architecture |
-| **`layered_consensus`** | Hierarchical | Variable | Tiered model selection | Comprehensive analysis building from junior through executive |
-| **`quickreview`** | Basic Validation | $0.00 | 2-3 free models only | Syntax checking, quick validation, development testing |
+| **`layered_consensus`** | Junior/Senior/Executive | Variable | Tiered model selection | Comprehensive organizational analysis (replaces individual consensus tools) |
+| **`model_evaluator`** | Technical Analysis | N/A | Web scraping analysis | AI model evaluation for collection expansion |
 | **`pr_prepare`** | Development Workflow | $0.00 | Git analysis only | PR preparation, branch validation, GitHub integration |
 | **`pr_review`** | Adaptive Review | $0.00-25.00 | Adaptive scaling | GitHub PR review, quality gates, multi-agent coordination |
 
+### Deprecated Tools (Use Replacements Instead)
+- ~~`basic_consensus`~~ → Use `layered_consensus` with `org_level="junior"` 
+- ~~`review_consensus`~~ → Use `layered_consensus` with `org_level="senior"`
+- ~~`critical_consensus`~~ → Use `layered_consensus` with `org_level="executive"`
+- ~~`quickreview`~~ → Use core `mcp__zen__quickreview` tool instead
+
 ## When to Use Each Tool
 
-### Basic Consensus (Junior Developer Level)
+### Layered Consensus (Organizational Analysis)
 ```
-Use for: Development decisions, code reviews, basic feasibility checks
-Budget: Intern/junior developer decision authority
-Examples: "Should we use this library?", "Is this code structure okay?", "Basic security check needed"
-```
-
-### Review Consensus (Senior Staff Level)  
-```
-Use for: Production decisions, architecture reviews, professional analysis
-Budget: Senior developer/team lead decision authority
-Examples: "Should we migrate to microservices?", "Evaluate this new framework", "Production deployment decision"
-```
-
-### Critical Consensus (Executive Leadership Level)
-```
-Use for: Strategic decisions, enterprise architecture, technology investments
-Budget: C-level/executive decision authority  
-Examples: "Should we adopt this new technology stack?", "Enterprise security strategy", "Major system redesign"
-```
-
-### Layered Consensus (Hierarchical Analysis)
-```
-Use for: Comprehensive analysis requiring multiple organizational perspectives
+Use for: Comprehensive analysis requiring organizational perspectives
 Budget: Variable based on selected tier (junior/senior/executive)
-Examples: "Get full organizational input on this proposal", "Need perspectives from all levels"
+Configuration: Set org_level to "junior", "senior", or "executive"
+
+Junior Level: Development decisions, code reviews, basic feasibility checks
+Senior Level: Production decisions, architecture reviews, professional analysis  
+Executive Level: Strategic decisions, enterprise architecture, technology investments
+
+Examples: 
+- "Get junior developer input on this library choice" (org_level="junior")
+- "Senior staff analysis of microservices migration" (org_level="senior") 
+- "Executive review of technology stack adoption" (org_level="executive")
 ```
 
-### QuickReview (Fast Validation)
+### Model Evaluator (Technical Analysis)
 ```
-Use for: Quick syntax checks, basic validation, development testing
-Budget: Zero cost (free models only)
-Examples: "Check this code for syntax errors", "Basic logic validation", "Quick feasibility check"
+Use for: Evaluating new AI models for potential addition to model collection
+Budget: Zero cost (web scraping analysis, no AI models used)
+Examples: "Evaluate this OpenRouter model", "Analyze replacement potential for existing models"
 ```
 
 ### PR Prepare (Development Workflow)
@@ -79,24 +70,27 @@ Examples: "Review PR for quality issues", "Security-focused PR analysis", "Perfo
 
 ## Model Selection Strategy
 
-### Automatic Organizational Mapping
+### Layered Consensus Model Selection
 
-Each tool automatically selects appropriate models based on organizational level:
+The `layered_consensus` tool automatically selects appropriate models based on organizational level:
 
-**Junior Developer Models:**
-- Free tier models preferred (cost optimization)
+**Junior Level (org_level="junior"):**
+- 3 free/low-cost models
 - Basic capability requirements
 - Focus on availability and reliability
+- Cost range: $0.00-0.50
 
-**Senior Staff Models:**
-- Professional-grade value tier models
+**Senior Level (org_level="senior"):**
+- 6 models: 3 junior + 3 professional-grade models
 - Balanced cost/performance optimization
 - Enhanced reasoning and analysis capabilities
+- Cost range: $1.00-5.00
 
-**Executive Leadership Models:**
-- Premium tier models for strategic decisions
-- Maximum capability and performance
-- Comprehensive analysis and reasoning
+**Executive Level (org_level="executive"):**
+- 8 models: 3 junior + 3 senior + 2 premium models
+- Maximum capability and comprehensive analysis
+- Strategic decision-making support
+- Cost range: $5.00-25.00
 
 ### Role-Based Analysis
 

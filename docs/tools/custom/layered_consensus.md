@@ -4,6 +4,20 @@
 
 The `layered_consensus` tool implements a realistic organizational hierarchy approach where higher tiers build upon lower-tier analysis, creating a cost-effective method for comprehensive decision-making that mirrors real IT organizational structures.
 
+## 🔄 Replaces Individual Consensus Tools
+
+This tool **consolidates and replaces** the previous individual consensus tools:
+
+- ✅ **Replaces `basic_consensus`** → Use `layered_consensus` with `org_level="junior"`
+- ✅ **Replaces `review_consensus`** → Use `layered_consensus` with `org_level="senior"`  
+- ✅ **Replaces `critical_consensus`** → Use `layered_consensus` with `org_level="executive"`
+
+**Benefits of consolidation:**
+- Single tool with consistent interface
+- Better code maintainability  
+- Unified layered approach with cost optimization
+- Same functionality with improved architecture
+
 ## Thinking Mode
 
 **Not applicable.** Layered consensus uses predetermined organizational models and hierarchical roles - the underlying consensus analysis handles any required reasoning at the model level.

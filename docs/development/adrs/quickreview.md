@@ -1,8 +1,9 @@
 # QuickReview Tool - Architecture Decision Record (ADR)
 
-**Status**: ✅ IMPLEMENTED  
+**Status**: 🚫 DEPRECATED - Replaced by core `mcp__zen__quickreview` tool  
 **Date**: 2025-08-08  
-**Tool Name**: `quickreview`  
+**Tool Name**: `quickreview` (deprecated)  
+**Replacement**: Use `mcp__zen__quickreview` tool instead  
 
 ## Overview
 Basic validation tool using 2-3 free models only for zero-cost validation tasks.

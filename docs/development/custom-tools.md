@@ -322,44 +322,59 @@ This section documents all custom tools added to this local installation:
 
 ### Currently Implemented Custom Tools
 
-#### QuickReview Tool (✅ IMPLEMENTED)
-- **`quickreview`**: Basic validation using free models (2-3 models)
-  - Purpose: Grammar, syntax, basic code validation, documentation review
-  - Models: Free tier models only (cost = $0)
-  - Features: Dynamic model selection, robust availability handling, role-based analysis
-  - Cost: $0/session
-  - Usage: `quickreview proposal:"Check this code syntax" files:["src/auth.py"] focus:"syntax"`
-  - Dependencies: Dynamic free model selection from current_models.md
+#### Layered Consensus Tool (✅ IMPLEMENTED)
+- **`layered_consensus`**: Hierarchical organizational analysis using tiered model selection
+  - Purpose: Comprehensive decision-making across organizational levels (junior/senior/executive)
+  - Models: Layered approach - junior (3), senior (6), executive (8) models
+  - Features: Cost-efficient hierarchical analysis, role-based organizational structure
+  - Cost: Variable by org_level ($0.00-0.50 junior, $1.00-5.00 senior, $5.00-25.00 executive)
+  - Usage: `layered_consensus proposal:"Technology decision analysis" org_level:"senior"`
+  - Dependencies: Dynamic model selector, centralized bands framework
   - Status: ✅ Fully implemented and tested
   - **Architecture**: Plugin-style (zero merge conflicts)
-  - **MCP Interface**: Optimized from 19 to 12 parameters (37% reduction)
   - **Files**: 
-    - `tools/custom/quickreview.py` - Main implementation (507 lines)
-    - `tools/custom/test_quickreview.py` - Self-contained tests (77 lines)
-    - `tools/custom/__init__.py` - Auto-discovery system (44 lines)
-    - `docs/development/adrs/quickreview.md` - Architecture Decision Record
-  - **Integration**: Minimal server.py modification (5 lines only)
-  - **Interface Optimization**: Custom `get_input_schema()` excludes 7 internal fields
+    - `tools/custom/layered_consensus.py` - Main implementation
+    - `tools/custom/dynamic_model_selector.py` - Shared model selection
+    - `tools/custom/__init__.py` - Auto-discovery system
+    - `docs/tools/custom/layered_consensus.md` - Complete documentation
 
-### Currently Planned Custom Tools
-
-#### Tiered Review Tools (In Development)
-
-- **`review`**: Peer review panel using value models (5-7 models)  
-  - Purpose: Development reviews, PR analysis, troubleshooting
-  - Models: Value tier models (≤$10 output/M)
-  - Roles: Security, Development, Architecture, Operations
-  - Cost: Moderate
+#### Model Evaluator Tool (✅ IMPLEMENTED)
+- **`model_evaluator`**: AI model evaluation for potential addition to model collection
+  - Purpose: Systematic evaluation of new AI models from OpenRouter URLs
+  - Models: None (web scraping analysis tool)
+  - Features: Quantitative scoring, replacement recommendations, CSV generation
+  - Cost: $0/analysis (no AI models used)
+  - Usage: `python tools/custom/model_evaluator.py https://openrouter.ai/openai/gpt-5`
+  - Dependencies: requests, beautifulsoup4 packages
+  - Status: ✅ Fully implemented with comprehensive documentation
   - **Architecture**: Plugin-style (zero merge conflicts)
-  - **ADR**: `docs/development/adrs/review.md` - Complete architecture plan
+  - **Files**: 
+    - `tools/custom/model_evaluator.py` - Main implementation
+    - `docs/tools/custom/model_evaluator.md` - Complete documentation and usage guide
 
-- **`criticalreview`**: Critical decision analysis using premium models (6+ models)
-  - Purpose: Major design decisions, root cause analysis, comprehensive remediation
-  - Models: All tiers including premium
-  - Roles: Lead Architect, Technical Director, Security Chief, Research Lead, System Integration, Risk Analysis
-  - Cost: Premium
-  - **Architecture**: Plugin-style (zero merge conflicts)
-  - **ADR**: `docs/development/adrs/criticalreview.md` - Complete architecture plan
+#### PR Management Tools (✅ IMPLEMENTED)
+- **`pr_prepare`**: Comprehensive PR preparation with GitHub integration
+- **`pr_review`**: Adaptive PR review with quality gates and multi-agent coordination
+  - Purpose: GitHub workflow automation and PR quality assurance
+  - Cost: Variable based on PR complexity
+  - Status: ✅ Fully implemented and documented
+  - **Files**: 
+    - `tools/custom/pr_prepare.py` - PR preparation implementation
+    - `tools/custom/pr_review.py` - PR review implementation
+    - `docs/tools/custom/pr_prepare.md` - Complete documentation
+    - `docs/tools/custom/pr_review.md` - Complete documentation
+
+### Deprecated/Superseded Tools
+
+#### Individual Consensus Tools (🚫 DEPRECATED)
+These tools have been consolidated into `layered_consensus` for better maintainability:
+
+- ~~`basic_consensus`~~ → Use `layered_consensus` with `org_level="junior"`
+- ~~`review_consensus`~~ → Use `layered_consensus` with `org_level="senior"`
+- ~~`critical_consensus`~~ → Use `layered_consensus` with `org_level="executive"`
+- ~~`quickreview`~~ → Use core `mcp__zen__quickreview` tool instead
+
+**Migration completed**: All functionality preserved in consolidated tools with improved architecture.
 
 **Dependencies**: 
 - Dynamic model selection from [current_models.md](./current_models.md)

@@ -1,8 +1,9 @@
 # Review Tool - Architecture Decision Record (ADR)
 
-**Status**: 📋 PLANNED  
+**Status**: 🚫 SUPERSEDED - Replaced by `layered_consensus` with org_level="senior"  
 **Date**: 2025-08-08  
-**Tool Name**: `review`  
+**Tool Name**: `review` (superseded)  
+**Replacement**: Use `layered_consensus` with `org_level="senior"` instead  
 
 ## Overview
 Peer review panel using 5-7 value tier models with IT governance role-based analysis.

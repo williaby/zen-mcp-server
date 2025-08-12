@@ -1,8 +1,9 @@
 # CriticalReview Tool - Architecture Decision Record (ADR)
 
-**Status**: 📋 PLANNED  
+**Status**: 🚫 SUPERSEDED - Replaced by `layered_consensus` with org_level="executive"  
 **Date**: 2025-08-08  
-**Tool Name**: `criticalreview`  
+**Tool Name**: `criticalreview` (superseded)  
+**Replacement**: Use `layered_consensus` with `org_level="executive"` instead  
 
 ## Overview
 Executive-level critical decision analysis using 6+ premium models for high-stakes decisions.

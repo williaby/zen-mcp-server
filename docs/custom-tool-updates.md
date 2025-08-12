@@ -1,7 +1,21 @@
 # Custom Tool Implementation Updates
 
+## 🚫 DEPRECATION NOTICE (2025-08-12)
+
+**The individual consensus tools analyzed in this document have been DEPRECATED and consolidated:**
+
+- ✅ **`basic_consensus`** → Replaced by `layered_consensus` with `org_level="junior"`
+- ✅ **`review_consensus`** → Replaced by `layered_consensus` with `org_level="senior"`  
+- ✅ **`critical_consensus`** → Replaced by `layered_consensus` with `org_level="executive"`
+
+**Current Status**: All functionality preserved in the unified `layered_consensus` tool with improved architecture and better maintainability. This document remains for historical reference and architectural insights.
+
+---
+
+## Historical Analysis (2025-08-10)
+
 **Date**: 2025-08-10  
-**Tools Reviewed**: basic_consensus, review_consensus, critical_consensus  
+**Tools Reviewed**: basic_consensus, review_consensus, critical_consensus (now deprecated)  
 **Review Method**: Expert analysis with Opus 4.1 + live testing with basic_consensus
 
 ## Executive Summary
