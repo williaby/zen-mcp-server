@@ -5,7 +5,7 @@ Implements quantitative decision framework for model replacement recommendations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Optional
 
 import requests
 
@@ -34,8 +34,8 @@ class ModelMetrics:
 
     # Operational metrics
     api_availability: float  # percentage uptime
-    rate_limits: Optional[Dict] = None
-    regional_availability: List[str] = None
+    rate_limits: Optional[dict] = None
+    regional_availability: list[str] = None
 
     # Strategic factors
     has_multimodal: bool = False
@@ -58,13 +58,13 @@ class ModelEvaluator:
             # Additional benchmark sources
         ]
 
-    def evaluate_model_for_replacement(self, openrouter_url: str) -> Dict:
+    def evaluate_model_for_replacement(self, openrouter_url: str) -> dict:
         """
         Main evaluation function - takes OpenRouter URL and returns replacement recommendation
-        
+
         Args:
             openrouter_url: URL to OpenRouter model page
-            
+
         Returns:
             Dict with evaluation results and replacement recommendation
         """
@@ -114,7 +114,7 @@ class ModelEvaluator:
             logger.error(f"Evaluation failed for {openrouter_url}: {e}")
             return {"error": f"Evaluation failed: {str(e)}"}
 
-    def _extract_openrouter_data(self, url: str) -> Optional[Dict]:
+    def _extract_openrouter_data(self, url: str) -> Optional[dict]:
         """Extract model information from OpenRouter URL"""
         try:
             # Parse model name from URL
@@ -134,7 +134,7 @@ class ModelEvaluator:
             logger.error(f"Failed to extract OpenRouter data: {e}")
             return None
 
-    def _gather_model_metrics(self, model_data: Dict) -> Optional[ModelMetrics]:
+    def _gather_model_metrics(self, model_data: dict) -> Optional[ModelMetrics]:
         """Gather comprehensive metrics from multiple sources"""
         try:
             # Extract basic info from OpenRouter
@@ -184,7 +184,7 @@ class ModelEvaluator:
             metrics.api_availability >= 90
         )
 
-    def _find_replacement_candidates(self, new_model: ModelMetrics) -> List[ModelMetrics]:
+    def _find_replacement_candidates(self, new_model: ModelMetrics) -> list[ModelMetrics]:
         """Find existing models that could be replaced by the new model"""
         candidates = []
 
@@ -228,7 +228,7 @@ class ModelEvaluator:
         return candidates
 
     def _calculate_best_replacement(self, new_model: ModelMetrics,
-                                  candidates: List[ModelMetrics]) -> Dict:
+                                  candidates: list[ModelMetrics]) -> dict:
         """Calculate replacement score for best candidate"""
         best_score = 0
         best_target = None
@@ -262,7 +262,7 @@ class ModelEvaluator:
         }
 
     def _calculate_replacement_score(self, new_model: ModelMetrics,
-                                   existing_model: ModelMetrics) -> Dict[str, float]:
+                                   existing_model: ModelMetrics) -> dict[str, float]:
         """Calculate detailed replacement scores across all criteria"""
 
         # Check for same-generation upgrade special rules
@@ -334,7 +334,7 @@ class ModelEvaluator:
             "operational_benefit": operational_score
         }
 
-    def _generate_replacement_reasoning(self, score_breakdown: Dict,
+    def _generate_replacement_reasoning(self, score_breakdown: dict,
                                       new_model: ModelMetrics,
                                       existing_model: ModelMetrics) -> str:
         """Generate human-readable reasoning for replacement recommendation"""
@@ -361,7 +361,7 @@ class ModelEvaluator:
 
         return " | ".join(reasons) if reasons else "Marginal improvements across multiple criteria"
 
-    def _generate_implementation_plan(self, replacement_result: Dict) -> Dict:
+    def _generate_implementation_plan(self, replacement_result: dict) -> dict:
         """Generate implementation timeline and steps"""
         if not replacement_result["target"]:
             return {}
@@ -418,7 +418,7 @@ class ModelEvaluator:
         else:
             return "premium"
 
-    def _classify_capabilities(self, model: ModelMetrics) -> List[str]:
+    def _classify_capabilities(self, model: ModelMetrics) -> list[str]:
         """Classify model capabilities based on performance and features"""
         capabilities = []
 
@@ -517,7 +517,7 @@ class ModelEvaluator:
         return model.api_availability < 85
 
     def _calculate_same_generation_score(self, new_model: ModelMetrics,
-                                       existing_model: ModelMetrics) -> Dict[str, float]:
+                                       existing_model: ModelMetrics) -> dict[str, float]:
         """
         Special scoring for same-generation upgrades (e.g., Opus 4 -> Opus 4.1)
         Rule: Replace if no cost increase, regardless of performance improvement size
@@ -563,7 +563,7 @@ class ModelEvaluator:
                 "operational_benefit": 3.0  # Reduced operational benefit
             }
 
-    def _fetch_benchmark_scores(self, model_name: str) -> Dict[str, float]:
+    def _fetch_benchmark_scores(self, model_name: str) -> dict[str, float]:
         """Fetch benchmark scores from multiple sources"""
         # Implementation would fetch from various benchmark leaderboards
         # For now, return placeholder structure
@@ -576,13 +576,13 @@ class ModelEvaluator:
             "math": 0
         }
 
-    def _detect_multimodal_capability(self, model_data: Dict) -> bool:
+    def _detect_multimodal_capability(self, model_data: dict) -> bool:
         """Detect if model has multimodal capabilities"""
         description = model_data.get("description", "").lower()
         return any(keyword in description for keyword in
                   ["multimodal", "vision", "image", "visual"])
 
-    def _detect_vision_capability(self, model_data: Dict) -> bool:
+    def _detect_vision_capability(self, model_data: dict) -> bool:
         """Detect if model has vision processing capabilities"""
         description = model_data.get("description", "").lower()
         return any(keyword in description for keyword in
@@ -596,7 +596,7 @@ class ModelEvaluator:
             return '/'.join(parts[-2:])
         return parts[-1] if parts else ""
 
-    def _load_config(self, config_path: str) -> Dict:
+    def _load_config(self, config_path: str) -> dict:
         """Load configuration from YAML file"""
         # Implementation would load the YAML configuration
         return {}

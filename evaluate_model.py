@@ -7,7 +7,7 @@ if they should be added to the Zen MCP Server model collection.
 
 Usage:
     python evaluate_model.py <openrouter_url>
-    
+
 Example:
     python evaluate_model.py https://openrouter.ai/ai21/jamba-large-1.7
 """
