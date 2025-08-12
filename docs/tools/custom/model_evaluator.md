@@ -141,9 +141,11 @@ Performance improvement: +5.6% on key benchmarks | Cost savings: -80.0% average 
 
 ### CSV-Only Output
 
+The WorkflowTool automatically includes CSV entries in the final step output when models are recommended:
+
 ```bash
-python evaluate_model.py https://openrouter.ai/openai/gpt-5 --csv-only
-# Output: 1,openai/gpt-5,openai,premium,paid,400K,5.0,15.0,executive,general,lead_architect,next_generation,90.0,80.0,https://openrouter.ai/openai/gpt-5,2025-08-12
+# CSV output is included in workflow results
+# Format: 1,openai/gpt-5,openai,premium,paid,400K,5.0,15.0,executive,general,lead_architect,next_generation,90.0,80.0,https://openrouter.ai/openai/gpt-5,2025-08-12
 ```
 
 ## Model Classification
@@ -277,20 +279,22 @@ framework_config = {
 
 ### High-Performance Model (Recommended)
 ```bash
-python evaluate_model.py https://openrouter.ai/openai/gpt-5
+# Use through MCP workflow
+Claude Code> Use model_evaluator with URL "https://openrouter.ai/openai/gpt-5"
 # Result: ✅ REPLACEMENT RECOMMENDED (Score: 8.5/10)
 ```
 
 ### Free Model (May Not Qualify)
 ```bash  
-python evaluate_model.py https://openrouter.ai/ai21/jamba-large-1.7
+# Workflow evaluation of free models
+Claude Code> Evaluate "https://openrouter.ai/ai21/jamba-large-1.7"
 # Result: ❌ REPLACEMENT NOT RECOMMENDED (Below performance threshold)
 ```
 
 ### CSV Integration
 ```bash
-# Generate CSV entry for approved model
-python evaluate_model.py https://openrouter.ai/anthropic/claude-opus-4.1 --csv-only >> docs/models/models.csv
+# CSV entries automatically generated in workflow output when recommended
+# No manual file operations needed - integrated into tool results
 ```
 
 ## Future Enhancements
@@ -332,17 +336,20 @@ This tool provides a systematic, data-driven approach to model evaluation that a
 
 **Check Free Model Viability:**
 ```bash
-python evaluate_model.py https://openrouter.ai/meta-llama/llama-3.3-70b-instruct:free
+# Through workflow tool
+Claude Code> Check viability of "https://openrouter.ai/meta-llama/llama-3.3-70b-instruct:free"
 ```
 
-**Generate CSV Entry Only:**
+**Generate CSV Entry:**
 ```bash
-python evaluate_model.py https://openrouter.ai/anthropic/claude-opus-4.1 --csv-only
+# CSV entries automatically included in workflow results when models are recommended
+# No separate CSV-only mode needed
 ```
 
 **Verbose Analysis:**
 ```bash
-python evaluate_model.py https://openrouter.ai/google/gemini-2.5-pro --verbose
+# Use higher thinking_mode for detailed analysis
+Claude Code> Use model_evaluator with thinking_mode: "high" for "https://openrouter.ai/google/gemini-2.5-pro"
 ```
 
 ## Key Features
@@ -412,32 +419,37 @@ Models scoring **≥7.5/10** are recommended for replacement with detailed imple
 
 **High-Performance Model Assessment:**
 ```bash
-python evaluate_model.py https://openrouter.ai/openai/gpt-5
-# Expected: ✅ REPLACEMENT RECOMMENDED (Score: 8.5/10)
+# Through MCP framework workflow
+Claude Code> Use model_evaluator to analyze "https://openrouter.ai/openai/gpt-5"
+# Tool guides through multi-step evaluation process
+# Expected result: ✅ REPLACEMENT RECOMMENDED (Score: 8.5/10)
 # Reasoning: Superior performance + cost efficiency + strategic value
 ```
 
 **Free Model Evaluation:**
 ```bash
-python evaluate_model.py https://openrouter.ai/meta-llama/llama-3.3-70b-instruct:free
-# Expected: Depends on performance vs existing free models
+# Step-by-step evaluation of free models
+Claude Code> Evaluate this free model: "https://openrouter.ai/meta-llama/llama-3.3-70b-instruct:free"
+# Tool performs systematic analysis comparing against existing free models
 # Focus: Cost efficiency (maximum) + performance comparison
 ```
 
 **Specialized Model Review:**
 ```bash
-python evaluate_model.py https://openrouter.ai/qwen/qwen3-coder
-# Expected: Evaluated against existing coding specialists
+# Workflow-guided analysis of specialized models
+Claude Code> Use model_evaluator for coding specialist: "https://openrouter.ai/qwen/qwen3-coder"
+# Tool evaluates against existing coding specialists
 # Focus: Coding benchmark performance + specialization value
 ```
 
 **Integration with Model Collection:**
-```bash
-# Generate approved model entry
-python evaluate_model.py https://openrouter.ai/anthropic/claude-opus-4.1 --csv-only >> docs/models/models.csv
 
-# Update model selector cache
-python -c "from tools.custom.dynamic_model_selector import DynamicModelSelector; DynamicModelSelector()"
+The WorkflowTool automatically generates CSV entries when models are recommended:
+
+```bash
+# Tool output includes CSV entry if replacement is recommended
+# No manual CSV generation needed - integrated into workflow results
+# Model selector cache updates automatically through framework
 ```
 
 ## Output Formats
@@ -502,13 +514,24 @@ Performance improvement: +5.6% on key benchmarks | Cost savings: -80.0% average 
 
 ## Best Practices
 
-- **Verify URLs**: Ensure OpenRouter URLs are current and accessible before evaluation
-- **Consider context**: Evaluate models within your specific use case requirements
-- **Review recommendations**: Human oversight recommended for all replacement decisions
-- **Test incrementally**: Follow generated implementation plans for safe rollouts
-- **Monitor performance**: Track actual vs predicted improvements post-deployment
-- **Maintain diversity**: Balance provider representation and capability coverage
-- **Document decisions**: Keep evaluation reports for future reference and audit trails
+- **Use workflow pattern**: Let the tool guide you through systematic multi-step analysis
+- **Provide clear URLs**: Ensure OpenRouter URLs are current and accessible before starting workflow
+- **Follow step progression**: Complete each investigation step thoroughly before proceeding
+- **Review workflow findings**: Each step builds on previous analysis - review accumulated findings
+- **Trust tool recommendations**: The quantitative scoring framework provides objective assessments
+- **Consider organizational context**: Evaluate models within your specific use case requirements
+- **Monitor implementation**: Track actual vs predicted improvements post-deployment
+- **Maintain provider diversity**: Balance provider representation and capability coverage
+
+## Workflow Tool Advantages
+
+- **Systematic investigation**: Step-by-step analysis ensures comprehensive evaluation
+- **Progress tracking**: Clear visibility into evaluation progress and findings
+- **Framework integration**: Seamless operation within MCP server infrastructure
+- **Automatic validation**: Input validation and schema compliance built-in
+- **Expert analysis**: Optional consultation with external models for validation
+- **Consolidated findings**: Accumulated analysis across all workflow steps
+- **Standardized output**: Consistent response format following WorkflowTool patterns
 
 ## Integration with Dynamic Model Selector
 
@@ -554,10 +577,32 @@ pip install requests beautifulsoup4
 
 ## When to Use Model Evaluator vs Other Tools
 
-- **Use `model_evaluator`** for: Systematic assessment of new models, replacement decisions, cost-benefit analysis
-- **Use `consensus`** for: Multi-perspective analysis of evaluation results, stakeholder alignment
-- **Use `chat`** for: Discussing model selection strategy and requirements
-- **Use `analyze`** for: Understanding existing model performance and usage patterns
+- **Use `model_evaluator`** for: Systematic step-by-step assessment of new models from OpenRouter URLs, replacement decisions, quantitative cost-benefit analysis
+- **Use `consensus`** for: Multi-perspective analysis of evaluation results, stakeholder alignment on model selection decisions
+- **Use `chat`** for: Discussing model selection strategy and requirements, quick model comparisons
+- **Use `analyze`** for: Understanding existing model performance patterns, usage analysis of current model collection
+
+## WorkflowTool Integration
+
+The model_evaluator integrates seamlessly with the Zen MCP Server infrastructure:
+
+### Framework Integration
+```python
+# Tool registration (automatic)
+class ModelEvaluatorTool(WorkflowTool):
+    def get_name(self) -> str:
+        return "model_evaluator"
+    
+    def get_workflow_request_model(self):
+        return ModelEvaluatorRequest
+```
+
+### Workflow Pattern
+- **Step-by-step investigation**: Guided analysis with progress tracking
+- **MCP framework compliance**: Standard tool execution and response patterns
+- **Automatic schema generation**: Input validation using WorkflowRequest model
+- **Expert analysis integration**: Optional external model consultation
+- **File processing support**: Context-aware file embedding for analysis
 
 ## Future Enhancements
 
