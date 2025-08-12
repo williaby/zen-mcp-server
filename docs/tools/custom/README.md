@@ -23,6 +23,8 @@ Each level uses appropriate models, budgets, and roles that match real-world org
 | **`critical_consensus`** | Executive Leadership | $5.00-25.00 | 6 premium models | Strategic decisions, technology selection, enterprise architecture |
 | **`layered_consensus`** | Hierarchical | Variable | Tiered model selection | Comprehensive analysis building from junior through executive |
 | **`quickreview`** | Basic Validation | $0.00 | 2-3 free models only | Syntax checking, quick validation, development testing |
+| **`pr_prepare`** | Development Workflow | $0.00 | Git analysis only | PR preparation, branch validation, GitHub integration |
+| **`pr_review`** | Adaptive Review | $0.00-25.00 | Adaptive scaling | GitHub PR review, quality gates, multi-agent coordination |
 
 ## When to Use Each Tool
 
@@ -59,6 +61,20 @@ Examples: "Get full organizational input on this proposal", "Need perspectives f
 Use for: Quick syntax checks, basic validation, development testing
 Budget: Zero cost (free models only)
 Examples: "Check this code for syntax errors", "Basic logic validation", "Quick feasibility check"
+```
+
+### PR Prepare (Development Workflow)
+```
+Use for: Pull request preparation, branch validation, GitHub integration
+Budget: Zero cost (git analysis only, no AI models)
+Examples: "Prepare comprehensive PR description", "Validate branch strategy", "Create draft PR with GitHub integration"
+```
+
+### PR Review (Adaptive Review)
+```
+Use for: GitHub PR review with adaptive analysis, quality gates, multi-agent coordination
+Budget: Variable cost based on PR complexity ($0-25 adaptive scaling)
+Examples: "Review PR for quality issues", "Security-focused PR analysis", "Performance optimization review"
 ```
 
 ## Model Selection Strategy
@@ -149,6 +165,12 @@ zen layered_consensus "Evaluate our proposed architecture migration" --org-level
 ```bash
 # Quick validation during development (free)
 zen quickreview "Check this code for basic issues" --focus syntax
+
+# PR preparation and GitHub integration (free)
+zen pr_prepare --type feat --create-pr --target-branch phase-1-development
+
+# Adaptive PR review with quality gates (variable cost)
+zen pr_review --pr-url https://github.com/team/repo/pull/123 --mode adaptive
 
 # Professional review before production (moderate cost)
 zen review_consensus "Review this implementation for production readiness"

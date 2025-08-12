@@ -1,0 +1,44 @@
+{
+  "free": [
+    "meta-llama/llama-3.1-405b-instruct:free",
+    "deepseek/deepseek-r1-distill-llama-70b:free",
+    "moonshotai/kimi-k2:free",
+    "qwen/qwen-2.5-coder-32b-instruct:free",
+    "microsoft/phi-4-reasoning:free",
+    "microsoft/mai-ds-r1:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "qwen/qwq-32b:free",
+    "qwen/qwen3-14b:free",
+    "qwen/qwen3-32b:free",
+    "qwen/qwen3-235b-a22b:free",
+    "qwen/qwen2.5-vl-72b-instruct:free",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "meta-llama/llama-4-maverick:free",
+    "deepseek/deepseek-chat:free",
+    "deepseek/deepseek-r1-0528-qwen3-8b:free",
+    "mistralai/mistral-nemo:free",
+    "openrouter/cypher-alpha:free",
+    "tngtech/deepseek-r1t-chimera:free"
+  ],
+  "economy": [
+    "openai/gpt-5-mini",
+    "deepseek/deepseek-r1-0528",
+    "google/gemini-2.5-flash",
+    "openai/o4-mini",
+    "qwen/qwen3-coder",
+    "openai/gpt-5-nano",
+    "moonshotai/kimi-k2",
+    "microsoft/phi-4"
+  ],
+  "value": [
+    "openai/gpt-5",
+    "openai/gpt-5-chat",
+    "anthropic/claude-sonnet-4",
+    "google/gemini-2.5-pro",
+    "mistralai/mistral-large-2411"
+  ],
+  "premium": [
+    "anthropic/claude-opus-4.1"
+  ]
+}

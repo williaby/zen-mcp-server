@@ -1,0 +1,44 @@
+{
+  "compact": [
+    "deepseek/deepseek-r1-0528",
+    "deepseek/deepseek-chat:free",
+    "deepseek/deepseek-r1-0528-qwen3-8b:free"
+  ],
+  "standard": [
+    "anthropic/claude-opus-4.1",
+    "anthropic/claude-sonnet-4",
+    "openai/o4-mini",
+    "qwen/qwen3-coder",
+    "mistralai/mistral-large-2411",
+    "moonshotai/kimi-k2",
+    "microsoft/phi-4",
+    "meta-llama/llama-3.1-405b-instruct:free",
+    "deepseek/deepseek-r1-distill-llama-70b:free",
+    "moonshotai/kimi-k2:free",
+    "qwen/qwen-2.5-coder-32b-instruct:free",
+    "microsoft/phi-4-reasoning:free",
+    "microsoft/mai-ds-r1:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "qwen/qwq-32b:free",
+    "qwen/qwen3-14b:free",
+    "qwen/qwen3-32b:free",
+    "qwen/qwen3-235b-a22b:free",
+    "qwen/qwen2.5-vl-72b-instruct:free",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "meta-llama/llama-4-maverick:free",
+    "mistralai/mistral-nemo:free",
+    "openrouter/cypher-alpha:free",
+    "tngtech/deepseek-r1t-chimera:free"
+  ],
+  "extended": [
+    "openai/gpt-5",
+    "openai/gpt-5-chat",
+    "openai/gpt-5-mini",
+    "openai/gpt-5-nano"
+  ],
+  "large": [
+    "google/gemini-2.5-pro",
+    "google/gemini-2.5-flash"
+  ]
+}
