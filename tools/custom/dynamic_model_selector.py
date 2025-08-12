@@ -15,7 +15,7 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 try:
     import jsonschema
@@ -50,6 +50,11 @@ class DynamicModelSelector:
         self.parsed_models = {}
         self.bands_config = {}
         self.schema = None
+        
+        # Rate limit tracking for Phase 1 implementation
+        self.rate_limit_tracker = {}
+        self.provider_health = {}
+        
         self._load_schema()
         self._load_cached_data()
         
@@ -1562,6 +1567,348 @@ class DynamicModelSelector:
             logger.info(f"{band_name} band: {len(models)} models - {models}")
         
         return band_assignments
+    
+    # Phase 1 Implementation: Rate Limit Detection and Basic Fallback
+    
+    def detect_rate_limit_error(self, error_response: Any) -> Dict[str, Any]:
+        """
+        Enhanced rate limit detection with provider-specific patterns.
+        
+        Args:
+            error_response: Error response from API call
+            
+        Returns:
+            Dict with rate limit detection results
+        """
+        rate_limit_indicators = {
+            'openrouter': [
+                'rate limit exceeded', 
+                'limit_rpm', 
+                'code": 429',
+                'requests per minute',
+                'high demand'
+            ],
+            'openai': [
+                'rate_limit_exceeded', 
+                'requests per minute',
+                'tokens per minute'
+            ],
+            'anthropic': [
+                'rate_limit_error', 
+                'too_many_requests'
+            ]
+        }
+        
+        if not error_response:
+            return {'is_rate_limited': False}
+            
+        error_text = str(error_response).lower()
+        
+        for provider, patterns in rate_limit_indicators.items():
+            if any(pattern in error_text for pattern in patterns):
+                # Extract additional info from error
+                model_name = self._extract_model_from_error(error_response)
+                retry_after = self._extract_retry_time(error_response)
+                
+                logger.warning(f"Rate limit detected for {provider} model {model_name}")
+                
+                return {
+                    'is_rate_limited': True,
+                    'provider': provider,
+                    'model': model_name,
+                    'retry_after': retry_after,
+                    'error_text': error_text
+                }
+        
+        return {'is_rate_limited': False}
+    
+    def _extract_model_from_error(self, error_response: Any) -> str:
+        """Extract model name from error response"""
+        error_text = str(error_response)
+        
+        # Common patterns for model names in error messages
+        patterns = [
+            r'model\s+([^\s,]+)',
+            r'/([^/\s]+)(?:/[^/\s]*)?$',  # Extract from URL path
+            r'limit_rpm/([^/\s]+)',       # OpenRouter specific
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, error_text)
+            if match:
+                return match.group(1)
+        
+        return "unknown"
+    
+    def _extract_retry_time(self, error_response: Any) -> int:
+        """Extract retry-after time from error response (in seconds)"""
+        error_text = str(error_response)
+        
+        # Look for retry indicators
+        patterns = [
+            r'retry.*?(\d+).*?second',
+            r'(\d+).*?requests per minute',
+            r'reset.*?(\d+)',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, error_text, re.IGNORECASE)
+            if match:
+                return int(match.group(1))
+        
+        # Default to 60 seconds for free models
+        if 'free' in error_text:
+            return 60
+        
+        return 30  # Default retry time
+    
+    def track_model_usage(self, model_name: str, provider: str, success: bool = True):
+        """
+        Track model usage and success rates for intelligent fallback.
+        
+        Args:
+            model_name: Name of the model used
+            provider: Provider name  
+            success: Whether the call was successful
+        """
+        key = f"{provider}/{model_name}"
+        current_time = time.time()
+        
+        if key not in self.rate_limit_tracker:
+            self.rate_limit_tracker[key] = {
+                'requests_this_minute': 0,
+                'requests_today': 0,
+                'last_reset': current_time,
+                'consecutive_failures': 0,
+                'last_success': current_time if success else 0
+            }
+        
+        tracker = self.rate_limit_tracker[key]
+        
+        # Reset minute counter if needed
+        if current_time - tracker['last_reset'] > 60:
+            tracker['requests_this_minute'] = 0
+            tracker['last_reset'] = current_time
+            
+        # Update counters
+        tracker['requests_this_minute'] += 1
+        tracker['requests_today'] += 1
+        
+        # Track success/failure patterns
+        if success:
+            tracker['consecutive_failures'] = 0
+            tracker['last_success'] = current_time
+        else:
+            tracker['consecutive_failures'] += 1
+            
+        # Update provider health
+        self._update_provider_health(provider, success)
+    
+    def _update_provider_health(self, provider: str, success: bool):
+        """Update provider health tracking"""
+        if provider not in self.provider_health:
+            self.provider_health[provider] = {
+                'success_count': 0,
+                'failure_count': 0,
+                'last_success': 0,
+                'last_failure': 0
+            }
+        
+        health = self.provider_health[provider]
+        
+        if success:
+            health['success_count'] += 1
+            health['last_success'] = time.time()
+        else:
+            health['failure_count'] += 1
+            health['last_failure'] = time.time()
+    
+    def is_model_available(self, model_name: str, provider: str) -> bool:
+        """
+        Check if a model is likely available based on recent usage patterns.
+        
+        Args:
+            model_name: Model name to check
+            provider: Provider name
+            
+        Returns:
+            True if model appears available
+        """
+        key = f"{provider}/{model_name}"
+        
+        if key not in self.rate_limit_tracker:
+            return True  # Assume available if no history
+            
+        tracker = self.rate_limit_tracker[key]
+        current_time = time.time()
+        
+        # Check if we're likely rate limited
+        if tracker['requests_this_minute'] >= 20:  # Free tier limit
+            return False
+            
+        if tracker['consecutive_failures'] >= 3:
+            # Check if enough time has passed since last failure
+            time_since_failure = current_time - tracker.get('last_success', 0)
+            if time_since_failure < 300:  # 5 minutes cooldown
+                return False
+                
+        return True
+    
+    def get_fallback_models(self, org_level: str, exclude_models: List[str] = None) -> List[Dict]:
+        """
+        Get fallback models when primary selection fails.
+        Phase 1: Focus on low-cost alternatives when free models are rate limited.
+        
+        Args:
+            org_level: Target organizational level
+            exclude_models: Models to exclude from fallback
+            
+        Returns:
+            List of fallback models ordered by preference
+        """
+        exclude_models = exclude_models or []
+        fallback_candidates = []
+        
+        # Get models suitable for the org level
+        suitable_models = []
+        for model in self.models_data:
+            if model['name'] in exclude_models:
+                continue
+                
+            # Check if model is likely available
+            if not self.is_model_available(model['name'], model['provider']):
+                continue
+                
+            suitable_models.append(model)
+        
+        # Sort by preference: cost efficiency and performance
+        suitable_models.sort(key=lambda x: (
+            float(x.get('input_cost', 0)),  # Lower cost first
+            -float(x.get('humaneval_score', 0))  # Higher performance first
+        ))
+        
+        # Phase 1 Fallback Strategy:
+        # 1. Try other free models first
+        # 2. Escalate to low-cost models (<$2/1M tokens)  
+        # 3. Include one premium model as last resort
+        
+        free_models = [m for m in suitable_models if float(m.get('input_cost', 0)) == 0]
+        low_cost_models = [m for m in suitable_models if 0 < float(m.get('input_cost', 0)) <= 2.0]
+        premium_models = [m for m in suitable_models if float(m.get('input_cost', 0)) > 2.0]
+        
+        # Build fallback cascade
+        fallback_candidates = free_models[:3] + low_cost_models[:2] + premium_models[:1]
+        
+        logger.info(f"Generated {len(fallback_candidates)} fallback models for {org_level}")
+        logger.debug(f"Fallback breakdown: {len(free_models[:3])} free, {len(low_cost_models[:2])} low-cost, {len(premium_models[:1])} premium")
+        
+        return fallback_candidates
+    
+    def select_models_with_fallback(self, org_level: str, tool_name: str = "consensus") -> Tuple[List[str], float]:
+        """
+        Enhanced model selection with intelligent rate limit fallback.
+        Phase 1 implementation of resilient model selection.
+        
+        Args:
+            org_level: Organizational level (junior/senior/executive)
+            tool_name: Name of the calling tool for logging
+            
+        Returns:
+            Tuple of (model_names, estimated_cost)
+        """
+        try:
+            # Attempt primary selection
+            logger.info(f"Attempting primary model selection for {org_level} ({tool_name})")
+            primary_models, primary_cost = self.select_consensus_models(org_level)
+            
+            # Check if primary models are available
+            available_models = []
+            rate_limited_models = []
+            
+            for model_name in primary_models:
+                # Find model details
+                model_data = next((m for m in self.models_data if m['name'] == model_name), None)
+                if not model_data:
+                    continue
+                    
+                if self.is_model_available(model_name, model_data['provider']):
+                    available_models.append(model_name)
+                else:
+                    rate_limited_models.append(model_name)
+            
+            # If we have enough available models, use primary selection
+            min_required = {"junior": 2, "senior": 3, "executive": 4}
+            if len(available_models) >= min_required.get(org_level.lower(), 2):
+                logger.info(f"Primary selection successful: {len(available_models)} models available")
+                if rate_limited_models:
+                    logger.warning(f"Some models rate limited: {rate_limited_models}")
+                return available_models, primary_cost
+            
+            # Need fallback - log the issue
+            logger.warning(f"Primary selection insufficient: {len(available_models)} available, {len(rate_limited_models)} rate limited")
+            
+            # Get fallback models
+            fallback_models = self.get_fallback_models(org_level, exclude_models=rate_limited_models)
+            
+            if not fallback_models:
+                logger.error("No fallback models available - using emergency selection")
+                return self._emergency_model_selection(org_level)
+            
+            # Select appropriate number of fallback models
+            target_count = min_required.get(org_level.lower(), 2)
+            selected_fallback = fallback_models[:target_count + 1]  # +1 for buffer
+            
+            fallback_names = [m['name'] for m in selected_fallback]
+            fallback_cost = self._estimate_consensus_cost(selected_fallback, org_level)
+            
+            logger.info(f"Fallback selection successful: {len(fallback_names)} models")
+            logger.info(f"Fallback models: {fallback_names}")
+            
+            # Log cost escalation if applicable
+            if fallback_cost > primary_cost * 1.5:
+                logger.warning(f"Cost escalation: {fallback_cost:.3f} vs {primary_cost:.3f} (primary)")
+            
+            return fallback_names, fallback_cost
+            
+        except Exception as e:
+            logger.error(f"Model selection with fallback failed for {org_level}: {e}")
+            return self._emergency_model_selection(org_level)
+    
+    def _emergency_model_selection(self, org_level: str) -> Tuple[List[str], float]:
+        """
+        Emergency model selection when all else fails.
+        Returns minimal viable model set.
+        """
+        try:
+            # Get any available models, sorted by reliability
+            all_models = sorted(self.models_data, key=lambda x: (
+                -float(x.get('humaneval_score', 0)),  # Best performance first
+                float(x.get('input_cost', 999))       # Lowest cost second
+            ))
+            
+            # Select first few available models
+            emergency_models = []
+            for model in all_models:
+                if len(emergency_models) >= 3:  # Minimum viable set
+                    break
+                if self.is_model_available(model['name'], model['provider']):
+                    emergency_models.append(model)
+            
+            if not emergency_models:
+                # Absolute fallback - use first available model regardless
+                emergency_models = all_models[:1]
+                logger.error("Using absolute emergency fallback - single model selection")
+            
+            names = [m['name'] for m in emergency_models]
+            cost = self._estimate_consensus_cost(emergency_models, org_level)
+            
+            logger.error(f"Emergency selection activated: {names}")
+            return names, cost
+            
+        except Exception as e:
+            logger.critical(f"Emergency model selection failed: {e}")
+            # Absolute last resort
+            return ["gpt-4o-mini"], 0.5
 
 
 # Global instance for efficient reuse
