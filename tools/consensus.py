@@ -36,51 +36,16 @@ logger = logging.getLogger(__name__)
 
 # Tool-specific field descriptions for consensus workflow
 CONSENSUS_WORKFLOW_FIELD_DESCRIPTIONS = {
-    "step": (
-        "In step 1: Provide the EXACT question or proposal that ALL models will evaluate. This should be phrased as a clear "
-        "question or problem statement, NOT as 'I will analyze...' or 'Let me examine...'. For example: 'Should we build a "
-        "search component in SwiftUI for use in an AppKit app?' or 'Evaluate the proposal to migrate our database from MySQL "
-        "to PostgreSQL'. This exact text will be sent to all models for their independent evaluation. "
-        "In subsequent steps (2+): This field is for internal tracking only - you can provide notes about the model response "
-        "you just received. This will NOT be sent to other models (they all receive the original proposal from step 1)."
-    ),
-    "step_number": (
-        "The index of the current step in the consensus workflow, beginning at 1. Step 1 is your analysis, "
-        "steps 2+ are for processing individual model responses."
-    ),
-    "total_steps": (
-        "Total number of steps needed. This equals the number of models to consult. "
-        "Step 1 includes your analysis + first model consultation on return of the call. Final step includes "
-        "last model consultation + synthesis."
-    ),
-    "next_step_required": ("Set to true if more models need to be consulted. False when ready for final synthesis."),
-    "findings": (
-        "In step 1: Provide YOUR OWN comprehensive analysis of the proposal/question. This is where you share your "
-        "independent evaluation, considering technical feasibility, risks, benefits, and alternatives. This analysis "
-        "is NOT sent to other models - it's recorded for the final synthesis. "
-        "In steps 2+: Summarize the key points from the model response received, noting agreements and disagreements "
-        "with previous analyses."
-    ),
-    "relevant_files": (
-        "Files that are relevant to the consensus analysis. Include files that help understand the proposal, "
-        "provide context, or contain implementation details."
-    ),
-    "models": (
-        "List of model configurations to consult. Each can have a model name, stance (for/against/neutral), "
-        "and optional custom stance prompt. The same model can be used multiple times with different stances, "
-        "but each model + stance combination must be unique. "
-        "Example: [{'model': 'o3', 'stance': 'for'}, {'model': 'o3', 'stance': 'against'}, "
-        "{'model': 'flash', 'stance': 'neutral'}]"
-    ),
-    "current_model_index": (
-        "Internal tracking of which model is being consulted (0-based index). Used to determine which model "
-        "to call next."
-    ),
-    "model_responses": ("Accumulated responses from models consulted so far. Internal field for tracking progress."),
-    "images": (
-        "Optional list of image paths or base64 data URLs for visual context. Useful for UI/UX discussions, "
-        "architecture diagrams, mockups, or any visual references that help inform the consensus analysis."
-    ),
+    "step": "In step 1: Provide the EXACT question or proposal that ALL models will evaluate. In subsequent steps (2+): This field is for internal tracking only - you can provide notes about the model response you just received. This will NOT be sent to other models (they all receive the original proposal from step 1).",
+    "step_number": "The index of the current step in the consensus workflow, beginning at 1. Step 1 is your analysis, steps 2+ are for processing individual model responses.",
+    "total_steps": "Total number of steps needed. This equals the number of models to consult. Step 1 includes your analysis + first model consultation on return of the call. Final step includes last model consultation + synthesis.",
+    "next_step_required": "Set to true if more models need to be consulted. False when ready for final synthesis.",
+    "findings": "In step 1: Provide YOUR OWN comprehensive analysis of the proposal/question. This is where you share your independent evaluation, considering technical feasibility, risks, benefits, and alternatives. This analysis is NOT sent to other models - it's recorded for the final synthesis. In steps 2+: Summarize the key points from the model response received, noting agreements and disagreements with previous analyses.",
+    "relevant_files": "Files that are relevant to the consensus analysis. Include files that help understand the proposal, provide context, or contain implementation details.",
+    "models": "List of model configurations to consult. Each can have a model name, stance (for/against/neutral), and optional custom stance prompt. The same model can be used multiple times with different stances, but each model + stance combination must be unique. Example: [{'model': 'o3', 'stance': 'for'}, {'model': 'o3', 'stance': 'against'}, {'model': 'flash', 'stance': 'neutral'}]",
+    "current_model_index": "Internal tracking of which model is being consulted (0-based index). Used to determine which model to call next.",
+    "model_responses": "Accumulated responses from models consulted so far. Internal field for tracking progress.",
+    "images": "Optional list of image paths or base64 data URLs for visual context. Useful for UI/UX discussions, architecture diagrams, mockups, or any visual references that help inform the consensus analysis.",
 }
 
 

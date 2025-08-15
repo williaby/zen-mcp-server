@@ -325,59 +325,15 @@ class BaseTool(ABC):
                 ProviderType.OPENROUTER: "OpenRouter models",
             }
 
-            # Check available providers and add their model descriptions
+            # Streamlined provider descriptions to reduce context usage
+            native_models = ModelProviderRegistry.get_available_model_names()
+            if native_models:
+                model_desc_parts.append(f"\nNative models: {', '.join(sorted(native_models[:5]))}{'...' if len(native_models) > 5 else ''}")
 
-            # Start with native providers
-            for provider_type in [ProviderType.GOOGLE, ProviderType.OPENAI, ProviderType.XAI, ProviderType.DIAL]:
-                # Only if this is registered / available
-                provider = ModelProviderRegistry.get_provider(provider_type)
-                if provider:
-                    provider_section_added = False
-                    for model_name in provider.list_models(respect_restrictions=True):
-                        try:
-                            # Get model config to extract description
-                            model_config = provider.SUPPORTED_MODELS.get(model_name)
-                            if model_config and model_config.description:
-                                if not provider_section_added:
-                                    model_desc_parts.append(
-                                        f"\n{provider_names[provider_type]} - Available when {provider_type.value.upper()}_API_KEY is configured:"
-                                    )
-                                    provider_section_added = True
-                                model_desc_parts.append(f"- '{model_name}': {model_config.description}")
-                        except Exception:
-                            # Skip models without descriptions
-                            continue
-
-            # Add custom models if custom API is configured
+            # Add custom models if custom API is configured - streamlined
             custom_url = os.getenv("CUSTOM_API_URL")
             if custom_url:
-                # Load custom models from registry
-                try:
-                    registry = self._get_openrouter_registry()
-                    model_desc_parts.append(f"\nCustom models via {custom_url}:")
-
-                    # Find all custom models (is_custom=true)
-                    for alias in registry.list_aliases():
-                        config = registry.resolve(alias)
-                        # Check if this is a custom model that requires custom endpoints
-                        if config and config.is_custom:
-                            # Format context window
-                            context_tokens = config.context_window
-                            if context_tokens >= 1_000_000:
-                                context_str = f"{context_tokens // 1_000_000}M"
-                            elif context_tokens >= 1_000:
-                                context_str = f"{context_tokens // 1_000}K"
-                            else:
-                                context_str = str(context_tokens)
-
-                            desc_line = f"- '{alias}' ({context_str} context): {config.description}"
-                            if desc_line not in model_desc_parts:  # Avoid duplicates
-                                model_desc_parts.append(desc_line)
-                except Exception as e:
-                    import logging
-
-                    logging.debug(f"Failed to load custom model descriptions: {e}")
-                    model_desc_parts.append(f"\nCustom models: Models available via {custom_url}")
+                model_desc_parts.append(f"\nCustom models: Available via {custom_url}")
 
             if has_openrouter:
                 # Add OpenRouter models with descriptions
@@ -400,26 +356,9 @@ class BaseTool(ABC):
                     model_configs.sort(key=lambda x: (-x[1].context_window, x[0]))
 
                     if model_configs:
-                        model_desc_parts.append("\nOpenRouter models (use these aliases):")
-                        for alias, config in model_configs:  # Show ALL models so Claude can choose
-                            # Format context window in human-readable form
-                            context_tokens = config.context_window
-                            if context_tokens >= 1_000_000:
-                                context_str = f"{context_tokens // 1_000_000}M"
-                            elif context_tokens >= 1_000:
-                                context_str = f"{context_tokens // 1_000}K"
-                            else:
-                                context_str = str(context_tokens)
-
-                            # Build description line
-                            if config.description:
-                                desc = f"- '{alias}' ({context_str} context): {config.description}"
-                            else:
-                                # Fallback to showing the model name if no description
-                                desc = f"- '{alias}' ({context_str} context): {config.model_name}"
-                            model_desc_parts.append(desc)
-
-                        # Show all models - no truncation needed
+                        # Streamlined OpenRouter models - removed verbose descriptions to reduce context usage
+                        total_models = len(model_configs)
+                        model_desc_parts.append(f"\nOpenRouter models: {total_models} models available - see enum for complete list")
                 except Exception as e:
                     # Log for debugging but don't fail
                     import logging
