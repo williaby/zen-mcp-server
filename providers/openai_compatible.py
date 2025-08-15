@@ -11,12 +11,7 @@ from urllib.parse import urlparse
 
 from openai import OpenAI
 
-from .base import (
-    ModelCapabilities,
-    ModelProvider,
-    ModelResponse,
-    ProviderType,
-)
+from .base import ModelCapabilities, ModelProvider, ModelResponse, ProviderType
 
 
 class OpenAICompatibleProvider(ModelProvider):

@@ -44,8 +44,10 @@ def test_basic_evaluation():
     except Exception as e:
         print(f"❌ Error during evaluation: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_premium_evaluation():
     """Test the model evaluator with a simulated premium model"""
@@ -71,7 +73,7 @@ def test_premium_evaluation():
             has_vision=True,
             has_coding=True,
             description="Advanced reasoning and coding model with multimodal capabilities",
-            openrouter_url="https://openrouter.ai/test/premium-model-v2"
+            openrouter_url="https://openrouter.ai/test/premium-model-v2",
         )
 
         print(f"📍 Evaluating simulated model: {simulated_model.name}")
@@ -94,8 +96,10 @@ def test_premium_evaluation():
     except Exception as e:
         print(f"❌ Error during evaluation: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def main():
     """Main CLI function"""
@@ -108,41 +112,25 @@ Examples:
     %(prog)s https://openrouter.ai/openai/gpt-5
     %(prog)s --test basic
     %(prog)s --test premium
-        """
+        """,
     )
 
-    parser.add_argument(
-        'url',
-        nargs='?',
-        help='OpenRouter model URL to evaluate'
-    )
+    parser.add_argument("url", nargs="?", help="OpenRouter model URL to evaluate")
 
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Enable verbose output'
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
 
-    parser.add_argument(
-        '--csv-only',
-        action='store_true',
-        help='Only output CSV entry if recommended for addition'
-    )
+    parser.add_argument("--csv-only", action="store_true", help="Only output CSV entry if recommended for addition")
 
-    parser.add_argument(
-        '--test',
-        choices=['basic', 'premium'],
-        help='Run internal tests instead of URL evaluation'
-    )
+    parser.add_argument("--test", choices=["basic", "premium"], help="Run internal tests instead of URL evaluation")
 
     args = parser.parse_args()
 
     try:
         # Handle test mode
         if args.test:
-            if args.test == 'basic':
+            if args.test == "basic":
                 success = test_basic_evaluation()
-            elif args.test == 'premium':
+            elif args.test == "premium":
                 success = test_premium_evaluation()
             sys.exit(0 if success else 1)
 
@@ -180,8 +168,10 @@ Examples:
         print(f"❌ Error evaluating model: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

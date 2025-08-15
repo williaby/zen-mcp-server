@@ -1,0 +1,41 @@
+{
+  "comment": "Claude Desktop configuration with Safety MCP integration for enhanced PR reviews",
+  "comment2": "This configuration enables both Zen MCP Server and Safety MCP for comprehensive security analysis",
+  "comment3": "Update paths to match your system configuration",
+  "mcpServers": {
+    "zen": {
+      "command": "/path/to/zen-mcp-server/.zen_venv/bin/python",
+      "args": ["/path/to/zen-mcp-server/server.py"],
+      "env": {
+        "SAFETY_MCP_ENABLED": "true"
+      }
+    },
+    "safety": {
+      "comment": "Safety MCP Server (SSE) for real-time package vulnerability intelligence",
+      "command": "curl",
+      "args": ["-N", "-H", "Accept: text/event-stream", "https://mcp.safetycli.com/sse"],
+      "env": {
+        "SAFETY_API_KEY": "your-safety-api-key-optional"
+      }
+    }
+  },
+  "instructions": {
+    "setup": [
+      "1. Install Safety CLI: pip install safety",
+      "2. Optional: Authenticate Safety CLI: safety auth login",
+      "3. Update paths in this config to match your system", 
+      "4. Restart Claude Desktop",
+      "5. Test with: pr_review tool with focus_security=true"
+    ],
+    "notes": [
+      "Safety MCP uses hosted SSE endpoint - no local installation needed",
+      "Authentication is optional but provides enhanced vulnerability data",
+      "The curl command streams real-time package intelligence"
+    ],
+    "verification": [
+      "Run pr_review on a repo with requirements.txt changes",
+      "Check logs for: '[PR_REVIEW] Safety MCP enabled' messages",
+      "Look for package vulnerability intelligence in review output"
+    ]
+  }
+}

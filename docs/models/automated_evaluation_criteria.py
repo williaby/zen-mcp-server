@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ModelMetrics:
     """Standardized model performance and operational metrics"""
+
     name: str
     provider: str
     humaneval_score: float
@@ -84,7 +85,7 @@ class ModelEvaluator:
                 return {
                     "qualified": False,
                     "reason": "Model does not meet basic qualification thresholds",
-                    "metrics": metrics
+                    "metrics": metrics,
                 }
 
             # Phase 4: Find replacement candidates
@@ -94,7 +95,7 @@ class ModelEvaluator:
                     "qualified": True,
                     "replacement_recommended": False,
                     "reason": "No suitable replacement candidates found",
-                    "metrics": metrics
+                    "metrics": metrics,
                 }
 
             # Phase 5: Calculate replacement scores
@@ -107,7 +108,7 @@ class ModelEvaluator:
                 "target_model": best_replacement["target"],
                 "detailed_analysis": best_replacement["analysis"],
                 "implementation_plan": self._generate_implementation_plan(best_replacement),
-                "metrics": metrics
+                "metrics": metrics,
             }
 
         except Exception as e:
@@ -167,7 +168,7 @@ class ModelEvaluator:
                 api_availability=model_data.get("availability", {}).get("uptime", 95),
                 has_multimodal=self._detect_multimodal_capability(model_data),
                 has_vision=self._detect_vision_capability(model_data),
-                training_cutoff_date=model_data.get("training_cutoff")
+                training_cutoff_date=model_data.get("training_cutoff"),
             )
 
         except Exception as e:
@@ -177,11 +178,11 @@ class ModelEvaluator:
     def _passes_basic_qualification(self, metrics: ModelMetrics) -> bool:
         """Check if model meets basic qualification thresholds"""
         return (
-            metrics.context_window >= 32000 and
-            metrics.humaneval_score >= 60 and
-            metrics.mmlu_score >= 65 and
-            metrics.input_cost >= 0 and
-            metrics.api_availability >= 90
+            metrics.context_window >= 32000
+            and metrics.humaneval_score >= 60
+            and metrics.mmlu_score >= 65
+            and metrics.input_cost >= 0
+            and metrics.api_availability >= 90
         )
 
     def _find_replacement_candidates(self, new_model: ModelMetrics) -> list[ModelMetrics]:
@@ -215,8 +216,7 @@ class ModelEvaluator:
                 continue
 
             # Standard replacement logic for non-protected scenarios
-            if (existing_tier == new_tier or
-                self._adjacent_tiers(new_tier, existing_tier)):
+            if existing_tier == new_tier or self._adjacent_tiers(new_tier, existing_tier):
 
                 # Same capability overlap
                 if any(cap in existing_capabilities for cap in new_capabilities):
@@ -227,8 +227,7 @@ class ModelEvaluator:
 
         return candidates
 
-    def _calculate_best_replacement(self, new_model: ModelMetrics,
-                                  candidates: list[ModelMetrics]) -> dict:
+    def _calculate_best_replacement(self, new_model: ModelMetrics, candidates: list[ModelMetrics]) -> dict:
         """Calculate replacement score for best candidate"""
         best_score = 0
         best_target = None
@@ -236,13 +235,15 @@ class ModelEvaluator:
 
         for candidate in candidates:
             score_breakdown = self._calculate_replacement_score(new_model, candidate)
-            total_score = sum(score_breakdown[metric] * weight
-                            for metric, weight in [
-                                ("performance", 0.4),
-                                ("cost_efficiency", 0.3),
-                                ("strategic_value", 0.2),
-                                ("operational_benefit", 0.1)
-                            ])
+            total_score = sum(
+                score_breakdown[metric] * weight
+                for metric, weight in [
+                    ("performance", 0.4),
+                    ("cost_efficiency", 0.3),
+                    ("strategic_value", 0.2),
+                    ("operational_benefit", 0.1),
+                ]
+            )
 
             if total_score > best_score:
                 best_score = total_score
@@ -250,19 +251,12 @@ class ModelEvaluator:
                 best_analysis = {
                     "score_breakdown": score_breakdown,
                     "total_score": total_score,
-                    "reasoning": self._generate_replacement_reasoning(
-                        score_breakdown, new_model, candidate
-                    )
+                    "reasoning": self._generate_replacement_reasoning(score_breakdown, new_model, candidate),
                 }
 
-        return {
-            "score": best_score,
-            "target": best_target,
-            "analysis": best_analysis
-        }
+        return {"score": best_score, "target": best_target, "analysis": best_analysis}
 
-    def _calculate_replacement_score(self, new_model: ModelMetrics,
-                                   existing_model: ModelMetrics) -> dict[str, float]:
+    def _calculate_replacement_score(self, new_model: ModelMetrics, existing_model: ModelMetrics) -> dict[str, float]:
         """Calculate detailed replacement scores across all criteria"""
 
         # Check for same-generation upgrade special rules
@@ -286,8 +280,7 @@ class ModelEvaluator:
         # Cost efficiency (0-10 scale)
         cost_efficiency = 0
         if existing_model.output_cost > 0:
-            cost_reduction = ((existing_model.output_cost - new_model.output_cost) /
-                            existing_model.output_cost) * 100
+            cost_reduction = ((existing_model.output_cost - new_model.output_cost) / existing_model.output_cost) * 100
             # Score 10/10 for 50% cost reduction, 5/10 for break-even with better performance
             if cost_reduction > 0:
                 cost_efficiency = min(10, cost_reduction / 5)
@@ -302,13 +295,16 @@ class ModelEvaluator:
             strategic_score += 2
 
         # Capability enhancement bonus
-        if (new_model.has_multimodal and not existing_model.has_multimodal) or \
-           (new_model.context_window > existing_model.context_window * 1.5):
+        if (new_model.has_multimodal and not existing_model.has_multimodal) or (
+            new_model.context_window > existing_model.context_window * 1.5
+        ):
             strategic_score += 2
 
         # Context window improvement
         if new_model.context_window > existing_model.context_window:
-            context_improvement = (new_model.context_window - existing_model.context_window) / existing_model.context_window
+            context_improvement = (
+                new_model.context_window - existing_model.context_window
+            ) / existing_model.context_window
             strategic_score += min(1, context_improvement)
 
         strategic_score = min(10, strategic_score)
@@ -321,8 +317,11 @@ class ModelEvaluator:
             operational_score += min(2, (new_model.api_availability - existing_model.api_availability) / 5)
 
         # Speed improvement (if available)
-        if (new_model.max_tokens_per_second and existing_model.max_tokens_per_second and
-            new_model.max_tokens_per_second > existing_model.max_tokens_per_second):
+        if (
+            new_model.max_tokens_per_second
+            and existing_model.max_tokens_per_second
+            and new_model.max_tokens_per_second > existing_model.max_tokens_per_second
+        ):
             operational_score += 1
 
         operational_score = min(10, operational_score)
@@ -331,33 +330,37 @@ class ModelEvaluator:
             "performance": performance_score,
             "cost_efficiency": cost_efficiency,
             "strategic_value": strategic_score,
-            "operational_benefit": operational_score
+            "operational_benefit": operational_score,
         }
 
-    def _generate_replacement_reasoning(self, score_breakdown: dict,
-                                      new_model: ModelMetrics,
-                                      existing_model: ModelMetrics) -> str:
+    def _generate_replacement_reasoning(
+        self, score_breakdown: dict, new_model: ModelMetrics, existing_model: ModelMetrics
+    ) -> str:
         """Generate human-readable reasoning for replacement recommendation"""
         reasons = []
 
         if score_breakdown["performance"] > 7:
-            perf_improvement = ((new_model.humaneval_score - existing_model.humaneval_score) /
-                              existing_model.humaneval_score) * 100
+            perf_improvement = (
+                (new_model.humaneval_score - existing_model.humaneval_score) / existing_model.humaneval_score
+            ) * 100
             reasons.append(f"Significant performance improvement: +{perf_improvement:.1f}% on key benchmarks")
 
         if score_breakdown["cost_efficiency"] > 7:
-            cost_reduction = ((existing_model.output_cost - new_model.output_cost) /
-                            existing_model.output_cost) * 100
+            cost_reduction = ((existing_model.output_cost - new_model.output_cost) / existing_model.output_cost) * 100
             reasons.append(f"Substantial cost savings: -{cost_reduction:.1f}% output cost reduction")
 
         if score_breakdown["strategic_value"] > 7:
             if new_model.provider != existing_model.provider:
                 reasons.append("Improves provider diversity")
             if new_model.context_window > existing_model.context_window * 1.2:
-                reasons.append(f"Larger context window: {new_model.context_window:,} vs {existing_model.context_window:,} tokens")
+                reasons.append(
+                    f"Larger context window: {new_model.context_window:,} vs {existing_model.context_window:,} tokens"
+                )
 
         if score_breakdown["operational_benefit"] > 7:
-            reasons.append(f"Better reliability: {new_model.api_availability}% vs {existing_model.api_availability}% uptime")
+            reasons.append(
+                f"Better reliability: {new_model.api_availability}% vs {existing_model.api_availability}% uptime"
+            )
 
         return " | ".join(reasons) if reasons else "Marginal improvements across multiple criteria"
 
@@ -376,8 +379,8 @@ class ModelEvaluator:
                         "Deploy model in test environment",
                         "Run benchmark validation tests",
                         "Validate API integration",
-                        "Performance regression testing"
-                    ]
+                        "Performance regression testing",
+                    ],
                 },
                 {
                     "phase": "Gradual Rollout",
@@ -386,8 +389,8 @@ class ModelEvaluator:
                         "Deploy to 10% of consensus operations",
                         "Monitor performance and costs",
                         "Collect user feedback",
-                        "Scale to 50% if successful"
-                    ]
+                        "Scale to 50% if successful",
+                    ],
                 },
                 {
                     "phase": "Full Deployment",
@@ -396,17 +399,17 @@ class ModelEvaluator:
                         "Replace target model completely",
                         "Update model allocation configurations",
                         "Monitor for 48 hours",
-                        "Document lessons learned"
-                    ]
-                }
+                        "Document lessons learned",
+                    ],
+                },
             ],
             "rollback_plan": "Automatic rollback if performance drops >5% or costs increase >20%",
             "success_metrics": [
                 f"Performance improvement ≥ {replacement_result['analysis']['score_breakdown']['performance']:.1f}/10",
                 f"Cost efficiency ≥ {replacement_result['analysis']['score_breakdown']['cost_efficiency']:.1f}/10",
                 "No service disruptions during transition",
-                "User satisfaction maintained or improved"
-            ]
+                "User satisfaction maintained or improved",
+            ],
         }
 
     def _classify_price_tier(self, input_cost: float) -> str:
@@ -459,16 +462,17 @@ class ModelEvaluator:
         # Pattern matching for version upgrades
         version_patterns = [
             # Anthropic patterns: opus-4 -> opus-4.1, sonnet-3.5 -> sonnet-3.6
-            (r'opus-(\d+)\.(\d+)', r'opus-(\d+)$'),
-            (r'sonnet-(\d+)\.(\d+)', r'sonnet-(\d+)$'),
+            (r"opus-(\d+)\.(\d+)", r"opus-(\d+)$"),
+            (r"sonnet-(\d+)\.(\d+)", r"sonnet-(\d+)$"),
             # OpenAI patterns: gpt-4-turbo -> gpt-4, gpt-4.1 -> gpt-4
-            (r'gpt-(\d+)-turbo', r'gpt-(\d+)$'),
-            (r'gpt-(\d+)\.(\d+)', r'gpt-(\d+)$'),
+            (r"gpt-(\d+)-turbo", r"gpt-(\d+)$"),
+            (r"gpt-(\d+)\.(\d+)", r"gpt-(\d+)$"),
             # Google patterns: gemini-2.5-pro -> gemini-2-pro
-            (r'gemini-(\d+)\.(\d+)', r'gemini-(\d+)')
+            (r"gemini-(\d+)\.(\d+)", r"gemini-(\d+)"),
         ]
 
         import re
+
         for new_pattern, existing_pattern in version_patterns:
             if re.search(new_pattern, new_name) and re.search(existing_pattern, existing_name):
                 return True
@@ -483,15 +487,16 @@ class ModelEvaluator:
         # Cross-generation patterns
         cross_gen_patterns = [
             # GPT-5 can replace GPT-4 series
-            (r'gpt-5', r'gpt-4'),
-            (r'gpt-(\d+)', r'gpt-(\d+)'),  # Any GPT version jump
+            (r"gpt-5", r"gpt-4"),
+            (r"gpt-(\d+)", r"gpt-(\d+)"),  # Any GPT version jump
             # Claude Opus 4 can replace Opus 3 series
-            (r'opus-4', r'opus-3'),
+            (r"opus-4", r"opus-3"),
             # Gemini 3.x can replace 2.x series
-            (r'gemini-3', r'gemini-2')
+            (r"gemini-3", r"gemini-2"),
         ]
 
         import re
+
         for new_pattern, existing_pattern in cross_gen_patterns:
             new_match = re.search(new_pattern, new_name)
             existing_match = re.search(existing_pattern, existing_name)
@@ -516,8 +521,9 @@ class ModelEvaluator:
         # For now, basic availability check
         return model.api_availability < 85
 
-    def _calculate_same_generation_score(self, new_model: ModelMetrics,
-                                       existing_model: ModelMetrics) -> dict[str, float]:
+    def _calculate_same_generation_score(
+        self, new_model: ModelMetrics, existing_model: ModelMetrics
+    ) -> dict[str, float]:
         """
         Special scoring for same-generation upgrades (e.g., Opus 4 -> Opus 4.1)
         Rule: Replace if no cost increase, regardless of performance improvement size
@@ -525,8 +531,7 @@ class ModelEvaluator:
         # Check cost increase
         cost_increase = 0
         if existing_model.output_cost > 0:
-            cost_increase = ((new_model.output_cost - existing_model.output_cost) /
-                           existing_model.output_cost) * 100
+            cost_increase = ((new_model.output_cost - existing_model.output_cost) / existing_model.output_cost) * 100
 
         # Check any performance improvement
         has_any_improvement = False
@@ -541,59 +546,50 @@ class ModelEvaluator:
         if cost_increase <= 0 and has_any_improvement:
             # Automatic approval for no cost increase + any improvement
             return {
-                "performance": 8.0,      # High score for any measurable improvement
+                "performance": 8.0,  # High score for any measurable improvement
                 "cost_efficiency": 9.0,  # High score for no cost increase
                 "strategic_value": 8.0,  # High score for staying current
-                "operational_benefit": 7.0  # Good score for version currency
+                "operational_benefit": 7.0,  # Good score for version currency
             }
         elif cost_increase <= 0:
             # Approval even without measurable performance gain (version currency)
             return {
-                "performance": 7.0,      # Good score for version currency
+                "performance": 7.0,  # Good score for version currency
                 "cost_efficiency": 9.0,  # High score for no cost increase
                 "strategic_value": 8.0,  # High score for staying current
-                "operational_benefit": 7.0  # Good score for version currency
+                "operational_benefit": 7.0,  # Good score for version currency
             }
         else:
             # Cost increase detected - apply standard scoring with penalty
             return {
-                "performance": 3.0,      # Low score due to cost increase
+                "performance": 3.0,  # Low score due to cost increase
                 "cost_efficiency": 2.0,  # Very low due to cost penalty
                 "strategic_value": 4.0,  # Reduced strategic value
-                "operational_benefit": 3.0  # Reduced operational benefit
+                "operational_benefit": 3.0,  # Reduced operational benefit
             }
 
     def _fetch_benchmark_scores(self, model_name: str) -> dict[str, float]:
         """Fetch benchmark scores from multiple sources"""
         # Implementation would fetch from various benchmark leaderboards
         # For now, return placeholder structure
-        return {
-            "humaneval": 0,
-            "swe_bench": 0,
-            "mmlu": 0,
-            "hellaswag": 0,
-            "gsm8k": 0,
-            "math": 0
-        }
+        return {"humaneval": 0, "swe_bench": 0, "mmlu": 0, "hellaswag": 0, "gsm8k": 0, "math": 0}
 
     def _detect_multimodal_capability(self, model_data: dict) -> bool:
         """Detect if model has multimodal capabilities"""
         description = model_data.get("description", "").lower()
-        return any(keyword in description for keyword in
-                  ["multimodal", "vision", "image", "visual"])
+        return any(keyword in description for keyword in ["multimodal", "vision", "image", "visual"])
 
     def _detect_vision_capability(self, model_data: dict) -> bool:
         """Detect if model has vision processing capabilities"""
         description = model_data.get("description", "").lower()
-        return any(keyword in description for keyword in
-                  ["vision", "image", "visual", "sight", "ocr"])
+        return any(keyword in description for keyword in ["vision", "image", "visual", "sight", "ocr"])
 
     def _parse_model_name_from_url(self, url: str) -> str:
         """Extract model name from OpenRouter URL"""
         # Example: https://openrouter.ai/openai/gpt-4 -> openai/gpt-4
-        parts = url.rstrip('/').split('/')
+        parts = url.rstrip("/").split("/")
         if len(parts) >= 2:
-            return '/'.join(parts[-2:])
+            return "/".join(parts[-2:])
         return parts[-1] if parts else ""
 
     def _load_config(self, config_path: str) -> dict:

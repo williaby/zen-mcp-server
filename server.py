@@ -58,10 +58,7 @@ from mcp.types import (  # noqa: E402
     ToolsCapability,
 )
 
-from config import (  # noqa: E402
-    DEFAULT_MODEL,
-    __version__,
-)
+from config import DEFAULT_MODEL, __version__  # noqa: E402
 from tools import (  # noqa: E402
     AnalyzeTool,
     ChallengeTool,
@@ -80,6 +77,7 @@ from tools import (  # noqa: E402
     TracerTool,
     VersionTool,
 )
+from tools.custom.layered_consensus import LayeredConsensusTool  # noqa: E402
 from tools.models import ToolOutput  # noqa: E402
 
 # Configure logging for server operations
@@ -267,6 +265,7 @@ TOOLS = {
     "thinkdeep": ThinkDeepTool(),  # Step-by-step deep thinking workflow with expert analysis
     "planner": PlannerTool(),  # Interactive sequential planner using workflow architecture
     "consensus": ConsensusTool(),  # Step-by-step consensus workflow with multi-model analysis
+    "layered_consensus": LayeredConsensusTool(),  # Sophisticated multi-model consensus with layered analysis
     "codereview": CodeReviewTool(),  # Comprehensive step-by-step code review workflow with expert analysis
     "precommit": PrecommitTool(),  # Step-by-step pre-commit validation workflow
     "debug": DebugIssueTool(),  # Root cause analysis and debugging assistance
@@ -284,6 +283,7 @@ TOOLS = {
 # Load custom tools from tools/custom directory (one-time setup for local customizations)
 try:
     from tools.custom import get_custom_tools
+
     custom_tools = get_custom_tools()
     TOOLS.update(custom_tools)
     logger.info(f"Loaded {len(custom_tools)} custom tools: {list(custom_tools.keys())}")

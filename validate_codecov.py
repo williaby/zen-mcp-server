@@ -24,6 +24,7 @@ def run_command(cmd, description, capture_output=True):
     except Exception as e:
         return False, "", str(e)
 
+
 def validate_codecov_config():
     """Validate codecov.yaml configuration."""
     print("🔧 Validating codecov configuration...")
@@ -35,24 +36,25 @@ def validate_codecov_config():
 
     try:
         import yaml
+
         with open(codecov_path) as f:
             config = yaml.safe_load(f)
 
         # Check key components
-        required_sections = ['codecov', 'coverage', 'component_management', 'flags']
+        required_sections = ["codecov", "coverage", "component_management", "flags"]
         for section in required_sections:
             if section not in config:
                 print(f"❌ Missing required section: {section}")
                 return False
 
         # Check flags
-        expected_flags = ['unit', 'integration', 'simulator']
-        flags = config.get('flags', {})
+        expected_flags = ["unit", "integration", "simulator"]
+        flags = config.get("flags", {})
         for flag in expected_flags:
             if flag not in flags:
                 print(f"❌ Missing flag: {flag}")
                 return False
-            if not flags[flag].get('carryforward'):
+            if not flags[flag].get("carryforward"):
                 print(f"❌ Flag {flag} missing carryforward setting")
                 return False
 
@@ -62,6 +64,7 @@ def validate_codecov_config():
     except Exception as e:
         print(f"❌ Error validating codecov.yaml: {e}")
         return False
+
 
 def validate_coverage_dependencies():
     """Validate coverage dependencies are installed."""
@@ -74,6 +77,7 @@ def validate_coverage_dependencies():
     else:
         print("❌ Coverage dependencies not found")
         return False
+
 
 def test_unit_coverage():
     """Test unit test coverage generation."""
@@ -90,22 +94,24 @@ def test_unit_coverage():
         print(f"❌ Unit test coverage failed: {stderr}")
         return False
 
+
 def test_pyproject_config():
     """Test pyproject.toml coverage configuration."""
     print("🔧 Testing pyproject.toml coverage configuration...")
 
     try:
         import toml
+
         with open("pyproject.toml") as f:
             config = toml.load(f)
 
         # Check coverage configuration
-        if 'tool' not in config or 'coverage' not in config['tool']:
+        if "tool" not in config or "coverage" not in config["tool"]:
             print("❌ No coverage configuration in pyproject.toml")
             return False
 
-        coverage_config = config['tool']['coverage']
-        required_sections = ['run', 'report', 'xml', 'html']
+        coverage_config = config["tool"]["coverage"]
+        required_sections = ["run", "report", "xml", "html"]
         for section in required_sections:
             if section not in coverage_config:
                 print(f"❌ Missing coverage section: {section}")
@@ -117,6 +123,7 @@ def test_pyproject_config():
     except Exception as e:
         print(f"❌ Error validating pyproject.toml: {e}")
         return False
+
 
 def test_github_actions():
     """Test GitHub Actions workflow configuration."""
@@ -143,12 +150,14 @@ def test_github_actions():
     print("✅ GitHub Actions workflows are configured for coverage")
     return True
 
+
 def cleanup():
     """Clean up test files."""
     test_files = ["test-coverage-unit.xml", "test-coverage-integration.xml"]
     for file in test_files:
         if Path(file).exists():
             Path(file).unlink()
+
 
 def main():
     """Main validation function."""
@@ -188,6 +197,7 @@ def main():
         print("❌ Some validations failed")
         cleanup()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())
