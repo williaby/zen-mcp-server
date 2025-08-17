@@ -11,12 +11,12 @@ from typing import Dict, List, Set
 CORE_TOOLS: Set[str] = {
     # Essential Zen tools
     "mcp__zen__chat",
-    "mcp__zen__listmodels", 
+    "mcp__zen__listmodels",
     "mcp__zen__challenge",
-    
+
     # Essential Claude Code tools
     "Read", "Write", "Edit", "Bash",
-    
+
     # Essential git
     "mcp__git__git_status"
 }
@@ -27,13 +27,13 @@ TOOL_CATEGORY_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
     "development": {
         "zen": [
             "mcp__zen__debug",
-            "mcp__zen__codereview", 
+            "mcp__zen__codereview",
             "mcp__zen__analyze",
             "mcp__zen__refactor",
             "mcp__zen__testgen"
         ],
         "claude_code": [
-            "Read", "Write", "Edit", "MultiEdit", 
+            "Read", "Write", "Edit", "MultiEdit",
             "Glob", "Grep", "Bash"
         ],
         "git": [
@@ -41,13 +41,13 @@ TOOL_CATEGORY_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
             "mcp__git__git_commit", "mcp__git__git_add"
         ]
     },
-    
+
     # Complex analysis and planning
     "workflow": {
         "zen": [
             "mcp__zen__consensus",
             "mcp__zen__thinkdeep",
-            "mcp__zen__planner", 
+            "mcp__zen__planner",
             "mcp__zen__precommit"
         ],
         "reasoning": [
@@ -58,7 +58,7 @@ TOOL_CATEGORY_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
             "mcp__git__git_checkout", "mcp__git__git_create_branch"
         ]
     },
-    
+
     # Security and specialized analysis
     "specialized": {
         "zen": [
@@ -76,7 +76,7 @@ TOOL_CATEGORY_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
             "mcp__context7-sse__get-library-docs"
         ]
     },
-    
+
     # Time and utility tools
     "utilities": {
         "time": [
@@ -115,13 +115,13 @@ def get_tools_for_categories(categories: Set[str]) -> List[str]:
         List of tool names to include
     """
     tools = set(CORE_TOOLS)  # Always include core tools
-    
+
     for category in categories:
         if category in TOOL_CATEGORY_MAPPINGS:
             category_tools = TOOL_CATEGORY_MAPPINGS[category]
             for server_tools in category_tools.values():
                 tools.update(server_tools)
-    
+
     # Sort by priority if available, otherwise alphabetically
     return sorted(tools, key=lambda t: (-TOOL_PRIORITIES.get(t, 0), t))
 

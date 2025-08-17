@@ -9,6 +9,7 @@ import os
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+
 @dataclass
 class MCPServerConfig:
     """Configuration for an individual MCP server connection"""
@@ -19,28 +20,28 @@ class MCPServerConfig:
     enabled: bool = True
     timeout: int = 30
 
-@dataclass 
+@dataclass
 class HubSettings:
     """Configuration settings for the Zen MCP Hub"""
-    
+
     # Enable/disable hub functionality
     hub_enabled: bool = True
-    
+
     # Tool filtering settings
     enable_dynamic_filtering: bool = True
     fallback_to_core_tools: bool = True
     max_tools_per_context: int = 25
-    
+
     # Performance settings
     tool_detection_timeout: int = 5  # seconds
     mcp_client_timeout: int = 30     # seconds
     cache_detection_results: bool = True
     cache_ttl: int = 300            # 5 minutes
-    
+
     # Logging
     enable_hub_logging: bool = True
     log_tool_filtering: bool = False  # Can be verbose
-    
+
     @classmethod
     def from_env(cls) -> "HubSettings":
         """Create settings from environment variables"""
@@ -65,7 +66,7 @@ DEFAULT_MCP_SERVERS: Dict[str, MCPServerConfig] = {
         server_type="stdio"
     ),
     "time": MCPServerConfig(
-        name="time", 
+        name="time",
         command="uvx mcp-server-time",
         server_type="stdio"
     ),
@@ -81,7 +82,7 @@ DEFAULT_MCP_SERVERS: Dict[str, MCPServerConfig] = {
         url="https://mcp.context7.com/sse"
     ),
     "safety-mcp-sse": MCPServerConfig(
-        name="safety-mcp-sse", 
+        name="safety-mcp-sse",
         command="",
         server_type="sse",
         url="https://mcp.safetycli.com/sse"

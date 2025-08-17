@@ -427,7 +427,7 @@ class FunctionLoader:
     def __init__(self) -> None:
         # Import here to avoid circular imports
         from .task_detection_config import default_config
-        
+
         config = default_config
         self.tier_definitions = {
             "tier1": {"categories": ["core", "git"], "threshold": 0.0, "token_cost": 9040},  # Always loaded
@@ -509,7 +509,7 @@ class FunctionLoader:
             # If conservative bias enabled any tier2+ functions, respect those decisions
             tier2_enabled = any(initial_decisions.get(cat, False) for cat in self.tier_definitions["tier2"]["categories"])
             tier3_enabled = any(initial_decisions.get(cat, False) for cat in self.tier_definitions["tier3"]["categories"])
-            
+
             if tier2_enabled or tier3_enabled:
                 return initial_decisions, "conservative_bias"
             else:

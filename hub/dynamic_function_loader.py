@@ -35,6 +35,7 @@ from uuid import uuid4
 from .task_detection import DetectionResult, TaskDetectionSystem
 from .task_detection_config import ConfigManager
 
+
 # Simplified performance monitoring for hub environment
 @dataclass
 class MetricData:
@@ -53,17 +54,17 @@ class PerformanceMonitor:
     """Simplified performance monitor for hub"""
     def __init__(self):
         self.metrics = {}
-    
+
     def record_metric(self, name: str, value: float, metric_type: MetricType = MetricType.GAUGE):
         self.metrics[name] = MetricData(name, value)
-    
+
     def get_metrics(self):
         return self.metrics
 
 class FunctionTier(Enum):
     """Function tiers for token optimization"""
     TIER_1 = "tier_1"
-    TIER_2 = "tier_2" 
+    TIER_2 = "tier_2"
     TIER_3 = "tier_3"
 
 class TokenOptimizationMonitor:
@@ -71,10 +72,10 @@ class TokenOptimizationMonitor:
     def __init__(self):
         self.baseline_tokens = 200000  # Estimated full tool context
         self.optimized_tokens = {}
-    
+
     def record_optimization(self, session_id: str, tokens_used: int):
         self.optimized_tokens[session_id] = tokens_used
-    
+
     def get_reduction_percentage(self, session_id: str) -> float:
         if session_id in self.optimized_tokens:
             optimized = self.optimized_tokens[session_id]
@@ -92,7 +93,7 @@ class UserControlSystem:
     """Simplified user control system"""
     def __init__(self):
         self.overrides = {}
-    
+
     async def execute_command(self, command: str, args: dict) -> CommandResult:
         return CommandResult(success=True, message=f"Command {command} executed")
 
@@ -507,7 +508,7 @@ class DynamicFunctionLoader:
             logger.error(f"Function loading exception details for session {session_id}:")
             logger.error(f"Exception: {e}")
             logger.error(f"Traceback:\n{traceback.format_exc()}")
-            
+
             session.status = SessionStatus.FAILED
             session.error_count += 1
 
@@ -527,12 +528,12 @@ class DynamicFunctionLoader:
             logger.error(f"SESSION IS DICT! Keys: {list(session.keys())}")
             logger.error(f"Type: {type(session)}")
             raise TypeError(f"Expected LoadingSession but got dict with keys: {list(session.keys())}")
-        
+
         # Ensure session is LoadingSession object
         if not hasattr(session, 'timestamp'):
             logger.error(f"Session missing timestamp! Type: {type(session)}, Attributes: {dir(session)}")
             raise AttributeError(f"Session missing timestamp attribute. Type: {type(session)}")
-        
+
         context = {
             "user_id": session.user_id,
             "session_id": session.session_id,
@@ -667,31 +668,31 @@ class DynamicFunctionLoader:
 
     def _select_tier1_functions(self, detection_result: DetectionResult, strategy: LoadingStrategy) -> set[str]:
         """Select Tier 1 functions based on detected categories for token optimization."""
-        
+
         tier1_functions = set()
-        
+
         # Always load core functions (essential for basic operations)
         core_functions = self.function_registry.get_functions_by_category("core")
         tier1_core_functions = {
-            func for func in core_functions 
+            func for func in core_functions
             if func in self.function_registry.get_functions_by_tier(LoadingTier.TIER_1)
         }
         tier1_functions.update(tier1_core_functions)
-        
+
         # Load git functions only if git category is detected with sufficient confidence
         if detection_result.categories.get("git", False):
             git_confidence = detection_result.confidence_scores.get("git", 0.0)
             # Use a lower threshold for git since it's Tier 1, but still allow optimization
             git_threshold = 0.3  # Lower threshold for Tier 1 git functions
-            
+
             if git_confidence >= git_threshold:
                 git_functions = self.function_registry.get_functions_by_category("git")
                 tier1_git_functions = {
-                    func for func in git_functions 
+                    func for func in git_functions
                     if func in self.function_registry.get_functions_by_tier(LoadingTier.TIER_1)
                 }
                 tier1_functions.update(tier1_git_functions)
-        
+
         return tier1_functions
 
     def _select_tier2_functions(self, detection_result: DetectionResult, strategy: LoadingStrategy) -> set[str]:
@@ -715,7 +716,7 @@ class DynamicFunctionLoader:
         # Get eligible categories, prioritizing those with actual Tier 2 functions
         eligible_categories = []
         tier2_tier_functions = self.function_registry.get_functions_by_tier(LoadingTier.TIER_2)
-        
+
         for category, enabled in detection_result.categories.items():
             if enabled:
                 confidence = detection_result.confidence_scores.get(category, 0.0)
@@ -724,7 +725,7 @@ class DynamicFunctionLoader:
                     category_functions = self.function_registry.get_functions_by_category(category)
                     tier2_category_functions = category_functions & tier2_tier_functions
                     has_tier2_functions = len(tier2_category_functions) > 0
-                    
+
                     # Prioritize categories with Tier 2 functions for better functionality
                     priority_score = confidence
                     if has_tier2_functions:
@@ -732,7 +733,7 @@ class DynamicFunctionLoader:
                             priority_score = 2.0  # Highest priority for forced categories with Tier 2 functions
                         else:
                             priority_score = confidence + 0.5  # Significant boost for natural categories with Tier 2 functions
-                    
+
                     eligible_categories.append((category, priority_score, confidence))
 
         # Sort by priority score (highest first), then by confidence
