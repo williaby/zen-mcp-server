@@ -21,9 +21,20 @@ from .simple.base import SimpleTool
 
 # Field descriptions matching the original Chat tool exactly
 CHAT_FIELD_DESCRIPTIONS = {
-    "prompt": "Thorough question or idea with context. Use files parameter for code, not prompt.",
-    "files": "Optional files for context (absolute paths)",
-    "images": "Optional images for visual context (absolute paths or base64)",
+    "prompt": (
+        "Provide a thorough, expressive question or idea with maximum context. Include your current thinking, specific "
+        "challenges, background context, what you've tried, and what kind of response would be most helpful. "
+        "The more context and detail you provide, the more valuable and targeted the response will be. "
+        "NOTE: You're talking to a thought-partner who has deep expertise and can provide nuanced insights. "
+        "IMPORTANT: When referring to code, use the files parameter to pass relevant file paths. Use this prompt for "
+        "function/method names or tiny code snippets if absolutely necessary to explain the issue and to refer to "
+        "code from the provided paths."
+    ),
+    "files": "Absolute full-paths to existing files / folders for context. DO NOT SHORTEN.",
+    "images": (
+        "Optional images for visual context. Useful for UI discussions, diagrams, visual problems, "
+        "error screens, or architectural mockups. (must be FULL absolute paths to real files / folders - DO NOT SHORTEN - OR these can be bas64 data)"
+    ),
 }
 
 
