@@ -1,0 +1,167 @@
+{
+  "version": "1.0.0",
+  "description": "Model routing configuration for dynamic model selection",
+  "levels": {
+    "free": {
+      "description": "Free models for cost-sensitive operations",
+      "cost_limit": 0.0,
+      "priority": 1,
+      "preferred_for": ["simple", "documentation", "general"]
+    },
+    "junior": {
+      "description": "Entry-level paid models for moderate complexity",
+      "cost_limit": 0.001,
+      "priority": 2,
+      "preferred_for": ["moderate", "code_generation"]
+    },
+    "senior": {
+      "description": "Advanced models for complex tasks",
+      "cost_limit": 0.01,
+      "priority": 3,
+      "preferred_for": ["complex", "debugging", "code_review"]
+    },
+    "executive": {
+      "description": "Premium models for expert-level tasks",
+      "cost_limit": 0.1,
+      "priority": 4,
+      "preferred_for": ["expert", "analysis", "planning"]
+    }
+  },
+  "complexity_thresholds": {
+    "simple": {
+      "max_level": "free",
+      "confidence_threshold": 0.8,
+      "description": "Basic tasks, explanations, simple code"
+    },
+    "moderate": {
+      "max_level": "junior",
+      "confidence_threshold": 0.7,
+      "description": "Standard implementation, modifications, bug fixes"
+    },
+    "complex": {
+      "max_level": "senior",
+      "confidence_threshold": 0.6,
+      "description": "Advanced algorithms, architecture, optimization"
+    },
+    "expert": {
+      "max_level": "executive",
+      "confidence_threshold": 0.5,
+      "description": "System design, ML, distributed systems, security"
+    }
+  },
+  "model_level_mappings": {
+    "free": [
+      "llama", "mistral", "codellama", "deepseek", "qwen",
+      "phi", "gemma", "openchat", "vicuna", "wizard", "local"
+    ],
+    "junior": [
+      "claude-3-haiku", "gpt-3.5", "gemini-flash", "o3-mini"
+    ],
+    "senior": [
+      "claude-3-sonnet", "claude-sonnet", "gpt-4-mini", "gemini-pro", "mistral-large"
+    ],
+    "executive": [
+      "claude-3-opus", "claude-opus", "claude-4", "gpt-4", "gpt-5", "o3-pro", "o4"
+    ]
+  },
+  "task_type_preferences": {
+    "code_generation": {
+      "preferred_models": [
+        "codellama", "deepseek-coder", "claude-sonnet", "gpt-4", "qwen-coder"
+      ],
+      "avoid_models": []
+    },
+    "code_review": {
+      "preferred_models": [
+        "claude-sonnet", "gpt-4", "deepseek-coder", "claude-opus"
+      ],
+      "avoid_models": ["llama-7b"]
+    },
+    "debugging": {
+      "preferred_models": [
+        "claude-sonnet", "gpt-4", "deepseek-coder", "o3", "phi4-reasoning"
+      ],
+      "avoid_models": []
+    },
+    "documentation": {
+      "preferred_models": [
+        "claude-haiku", "gpt-3.5-turbo", "llama", "gemini-flash"
+      ],
+      "avoid_models": []
+    },
+    "analysis": {
+      "preferred_models": [
+        "claude-opus", "gpt-4", "gemini-pro", "deepseek-r1"
+      ],
+      "avoid_models": ["phi", "gemma"]
+    },
+    "planning": {
+      "preferred_models": [
+        "claude-opus", "gpt-4-turbo", "claude-sonnet", "o3"
+      ],
+      "avoid_models": ["codellama", "deepseek-coder"]
+    },
+    "general": {
+      "preferred_models": [
+        "llama", "mistral", "claude-haiku", "gpt-3.5-turbo", "gemini-flash"
+      ],
+      "avoid_models": []
+    }
+  },
+  "fallback_strategy": "escalate",
+  "escalation_rules": {
+    "max_retries": 3,
+    "escalate_on_error": true,
+    "escalate_on_low_confidence": true,
+    "low_confidence_threshold": 0.3
+  },
+  "cost_optimization": {
+    "enabled": true,
+    "free_model_preference": true,
+    "daily_cost_limit": 10.0,
+    "per_request_cost_limit": 0.5,
+    "cost_tracking": true
+  },
+  "performance_monitoring": {
+    "enabled": true,
+    "success_rate_threshold": 0.7,
+    "error_count_threshold": 5,
+    "disable_on_failure": true,
+    "recovery_attempts": 3
+  },
+  "caching": {
+    "enabled": true,
+    "ttl_seconds": 300,
+    "max_cache_size": 1000,
+    "cache_key_factors": ["prompt_hash", "context_hash", "preferences"]
+  },
+  "routing_preferences": {
+    "default_prefer_free": true,
+    "allow_escalation": true,
+    "strict_cost_limits": false,
+    "require_specialization": false
+  },
+  "model_availability_check": {
+    "enabled": true,
+    "check_interval_seconds": 60,
+    "timeout_seconds": 5,
+    "retry_attempts": 2
+  },
+  "feature_flags": {
+    "enable_complexity_analysis": true,
+    "enable_task_type_detection": true,
+    "enable_performance_learning": true,
+    "enable_cost_tracking": true,
+    "enable_model_specialization": true
+  },
+  "tool_specific_rules": {
+    "layered_consensus": {
+      "enabled": false,
+      "reason": "User has customized model selection - preserve existing configuration"
+    },
+    "LayeredConsensusTool": {
+      "enabled": false,
+      "reason": "User has customized model selection - preserve existing configuration"  
+    }
+  }
+}

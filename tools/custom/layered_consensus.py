@@ -127,29 +127,111 @@ Provide comprehensive analysis covering all specified layers."""
         return prompt
 
     def _create_layer_assignments(self, request) -> Dict[str, List[str]]:
-        """Create model assignments for each analysis layer."""
+        """Create model assignments for each analysis layer using available models."""
+        
+        # Import registry system
+        from providers.registry import ModelProviderRegistry
+        
+        # Get actually available models
+        available_models = ModelProviderRegistry.get_available_model_names()
+        
+        if not available_models:
+            logger.error("No models available in registry")
+            # Ultimate fallback
+            return {layer: ["gemini-2.5-flash"] for layer in request.layers}
+        
+        # Categorize models by capability/cost
+        model_categories = self._categorize_available_models(available_models, request.cost_threshold)
+        
+        # Distribute models across layers based on org level and cost preference
+        return self._distribute_models_to_layers(model_categories, request)
 
-        # Sample model distribution based on org level and preferences
-        model_pools = {
-            "startup": ["gpt-4o-mini", "claude-3-haiku", "gemini-flash"],
-            "scaleup": ["gpt-4o", "claude-3.5-sonnet", "gemini-pro", "deepseek-chat"],
-            "enterprise": ["gpt-4o", "claude-3-opus", "gemini-pro", "o3-mini", "deepseek-r1"],
+    def _categorize_available_models(self, available_models: List[str], cost_threshold: str) -> Dict[str, List[str]]:
+        """Categorize available models by capability and cost."""
+        
+        # Define model tiers based on actual available models
+        premium_models = []
+        balanced_models = []
+        cost_effective_models = []
+        
+        for model in available_models:
+            model_lower = model.lower()
+            
+            # Premium models (high capability, higher cost)
+            if any(premium in model_lower for premium in [
+                "opus-4", "gpt-5", "o3", "deepseek-r1", "gemini-2.5-pro"
+            ]):
+                premium_models.append(model)
+            
+            # Cost-effective models (free or low cost)
+            elif ":free" in model or any(free in model_lower for free in [
+                "phi-4", "deepseek-chat", "gemini-2.0-flash", "llama"
+            ]):
+                cost_effective_models.append(model)
+            
+            # Balanced models (everything else)
+            else:
+                balanced_models.append(model)
+        
+        # Select models based on cost preference
+        if cost_threshold == "performance":
+            selected = premium_models + balanced_models + cost_effective_models
+        elif cost_threshold == "cost-optimized":
+            selected = cost_effective_models + balanced_models + premium_models
+        else:  # balanced
+            selected = balanced_models + cost_effective_models + premium_models
+        
+        # Ensure we have models to work with
+        if not selected:
+            selected = available_models
+        
+        return {
+            "selected": selected[:10],  # Limit to reasonable number
+            "premium": premium_models,
+            "balanced": balanced_models, 
+            "cost_effective": cost_effective_models
         }
 
-        available_models = model_pools.get(request.org_level, model_pools["startup"])
+    def _distribute_models_to_layers(self, model_categories: Dict[str, List[str]], request) -> Dict[str, List[str]]:
+        """Distribute models intelligently across layers."""
+        
+        available_models = model_categories["selected"]
         models_per_layer = max(1, request.model_count // len(request.layers))
-
+        
+        # Layer-specific model preferences
+        layer_preferences = {
+            "strategic": model_categories["premium"] + model_categories["balanced"],  # High-level thinking
+            "analytical": model_categories["balanced"] + model_categories["premium"],  # Detailed analysis  
+            "practical": model_categories["cost_effective"] + model_categories["balanced"],  # Practical concerns
+            "technical": model_categories["balanced"] + model_categories["premium"]  # Technical depth
+        }
+        
         assignments = {}
-        model_index = 0
-
+        used_models = set()
+        
         for layer in request.layers:
             layer_models = []
-            for _ in range(models_per_layer):
-                if model_index < len(available_models):
-                    layer_models.append(available_models[model_index % len(available_models)])
-                    model_index += 1
+            preferred = layer_preferences.get(layer, available_models)
+            
+            # Select models for this layer, avoiding duplicates where possible
+            for model in preferred:
+                if len(layer_models) >= models_per_layer:
+                    break
+                if model not in used_models or len(available_models) <= request.model_count:
+                    layer_models.append(model)
+                    used_models.add(model)
+            
+            # Fill remaining slots if needed
+            while len(layer_models) < models_per_layer:
+                for model in available_models:
+                    if len(layer_models) >= models_per_layer:
+                        break
+                    if model not in layer_models:  # Allow reuse if needed
+                        layer_models.append(model)
+                        break
+            
             assignments[layer] = layer_models
-
+        
         return assignments
 
     def _format_layer_assignments(self, assignments: Dict[str, List[str]]) -> str:

@@ -80,6 +80,13 @@ from tools import (  # noqa: E402
 from tools.custom.layered_consensus import LayeredConsensusTool  # noqa: E402
 from tools.models import ToolOutput  # noqa: E402
 
+# Import routing status tool
+try:
+    from tools.routing_status import RoutingStatusTool
+    _routing_status_available = True
+except ImportError:
+    _routing_status_available = False
+
 # Configure logging for server operations
 # Can be controlled via LOG_LEVEL environment variable (DEBUG, INFO, WARNING, ERROR)
 log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
@@ -279,6 +286,10 @@ TOOLS = {
     "listmodels": ListModelsTool(),  # List all available AI models by provider
     "version": VersionTool(),  # Display server version and system information
 }
+
+# Add routing status tool if available
+if _routing_status_available:
+    TOOLS["routing_status"] = RoutingStatusTool()  # Dynamic model routing status and control
 
 # Load custom tools from tools/custom directory (one-time setup for local customizations)
 try:
@@ -1318,6 +1329,15 @@ async def main():
     """
     # Validate and configure providers based on available API keys
     configure_providers()
+
+    # Initialize dynamic model routing if enabled
+    try:
+        from routing.integration import integrate_with_server
+        integrate_with_server()
+    except ImportError as e:
+        logger.debug(f"Dynamic model routing not available: {e}")
+    except Exception as e:
+        logger.warning(f"Failed to initialize dynamic model routing: {e}")
 
     # Log startup message
     logger.info("Zen MCP Server starting up...")
