@@ -33,15 +33,16 @@ from typing import Any, Dict, List, Optional
 from mcp.server import Server
 from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
-from mcp.types import CallToolResult, ErrorCode, ListToolsResult, McpError, TextContent, Tool
+from mcp.types import CallToolResult, ListToolsResult, TextContent, Tool, INTERNAL_ERROR, METHOD_NOT_FOUND, ErrorData
+from mcp import McpError
 
 # Import hub components
 from hub import MCPClientManager, ZenToolFilter
 from hub.config.hub_settings import HubSettings
 from hub.mcp_client_manager import MCPTool
 from hub.tool_filter import create_tool_filter
-from server import app as zen_app
-from server import server_name
+# Lazy import to avoid dependency issues
+# from server import app as zen_app
 
 # Import the original Zen server components
 
@@ -59,12 +60,27 @@ class ZenHubServer:
         self.settings = HubSettings.from_env()
         self.mcp_manager: Optional[MCPClientManager] = None
         self.tool_filter: Optional[ZenToolFilter] = None
-        self.zen_server = zen_app  # Original Zen server
+        self.zen_server = None  # Will be lazily loaded
+        self._zen_app_loaded = False
         self.hub_enabled = self.settings.hub_enabled
 
         # Track hub status
         self.hub_initialized = False
         self.last_query_context: Optional[str] = None
+
+    def _load_zen_server(self):
+        """Lazily load the zen server to avoid import issues"""
+        if not self._zen_app_loaded:
+            try:
+                from server import server as zen_server
+                self.zen_server = zen_server
+                self._zen_app_loaded = True
+                logger.debug("Zen server loaded successfully")
+            except ImportError as e:
+                logger.warning(f"Could not load zen server: {e}")
+                self.zen_server = None
+                self._zen_app_loaded = True  # Mark as attempted
+        return self.zen_server
 
     async def initialize_hub(self) -> bool:
         """Initialize the hub functionality"""
@@ -108,8 +124,13 @@ class ZenHubServer:
         """
         try:
             # Get tools from original Zen server
-            zen_tools_result = await self.zen_server.list_tools()
-            zen_tools = zen_tools_result.tools if hasattr(zen_tools_result, 'tools') else []
+            zen_server = self._load_zen_server()
+            zen_tools = []
+            if zen_server:
+                # Import and call the handler directly
+                from server import handle_list_tools
+                zen_tools_list = await handle_list_tools()
+                zen_tools = zen_tools_list if isinstance(zen_tools_list, list) else []
 
             # If hub not enabled or no context, return all Zen tools
             if not self.hub_enabled or not self.hub_initialized or not query_context:
@@ -159,13 +180,19 @@ class ZenHubServer:
         """
         try:
             # Check if this is a Zen tool
-            zen_tools_result = await self.zen_server.list_tools()
-            zen_tool_names = {tool.name for tool in zen_tools_result.tools} if hasattr(zen_tools_result, 'tools') else set()
+            zen_server = self._load_zen_server()
+            zen_tool_names = set()
+            
+            if zen_server:
+                # Import and call the handler directly
+                from server import handle_list_tools, handle_call_tool
+                zen_tools_list = await handle_list_tools()
+                zen_tool_names = {tool.name for tool in zen_tools_list} if zen_tools_list else set()
 
-            if name in zen_tool_names:
-                # Route to original Zen server
-                logger.debug(f"Routing {name} to Zen server")
-                return await self.zen_server.call_tool(name, arguments)
+                if name in zen_tool_names:
+                    # Route to original Zen server
+                    logger.debug(f"Routing {name} to Zen server")
+                    return await handle_call_tool(name, arguments)
 
             # Check if this is an external MCP tool
             if self.hub_enabled and self.mcp_manager:
@@ -196,8 +223,7 @@ class ZenHubServer:
 
             # Tool not found
             raise McpError(
-                ErrorCode.METHOD_NOT_FOUND,
-                f"Tool {name} not found"
+                ErrorData(code=METHOD_NOT_FOUND, message=f"Tool {name} not found")
             )
 
         except Exception as e:
@@ -288,7 +314,7 @@ class ZenHubServer:
 hub_server = ZenHubServer()
 
 # Create enhanced MCP server app
-app = Server(server_name)
+app = Server("zen-hub")
 
 @app.list_tools()
 async def handle_list_tools() -> ListToolsResult:
