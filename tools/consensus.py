@@ -36,16 +36,46 @@ logger = logging.getLogger(__name__)
 
 # Tool-specific field descriptions for consensus workflow
 CONSENSUS_WORKFLOW_FIELD_DESCRIPTIONS = {
-    "step": "In step 1: Provide the EXACT question or proposal that ALL models will evaluate. In subsequent steps (2+): This field is for internal tracking only - you can provide notes about the model response you just received. This will NOT be sent to other models (they all receive the original proposal from step 1).",
-    "step_number": "The index of the current step in the consensus workflow, beginning at 1. Step 1 is your analysis, steps 2+ are for processing individual model responses.",
-    "total_steps": "Total number of steps needed. This equals the number of models to consult. Step 1 includes your analysis + first model consultation on return of the call. Final step includes last model consultation + synthesis.",
-    "next_step_required": "Set to true if more models need to be consulted. False when ready for final synthesis.",
-    "findings": "In step 1: Provide YOUR OWN comprehensive analysis of the proposal/question. This is where you share your independent evaluation, considering technical feasibility, risks, benefits, and alternatives. This analysis is NOT sent to other models - it's recorded for the final synthesis. In steps 2+: Summarize the key points from the model response received, noting agreements and disagreements with previous analyses.",
-    "relevant_files": "Files that are relevant to the consensus analysis. Include files that help understand the proposal, provide context, or contain implementation details.",
-    "models": "List of model configurations to consult. Each can have a model name, stance (for/against/neutral), and optional custom stance prompt. The same model can be used multiple times with different stances, but each model + stance combination must be unique. Example: [{'model': 'o3', 'stance': 'for'}, {'model': 'o3', 'stance': 'against'}, {'model': 'flash', 'stance': 'neutral'}]",
-    "current_model_index": "Internal tracking of which model is being consulted (0-based index). Used to determine which model to call next.",
-    "model_responses": "Accumulated responses from models consulted so far. Internal field for tracking progress.",
-    "images": "Optional list of image paths or base64 data URLs for visual context. Useful for UI/UX discussions, architecture diagrams, mockups, or any visual references that help inform the consensus analysis.",
+    "step": (
+        "The core question for consensus. Step 1: Provide the EXACT proposal for all models to evaluate. "
+        "CRITICAL: This text is sent to all models and must be a clear question, not a self-referential statement "
+        "(e.g., use 'Evaluate...' not 'I will evaluate...'). Steps 2+: Internal notes on the last model's response; this is NOT sent to other models."
+    ),
+    "step_number": (
+        "The index of the current step in the consensus workflow, beginning at 1. Step 1 is your analysis, "
+        "steps 2+ are for processing individual model responses."
+    ),
+    "total_steps": (
+        "Total number of steps needed. This equals the number of models to consult. "
+        "Step 1 includes your analysis + first model consultation on return of the call. Final step includes "
+        "last model consultation + synthesis."
+    ),
+    "next_step_required": ("Set to true if more models need to be consulted. False when ready for final synthesis."),
+    "findings": (
+        "Your analysis of the consensus topic. Step 1: Your independent, comprehensive analysis of the proposal. "
+        "CRITICAL: This is for the final synthesis and is NOT sent to the other models. "
+        "Steps 2+: A summary of the key points from the most recent model's response."
+    ),
+    "relevant_files": (
+        "Files that are relevant to the consensus analysis. Include files that help understand the proposal, "
+        "provide context, or contain implementation details."
+    ),
+    "models": (
+        "List of model configurations to consult. Each can have a model name, stance (for/against/neutral), "
+        "and optional custom stance prompt. The same model can be used multiple times with different stances, "
+        "but each model + stance combination must be unique. "
+        "Example: [{'model': 'o3', 'stance': 'for'}, {'model': 'o3', 'stance': 'against'}, "
+        "{'model': 'flash', 'stance': 'neutral'}]"
+    ),
+    "current_model_index": (
+        "Internal tracking of which model is being consulted (0-based index). Used to determine which model "
+        "to call next."
+    ),
+    "model_responses": ("Accumulated responses from models consulted so far. Internal field for tracking progress."),
+    "images": (
+        "Optional list of image paths or base64 data URLs for visual context. Useful for UI/UX discussions, "
+        "architecture diagrams, mockups, or any visual references that help inform the consensus analysis."
+    ),
 }
 
 
@@ -140,22 +170,9 @@ class ConsensusTool(WorkflowTool):
 
     def get_description(self) -> str:
         return (
-            "COMPREHENSIVE CONSENSUS WORKFLOW - Step-by-step multi-model consensus with structured analysis. "
-            "This tool guides you through a systematic process where you:\n\n"
-            "1. Start with step 1: provide your own neutral analysis of the proposal\n"
-            "2. The tool will then consult each specified model one by one\n"
-            "3. You'll receive each model's response in subsequent steps\n"
-            "4. Track and synthesize perspectives as they accumulate\n"
-            "5. Final step: present comprehensive consensus and recommendations\n\n"
-            "IMPORTANT: This workflow enforces sequential model consultation:\n"
-            "- Step 1 is always your independent analysis\n"
-            "- Each subsequent step processes one model response\n"
-            "- Total steps = number of models (each step includes consultation + response)\n"
-            "- Models can have stances (for/against/neutral) for structured debate\n"
-            "- Same model can be used multiple times with different stances\n"
-            "- Each model + stance combination must be unique\n\n"
-            "Perfect for: complex decisions, architectural choices, feature proposals, "
-            "technology evaluations, strategic planning."
+            "Builds multi-model consensus through systematic analysis and structured debate. "
+            "Use for complex decisions, architectural choices, feature proposals, and technology evaluations. "
+            "Consults multiple models with different stances to synthesize comprehensive recommendations."
         )
 
     def get_system_prompt(self) -> str:

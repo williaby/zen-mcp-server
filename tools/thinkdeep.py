@@ -34,35 +34,47 @@ class ThinkDeepWorkflowRequest(WorkflowRequest):
     """Request model for thinkdeep workflow tool with comprehensive investigation capabilities"""
 
     # Core workflow parameters
-    step: str = Field(description="Current work step content and findings from your overall work")
-    step_number: int = Field(description="Current step number in the work sequence (starts at 1)", ge=1)
-    total_steps: int = Field(description="Estimated total steps needed to complete the work", ge=1)
-    next_step_required: bool = Field(description="Whether another work step is needed after this one")
-    findings: str = Field(description="Important findings, evidence and insights discovered in this step of the work")
+    step: str = Field(description="Current work step content and findings")
+    step_number: int = Field(description="Current step number (starts at 1)", ge=1)
+    total_steps: int = Field(description="Estimated total steps needed", ge=1)
+    next_step_required: bool = Field(description="Whether another step is needed")
+    findings: str = Field(
+        description="Discoveries: insights, connections, implications, evidence. "
+        "Document contradictions to earlier assumptions. Update past findings."
+    )
 
     # Investigation tracking
-    files_checked: list[str] = Field(default_factory=list, description="List of files examined during this work step")
-    relevant_files: list[str] = Field(default_factory=list, description="Files identified as relevant to the issue/goal")
-    relevant_context: list[str] = Field(default_factory=list, description="Methods/functions identified as involved in the issue")
+    files_checked: list[str] = Field(
+        default_factory=list,
+        description="All files examined (absolute paths). Include ruled-out files.",
+    )
+    relevant_files: list[str] = Field(
+        default_factory=list,
+        description="Files relevant to problem/goal (absolute paths). Include root cause, solution, key insights.",
+    )
+    relevant_context: list[str] = Field(
+        default_factory=list,
+        description="Key concepts/methods: 'concept_name' or 'ClassName.methodName'. Focus on core insights, decision points.",
+    )
     hypothesis: Optional[str] = Field(
         default=None,
-        description="Current theory about the issue/goal based on work",
+        description="Current theory based on evidence. Revise in later steps.",
     )
 
     # Analysis metadata
     issues_found: list[dict] = Field(
         default_factory=list,
-        description="Issues identified with severity levels during work",
+        description="Issues with dict: 'severity' (critical/high/medium/low), 'description'.",
     )
     confidence: str = Field(
         default="low",
-        description="Confidence level in findings: exploring (just starting), low (early investigation), medium (some evidence), high (strong evidence), very_high (comprehensive understanding), almost_certain (near complete confidence), certain (100% confidence locally - no external validation needed)",
+        description="exploring/low/medium/high/very_high/almost_certain/certain. CRITICAL: 'certain' PREVENTS external validation.",
     )
 
     # Advanced workflow features
     backtrack_from_step: Optional[int] = Field(
         default=None,
-        description="Step number to backtrack from if work needs revision",
+        description="Step number to backtrack from if revision needed.",
         ge=1,
     )
 
@@ -70,30 +82,27 @@ class ThinkDeepWorkflowRequest(WorkflowRequest):
     # in expert analysis (commented out exclude=True)
     temperature: Optional[float] = Field(
         default=None,
-        description="Temperature for response (0.0 to 1.0). Lower values are more focused and deterministic, higher values are more creative. Tool-specific defaults apply if not specified.",
+        description="Creative thinking temp (0-1, default 0.7)",
         ge=0.0,
         le=1.0,
-        # exclude=True  # Excluded from MCP schema but available for internal use
     )
     thinking_mode: Optional[str] = Field(
         default=None,
-        description="Thinking depth: minimal (0.5% of model max), low (8%), medium (33%), high (67%), max (100% of model max). Higher modes enable deeper reasoning at the cost of speed.",
-        # exclude=True  # Excluded from MCP schema but available for internal use
+        description="Depth: minimal/low/medium/high/max. Default 'high'.",
     )
     use_websearch: Optional[bool] = Field(
         default=None,
-        description="Enable web search for documentation, best practices, and current information. When enabled, the model can request Claude to perform web searches and share results back during conversations. Particularly useful for: brainstorming sessions, architectural design discussions, exploring industry best practices, working with specific frameworks/technologies, researching solutions to complex problems, or when current documentation and community insights would enhance the analysis.",
-        # exclude=True  # Excluded from MCP schema but available for internal use
+        description="Enable web search for docs, brainstorming, architecture, solutions.",
     )
 
     # Context files and investigation scope
     problem_context: Optional[str] = Field(
         default=None,
-        description="Provide additional context about the problem or goal. Be as expressive as possible. More information will be very helpful for the analysis.",
+        description="Additional context about problem/goal. Be expressive.",
     )
     focus_areas: Optional[list[str]] = Field(
         default=None,
-        description="Specific aspects to focus on (architecture, performance, security, etc.)",
+        description="Focus aspects (architecture, performance, security, etc.)",
     )
 
 
@@ -107,8 +116,9 @@ class ThinkDeepTool(WorkflowTool):
 
     name = "thinkdeep"
     description = (
-        "COMPREHENSIVE INVESTIGATION & REASONING - Multi-stage workflow for complex problem analysis. "
-        "Perfect for: architecture decisions, complex bugs, performance challenges, security analysis."
+        "Performs multi-stage investigation and reasoning for complex problem analysis. "
+        "Use for architecture decisions, complex bugs, performance challenges, and security analysis. "
+        "Provides systematic hypothesis testing, evidence-based investigation, and expert validation."
     )
 
     def __init__(self):
@@ -143,12 +153,12 @@ class ThinkDeepTool(WorkflowTool):
         thinkdeep_field_overrides = {
             "problem_context": {
                 "type": "string",
-                "description": "Provide additional context about the problem or goal. Be as expressive as possible. More information will be very helpful for the analysis.",
+                "description": "Additional context about problem/goal. Be expressive.",
             },
             "focus_areas": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Specific aspects to focus on (architecture, performance, security, etc.)",
+                "description": "Focus aspects (architecture, performance, security, etc.)",
             },
         }
 
