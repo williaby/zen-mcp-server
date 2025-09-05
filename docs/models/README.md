@@ -1,18 +1,48 @@
 # AI Models Infrastructure
 
-This directory contains the complete AI model selection and evaluation infrastructure for the Zen MCP Server.
+This directory contains the complete AI model selection and evaluation infrastructure for the Zen MCP Server, including dynamic routing, complexity analysis, and multi-channel model management.
 
 ## Overview
 
-The dynamic model selector provides intelligent model routing across multiple LLM platforms, enabling requests by model type rather than specific model names (e.g., "best free coding model", "executive-level reasoning model").
+The Zen MCP Server provides a comprehensive AI model management platform with two integrated systems:
 
-## File Structure
+### 1. **Core Dynamic Routing System** 
+Intelligent model routing across multiple LLM platforms, enabling requests by model type rather than specific model names (e.g., "best free coding model", "executive-level reasoning model"). The system automatically selects optimal models based on:
 
-### Core Data Files
+- **Complexity Analysis**: Automatic prompt complexity assessment using `routing/complexity_analyzer.py`
+- **Cost Optimization**: Intelligent cost-performance balancing via `routing/model_level_router.py`
+- **User Tier Management**: Model access control based on organizational levels
+- **Performance Intelligence**: Benchmark-driven model selection
 
-- **`models.csv`** - Master model database with 24+ models
+### 2. **PromptCraft Integration System**
+Extended API endpoints and multi-channel model curation for external applications:
+
+- **API Gateway**: RESTful endpoints for route analysis and smart execution  
+- **Two-Tier Channels**: Stable (verified) + Experimental (bleeding-edge) model tracks
+- **Automated Curation**: New model detection, benchmarking, and graduation pipeline
+- **Performance Analytics**: Real-time model performance tracking and optimization
+
+## Architecture Components
+
+### Core Dynamic Routing (`routing/`)
+
+- **`model_level_router.py`** - Primary model selection engine with complexity-based routing
+- **`complexity_analyzer.py`** - Prompt analysis and task classification system
+- **`model_routing_config.json`** - Model level definitions and routing rules
+- **`monitoring.py`** - Performance tracking and metrics collection
+
+### Model Data Management (`docs/models/`)
+
+- **`models.csv`** - Master stable model database (24+ verified models)
 - **`bands_config.json`** - Quantitative scoring bands and organizational requirements
 - **`models_schema.json`** - JSON validation schema for model data structure
+
+### PromptCraft Extension System (`plugins/promptcraft_system/`)
+
+- **`experimental_models.json`** - Bleeding-edge models awaiting verification
+- **`graduation_queue.json`** - Models undergoing promotion evaluation
+- **`channel_manager.py`** - Stable/experimental channel orchestration
+- **`api_server.py`** - RESTful API endpoints for external integration
 
 ### Generated Views (Auto-updated)
 
@@ -418,6 +448,111 @@ weighted_score = 8.05/10  # Exceeds 7.5 threshold
 - All tools immediately use new categorization
 
 This demonstrates the power of centralized configuration - one change cascades throughout the entire model management system.
+
+## Dynamic Routing System Details
+
+### Complexity Analysis Pipeline
+
+The routing system uses sophisticated prompt analysis to determine optimal model selection:
+
+```python
+# routing/complexity_analyzer.py workflow:
+1. Extract prompt features (length, keywords, patterns)
+2. Classify task type (coding, reasoning, general, analysis) 
+3. Calculate complexity score (0.0-1.0)
+4. Determine minimum model tier requirements
+5. Generate routing recommendations
+```
+
+### Model Level Router
+
+The `ModelLevelRouter` provides intelligent model selection with multiple strategies:
+
+**Selection Strategies:**
+- **Cost-Optimized**: Prioritize free models, fallback to paid
+- **Performance-First**: Select highest-capability models
+- **Balanced**: Optimize for cost-performance ratio
+- **User-Tier**: Respect organizational access levels
+
+**Integration Points:**
+```python
+from routing.model_level_router import ModelLevelRouter
+from routing.complexity_analyzer import ComplexityAnalyzer
+
+# Automatic routing workflow
+router = ModelLevelRouter()
+analyzer = ComplexityAnalyzer()
+
+# Analyze prompt complexity
+analysis = analyzer.analyze(prompt_text)
+
+# Select optimal model
+selected_model = router.select_model(
+    complexity=analysis.complexity_score,
+    task_type=analysis.task_type,
+    user_tier="free",  # or "premium", "enterprise"
+    cost_optimization=True
+)
+```
+
+## PromptCraft Integration Architecture
+
+### Two-Channel System
+
+**Stable Channel** (`models.csv`)
+- Verified models with proven performance
+- Comprehensive benchmark scores
+- Production-ready reliability
+- Used by default for all applications
+
+**Experimental Channel** (`experimental_models.json`)
+- Bleeding-edge models from OpenRouter
+- Automated discovery every 6 hours
+- Basic quality filtering
+- Advanced users and testing environments
+
+### Automated Model Lifecycle
+
+```mermaid
+graph TD
+    A[OpenRouter API] --> B[Auto-Detection]
+    B --> C{Quality Check}
+    C -->|Pass| D[Experimental Channel]
+    C -->|Fail| E[Discard]
+    D --> F[Usage Tracking]
+    F --> G{Graduation Criteria}
+    G -->|Met| H[Stable Channel]
+    G -->|Not Met| I[Continue Monitoring]
+    H --> J[Production Deployment]
+```
+
+### API Gateway Endpoints
+
+**Core Integration Points:**
+- `POST /api/promptcraft/route/analyze` - Complexity analysis and recommendations
+- `POST /api/promptcraft/execute/smart` - Route and execute in single call
+- `GET /api/promptcraft/models/available` - Channel-aware model discovery
+
+**Channel Management:**
+- Automatic experimental model detection
+- Performance-based graduation pipeline
+- Real-time model availability tracking
+
+### Performance Intelligence
+
+The system maintains comprehensive performance metrics:
+
+**Model Performance Tracking:**
+- Response times and success rates
+- Cost analysis per model and task type
+- User satisfaction and preference data
+- Benchmark score verification
+
+**Optimization Algorithms:**
+- Dynamic model ranking based on live performance
+- Cost-efficiency optimization
+- Load balancing across similar-tier models
+- Predictive model availability management
 
 ## Implementation Status & Strategic Analysis
 
