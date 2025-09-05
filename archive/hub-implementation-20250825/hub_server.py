@@ -29,18 +29,19 @@ import logging
 import sys
 from typing import Any, Dict, List, Optional
 
-# MCP imports
-from mcp.server import Server
-from mcp.server.models import InitializationOptions
-from mcp.server.stdio import stdio_server
-from mcp.types import CallToolResult, ListToolsResult, TextContent, Tool, INTERNAL_ERROR, METHOD_NOT_FOUND, ErrorData
-from mcp import McpError
-
 # Import hub components
 from hub import MCPClientManager, ZenToolFilter
 from hub.config.hub_settings import HubSettings
 from hub.mcp_client_manager import MCPTool
 from hub.tool_filter import create_tool_filter
+from mcp import McpError
+
+# MCP imports
+from mcp.server import Server
+from mcp.server.models import InitializationOptions
+from mcp.server.stdio import stdio_server
+from mcp.types import METHOD_NOT_FOUND, CallToolResult, ErrorData, ListToolsResult, TextContent, Tool
+
 # Lazy import to avoid dependency issues
 # from server import app as zen_app
 
@@ -182,10 +183,10 @@ class ZenHubServer:
             # Check if this is a Zen tool
             zen_server = self._load_zen_server()
             zen_tool_names = set()
-            
+
             if zen_server:
                 # Import and call the handler directly
-                from server import handle_list_tools, handle_call_tool
+                from server import handle_call_tool, handle_list_tools
                 zen_tools_list = await handle_list_tools()
                 zen_tool_names = {tool.name for tool in zen_tools_list} if zen_tools_list else set()
 

@@ -5,13 +5,11 @@ Analyzes prompts, code content, and context to determine task complexity
 and appropriate model requirements.
 """
 
+import logging
 import re
-import os
-import json
-from typing import Dict, List, Tuple, Set, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +40,12 @@ class ComplexityAnalyzer:
     - Task type classification
     - Confidence in the assessment
     """
-    
+
     def __init__(self):
         self.complexity_patterns = self._load_complexity_patterns()
         self.task_type_patterns = self._load_task_type_patterns()
         self.file_type_complexity = self._load_file_type_complexity()
-        
+
     def _load_complexity_patterns(self) -> Dict[str, Dict[str, Any]]:
         """Load patterns for complexity detection."""
         return {
@@ -125,7 +123,7 @@ class ComplexityAnalyzer:
                 "complexity_per_match": 0.05
             }
         }
-    
+
     def _load_task_type_patterns(self) -> Dict[TaskType, Dict[str, Any]]:
         """Load patterns for task type classification."""
         return {
@@ -207,7 +205,7 @@ class ComplexityAnalyzer:
                 "weight": 0.5
             }
         }
-    
+
     def _load_file_type_complexity(self) -> Dict[str, float]:
         """Load complexity mappings for different file types."""
         return {
@@ -226,7 +224,7 @@ class ComplexityAnalyzer:
             '.kt': 0.3,     # Kotlin - Java alternative
             '.scala': 0.5,  # Scala - functional complexity
             '.hs': 0.6,     # Haskell - high functional complexity
-            
+
             # Configuration and markup
             '.json': 0.0,   # JSON - simple structure
             '.yaml': 0.1,   # YAML - slightly more complex
@@ -237,25 +235,25 @@ class ComplexityAnalyzer:
             '.css': 0.1,    # CSS - styling
             '.scss': 0.2,   # SCSS - more features
             '.sql': 0.3,    # SQL - database queries
-            
+
             # Documentation
             '.md': 0.0,     # Markdown - simple
             '.rst': 0.1,    # reStructuredText - more complex
             '.tex': 0.4,    # LaTeX - complex formatting
-            
+
             # DevOps and infrastructure
             '.dockerfile': 0.3,  # Docker complexity
             '.tf': 0.4,          # Terraform - infrastructure
             '.yml': 0.2,         # CI/CD configs
             '.sh': 0.2,          # Shell scripts
             '.ps1': 0.3,         # PowerShell - Windows complexity
-            
+
             # Default for unknown extensions
             'default': 0.1
         }
-    
-    def analyze(self, 
-               prompt: str, 
+
+    def analyze(self,
+               prompt: str,
                context: Optional[Dict[str, Any]] = None) -> Tuple[str, float, TaskType]:
         """
         Analyze prompt and context to determine complexity and task type.
@@ -268,62 +266,62 @@ class ComplexityAnalyzer:
             tuple: (complexity_level, confidence, task_type)
         """
         indicators = []
-        
+
         # Analyze prompt text
         text_indicators = self._analyze_text_complexity(prompt)
         indicators.extend(text_indicators)
-        
+
         # Analyze context if provided
         if context:
             context_indicators = self._analyze_context_complexity(context)
             indicators.extend(context_indicators)
-        
+
         # Determine task type
         task_type = self._classify_task_type(prompt, context)
-        
+
         # Calculate overall complexity
         complexity_level, confidence = self._calculate_complexity(indicators, task_type)
-        
+
         return complexity_level, confidence, task_type
-    
+
     def _analyze_text_complexity(self, text: str) -> List[ComplexityIndicator]:
         """Analyze text content for complexity indicators."""
         indicators = []
         text_lower = text.lower()
-        
+
         # Keyword-based analysis
         for category, config in self.complexity_patterns.items():
             if category == "length_indicators":
                 continue  # Handle separately
             if category == "code_complexity":
                 continue  # Handle separately
-                
+
             if "patterns" in config:
                 matches = []
                 for pattern in config["patterns"]:
                     pattern_matches = re.findall(pattern, text_lower)
                     matches.extend(pattern_matches)
-                
+
                 if matches:
                     impact = config.get("complexity_impact", 0.0)
                     score = len(matches) * config["weight"] * abs(impact)
-                    
+
                     indicators.append(ComplexityIndicator(
                         name=category,
                         weight=config["weight"],
                         score=score * (1 if impact >= 0 else -1),
                         evidence=matches[:3]  # First 3 matches as evidence
                     ))
-        
+
         # Length-based analysis
         length_config = self.complexity_patterns["length_indicators"]
         text_length = len(text)
         length_category = "short"
-        
+
         for category, threshold in length_config["thresholds"].items():
             if text_length >= threshold:
                 length_category = category
-        
+
         length_impact = length_config["complexity_mapping"][length_category]
         if length_impact != 0:
             indicators.append(ComplexityIndicator(
@@ -332,14 +330,14 @@ class ComplexityAnalyzer:
                 score=length_impact * length_config["weight"],
                 evidence=[f"Text length: {text_length} chars ({length_category})"]
             ))
-        
+
         # Code complexity analysis
         code_config = self.complexity_patterns["code_complexity"]
         code_matches = []
         for pattern in code_config["patterns"]:
             matches = re.findall(pattern, text)
             code_matches.extend(matches)
-        
+
         if code_matches:
             code_score = len(code_matches) * code_config["complexity_per_match"]
             indicators.append(ComplexityIndicator(
@@ -348,33 +346,33 @@ class ComplexityAnalyzer:
                 score=code_score,
                 evidence=[f"Code patterns found: {len(code_matches)}"]
             ))
-        
+
         return indicators
-    
+
     def _analyze_context_complexity(self, context: Dict[str, Any]) -> List[ComplexityIndicator]:
         """Analyze context information for complexity indicators."""
         indicators = []
-        
+
         # File type analysis
         if "file_types" in context:
             file_types = context["file_types"]
             if isinstance(file_types, str):
                 file_types = [file_types]
-            
+
             total_complexity = 0.0
             evidence = []
-            
+
             for file_type in file_types:
                 if not file_type.startswith('.'):
                     file_type = '.' + file_type
-                
+
                 complexity = self.file_type_complexity.get(
-                    file_type, 
+                    file_type,
                     self.file_type_complexity["default"]
                 )
                 total_complexity += complexity
                 evidence.append(f"{file_type}: {complexity}")
-            
+
             if total_complexity > 0:
                 indicators.append(ComplexityIndicator(
                     name="file_type_complexity",
@@ -382,7 +380,7 @@ class ComplexityAnalyzer:
                     score=total_complexity,
                     evidence=evidence
                 ))
-        
+
         # Error context analysis
         if "errors" in context or "error" in context:
             error_info = context.get("errors") or context.get("error")
@@ -394,21 +392,21 @@ class ComplexityAnalyzer:
                     score=0.2,  # Moderate complexity boost
                     evidence=["Error context present"]
                 ))
-        
+
         # Existing code analysis
         if "existing_code" in context:
             existing_code = context["existing_code"]
             if existing_code:
                 code_length = len(str(existing_code))
                 complexity_boost = min(code_length / 10000, 0.3)  # Cap at 0.3
-                
+
                 indicators.append(ComplexityIndicator(
                     name="existing_code",
                     weight=0.3,
                     score=complexity_boost,
                     evidence=[f"Existing code: {code_length} chars"]
                 ))
-        
+
         # Multi-file context
         if "files" in context:
             files = context["files"]
@@ -419,62 +417,62 @@ class ComplexityAnalyzer:
                     score=min(len(files) * 0.05, 0.3),
                     evidence=[f"Multiple files: {len(files)}"]
                 ))
-        
+
         return indicators
-    
-    def _classify_task_type(self, 
-                          prompt: str, 
+
+    def _classify_task_type(self,
+                          prompt: str,
                           context: Optional[Dict[str, Any]] = None) -> TaskType:
         """Classify the task type based on prompt and context."""
         scores = {}
         prompt_lower = prompt.lower()
-        
+
         # Score each task type
         for task_type, config in self.task_type_patterns.items():
             score = 0.0
-            
+
             # Keyword matching
             for keyword in config["keywords"]:
                 if keyword.lower() in prompt_lower:
                     score += 1.0
-            
+
             # Pattern matching
             for pattern in config["patterns"]:
                 matches = re.findall(pattern, prompt_lower)
                 score += len(matches) * 2.0  # Pattern matches are stronger
-            
+
             # Apply weight
             scores[task_type] = score * config["weight"]
-        
+
         # Context-based adjustments
         if context:
             if "errors" in context or "error" in context:
                 scores[TaskType.DEBUGGING] += 2.0
-            
+
             if "files" in context and len(context.get("files", [])) > 1:
                 scores[TaskType.ANALYSIS] += 1.0
                 scores[TaskType.PLANNING] += 1.0
-        
+
         # Return highest scoring task type
         if scores:
             return max(scores, key=scores.get)
-        
+
         return TaskType.GENERAL
-    
-    def _calculate_complexity(self, 
+
+    def _calculate_complexity(self,
                             indicators: List[ComplexityIndicator],
                             task_type: TaskType) -> Tuple[str, float]:
         """Calculate overall complexity level and confidence."""
         if not indicators:
             return "simple", 0.5
-        
+
         # Calculate weighted score
         total_weight = sum(ind.weight for ind in indicators)
         if total_weight == 0:
             return "simple", 0.5
-        
+
         weighted_score = sum(ind.score * ind.weight for ind in indicators) / total_weight
-        
+
         # Task type adjustments
         task_type_adjustments = {
             TaskType.CODE_GENERATION: 0.1,
@@ -485,9 +483,9 @@ class ComplexityAnalyzer:
             TaskType.DOCUMENTATION: -0.1,
             TaskType.GENERAL: 0.0
         }
-        
+
         adjusted_score = weighted_score + task_type_adjustments.get(task_type, 0.0)
-        
+
         # Determine complexity level
         if adjusted_score < 0:
             complexity = "simple"
@@ -497,33 +495,33 @@ class ComplexityAnalyzer:
             complexity = "complex"
         else:
             complexity = "expert"
-        
+
         # Calculate confidence based on number and consistency of indicators
         confidence = min(len(indicators) / 10.0, 1.0)  # More indicators = higher confidence
-        
+
         # Adjust confidence based on score magnitude
         if abs(adjusted_score) > 0.5:
             confidence = min(confidence + 0.2, 1.0)
-        
+
         return complexity, confidence
-    
-    def get_analysis_details(self, 
-                           prompt: str, 
+
+    def get_analysis_details(self,
+                           prompt: str,
                            context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Get detailed analysis breakdown for debugging/transparency."""
         indicators = []
-        
+
         # Analyze components
         text_indicators = self._analyze_text_complexity(prompt)
         indicators.extend(text_indicators)
-        
+
         if context:
             context_indicators = self._analyze_context_complexity(context)
             indicators.extend(context_indicators)
-        
+
         task_type = self._classify_task_type(prompt, context)
         complexity_level, confidence = self._calculate_complexity(indicators, task_type)
-        
+
         return {
             "complexity_level": complexity_level,
             "confidence": confidence,

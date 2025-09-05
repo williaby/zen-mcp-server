@@ -5,8 +5,9 @@ This module provides comprehensive test data including sample prompts,
 model configurations, and expected routing behaviors.
 """
 
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List
+
 
 @dataclass
 class RoutingTestCase:
@@ -64,7 +65,7 @@ COMPLEXITY_TEST_CASES = [
     RoutingTestCase(
         prompt="Debug this memory leak in a multi-threaded C++ application",
         context={
-            "files": ["main.cpp", "worker.cpp", "memory.cpp"], 
+            "files": ["main.cpp", "worker.cpp", "memory.cpp"],
             "file_types": [".cpp"],
             "error": "Segmentation fault in worker thread"
         },
@@ -151,7 +152,7 @@ EXPECTED_MODEL_LEVELS = {
     "llama3.2:free": "free",
     "qwen/qwen-2.5-coder-32b-instruct:free": "free",
     "anthropic/claude-3-haiku": "junior",
-    "anthropic/claude-3-sonnet": "senior", 
+    "anthropic/claude-3-sonnet": "senior",
     "anthropic/claude-3-opus": "executive",
     "openai/gpt-4": "executive"
 }
@@ -233,7 +234,7 @@ TOOL_SCENARIOS = {
 # Performance test data
 PERFORMANCE_TEST_PROMPTS = [
     "Quick code review",
-    "Explain this simple function", 
+    "Explain this simple function",
     "Debug this error message",
     "Write a basic Python script",
     "Analyze this small file"
@@ -307,17 +308,17 @@ def get_tool_scenarios(tool_name: str) -> List[Dict[str, Any]]:
     """Get test scenarios for a specific tool."""
     return TOOL_SCENARIOS.get(tool_name, [])
 
-def create_mock_context(tool_name: str = "test", 
-                       files: List[str] = None, 
+def create_mock_context(tool_name: str = "test",
+                       files: List[str] = None,
                        error: str = None) -> Dict[str, Any]:
     """Create a mock context for testing."""
     context = {"tool_name": tool_name}
-    
+
     if files:
         context["files"] = files
         context["file_types"] = [f.split(".")[-1] for f in files if "." in f]
-    
+
     if error:
         context["error"] = error
-    
+
     return context

@@ -7,12 +7,12 @@ based on prompt analysis while maintaining compatibility with existing code.
 
 import logging
 import time
-from typing import Dict, Any, Optional, List, Callable, Union
 from dataclasses import dataclass
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
-from .model_level_router import ModelLevelRouter, RoutingResult
 from .complexity_analyzer import ComplexityAnalyzer
+from .model_level_router import ModelLevelRouter, RoutingResult
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +45,14 @@ class ModelWrapper:
     This class intercepts model calls and applies intelligent routing decisions
     while maintaining full compatibility with existing model provider interfaces.
     """
-    
+
     def __init__(self, router: Optional[ModelLevelRouter] = None):
         self.router = router or ModelLevelRouter()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.call_history: List[Dict[str, Any]] = []
         self.performance_tracking: Dict[str, Dict[str, Any]] = {}
-        
-    def wrap_model_call(self, 
+
+    def wrap_model_call(self,
                        original_call: Callable,
                        context: ModelCallContext) -> Callable:
         """
@@ -69,11 +69,11 @@ class ModelWrapper:
         def wrapped_call(*args, **kwargs):
             start_time = time.time()
             routing_decision = None
-            
+
             try:
                 # Get routing decision
                 routing_decision = self._make_routing_decision(context)
-                
+
                 # Apply routing if recommended
                 if routing_decision.routing_used:
                     # Modify the model parameter
@@ -82,34 +82,34 @@ class ModelWrapper:
                     elif len(args) > 0 and hasattr(args[0], 'model'):
                         # Handle case where model is in first argument object
                         args[0].model = routing_decision.selected_model
-                
+
                 # Make the actual call
                 result = original_call(*args, **kwargs)
-                
+
                 # Track success
                 self._track_call_result(context, routing_decision, True, time.time() - start_time)
-                
+
                 return result
-                
+
             except Exception as e:
                 # Track failure
                 self._track_call_result(context, routing_decision, False, time.time() - start_time, str(e))
-                
+
                 # If routing was used and it failed, try with original model
-                if (routing_decision and routing_decision.routing_used and 
+                if (routing_decision and routing_decision.routing_used and
                     routing_decision.original_model != routing_decision.selected_model):
-                    
+
                     logger.warning(f"Routed model failed, falling back to {routing_decision.original_model}")
-                    
+
                     try:
                         # Restore original model and retry
                         if 'model' in kwargs:
                             kwargs['model'] = routing_decision.original_model
                         elif len(args) > 0 and hasattr(args[0], 'model'):
                             args[0].model = routing_decision.original_model
-                            
+
                         result = original_call(*args, **kwargs)
-                        
+
                         # Track fallback success
                         fallback_decision = RoutingDecision(
                             original_model=routing_decision.original_model,
@@ -118,21 +118,21 @@ class ModelWrapper:
                             fallback_reason="Routed model failed"
                         )
                         self._track_call_result(context, fallback_decision, True, time.time() - start_time)
-                        
+
                         return result
-                        
+
                     except Exception as fallback_error:
                         logger.error(f"Both routed and original model failed: {fallback_error}")
                         raise fallback_error
                 else:
                     raise e
-                
+
         return wrapped_call
-    
+
     def _make_routing_decision(self, context: ModelCallContext) -> RoutingDecision:
         """Make a routing decision based on context."""
         original_model = context.model_requested or "auto"
-        
+
         try:
             # Build analysis context
             analysis_context = {
@@ -140,20 +140,20 @@ class ModelWrapper:
                 "files": context.files or [],
                 "file_types": self._extract_file_types(context.files or [])
             }
-            
+
             if context.additional_context:
                 analysis_context.update(context.additional_context)
-            
+
             # Get routing recommendation
             routing_result = self.router.select_model(
                 prompt=context.prompt,
                 context=analysis_context,
                 prefer_free=True
             )
-            
+
             # Decide whether to use routing
             should_route = self._should_apply_routing(original_model, routing_result)
-            
+
             return RoutingDecision(
                 original_model=original_model,
                 selected_model=routing_result.model.name if should_route else original_model,
@@ -162,7 +162,7 @@ class ModelWrapper:
                 reasoning=routing_result.reasoning,
                 estimated_cost=routing_result.estimated_cost
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to make routing decision: {e}")
             return RoutingDecision(
@@ -171,7 +171,7 @@ class ModelWrapper:
                 routing_used=False,
                 fallback_reason=f"Routing failed: {str(e)}"
             )
-    
+
     def _extract_file_types(self, files: List[str]) -> List[str]:
         """Extract file extensions from file paths."""
         extensions = []
@@ -180,32 +180,32 @@ class ModelWrapper:
                 ext = "." + file_path.split(".")[-1]
                 extensions.append(ext)
         return extensions
-    
+
     def _should_apply_routing(self, original_model: str, routing_result: RoutingResult) -> bool:
         """Determine if routing should be applied."""
         # Always route if we can use a free model
         if routing_result.model.cost_per_token == 0:
             return True
-        
+
         # Route if original model was auto/default
         if original_model.lower() in ["auto", "default", ""]:
             return True
-            
+
         # Route if confidence is very high
         if routing_result.confidence > 0.8:
             return True
-            
+
         # Route if we have a specialized model
         if "specialized" in routing_result.reasoning.lower():
             return True
-            
+
         # Route if original model is not available
         original_available = self._is_model_available(original_model)
         if not original_available:
             return True
-            
+
         return False
-    
+
     def _is_model_available(self, model_name: str) -> bool:
         """Check if a model is available."""
         try:
@@ -213,8 +213,8 @@ class ModelWrapper:
             return model_name in self.router.models
         except Exception:
             return True  # Assume available if we can't check
-    
-    def _track_call_result(self, 
+
+    def _track_call_result(self,
                           context: ModelCallContext,
                           routing_decision: Optional[RoutingDecision],
                           success: bool,
@@ -228,7 +228,7 @@ class ModelWrapper:
             "duration": duration,
             "error": error
         }
-        
+
         if routing_decision:
             call_record.update({
                 "original_model": routing_decision.original_model,
@@ -238,35 +238,35 @@ class ModelWrapper:
                 "reasoning": routing_decision.reasoning,
                 "estimated_cost": routing_decision.estimated_cost
             })
-            
+
             # Update router performance tracking
             if self.router:
                 self.router.update_model_performance(
-                    routing_decision.selected_model, 
-                    success, 
+                    routing_decision.selected_model,
+                    success,
                     error
                 )
-        
+
         self.call_history.append(call_record)
-        
+
         # Keep only last 1000 records
         if len(self.call_history) > 1000:
             self.call_history = self.call_history[-1000:]
-    
+
     def get_call_statistics(self) -> Dict[str, Any]:
         """Get statistics about model calls."""
         if not self.call_history:
             return {"total_calls": 0}
-        
+
         total_calls = len(self.call_history)
         successful_calls = sum(1 for call in self.call_history if call["success"])
         routed_calls = sum(1 for call in self.call_history if call.get("routing_used", False))
-        free_model_calls = sum(1 for call in self.call_history 
+        free_model_calls = sum(1 for call in self.call_history
                               if call.get("estimated_cost", 1) == 0)
-        
+
         total_cost = sum(call.get("estimated_cost", 0) for call in self.call_history)
         avg_duration = sum(call["duration"] for call in self.call_history) / total_calls
-        
+
         # Tool breakdown
         tool_stats = {}
         for call in self.call_history:
@@ -278,7 +278,7 @@ class ModelWrapper:
                 tool_stats[tool]["successes"] += 1
             if call.get("routing_used", False):
                 tool_stats[tool]["routed"] += 1
-        
+
         return {
             "total_calls": total_calls,
             "successful_calls": successful_calls,
@@ -291,12 +291,12 @@ class ModelWrapper:
             "average_duration": avg_duration,
             "tool_breakdown": tool_stats
         }
-    
+
     def get_recent_failures(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent failed calls for debugging."""
         failures = [call for call in self.call_history if not call["success"]]
         return failures[-limit:] if failures else []
-    
+
     def clear_history(self):
         """Clear call history."""
         self.call_history.clear()
@@ -309,18 +309,18 @@ class RoutingModelProvider:
     This class can wrap existing model providers to add intelligent routing
     while maintaining the same interface.
     """
-    
+
     def __init__(self, original_provider, wrapper: ModelWrapper):
         self.original_provider = original_provider
         self.wrapper = wrapper
-        
+
         # Preserve original provider interface
         for attr_name in dir(original_provider):
             if not attr_name.startswith('_') and not hasattr(self, attr_name):
                 attr = getattr(original_provider, attr_name)
                 if callable(attr):
                     setattr(self, attr_name, attr)
-    
+
     def create_model(self, *args, **kwargs):
         """Wrap model creation with routing."""
         # Extract context for routing
@@ -331,11 +331,11 @@ class RoutingModelProvider:
             temperature=kwargs.get('temperature'),
             max_tokens=kwargs.get('max_tokens')
         )
-        
+
         # Create wrapped call
         original_create = self.original_provider.create_model
         wrapped_create = self.wrapper.wrap_model_call(original_create, context)
-        
+
         return wrapped_create(*args, **kwargs)
 
 

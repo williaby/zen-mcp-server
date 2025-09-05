@@ -5,16 +5,17 @@ This tool allows users to view routing statistics, model availability,
 and routing configuration without requiring external CLI commands.
 """
 
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field
+from typing import Any, Dict, Optional
 
-from tools.simple.base import SimpleTool
+from pydantic import Field
+
 from tools.shared.base_models import ToolRequest
+from tools.simple.base import SimpleTool
 
 
 class RoutingStatusRequest(ToolRequest):
     """Request model for routing status queries."""
-    
+
     action: str = Field(
         default="status",
         description="Action to perform: 'status', 'models', 'stats', 'config', 'recommend'"
@@ -61,7 +62,7 @@ class RoutingStatusTool(SimpleTool):
                         "description": "List of file paths"
                     },
                     "file_types": {
-                        "type": "array", 
+                        "type": "array",
                         "items": {"type": "string"},
                         "description": "List of file extensions"
                     },
@@ -94,15 +95,15 @@ Always format information clearly and highlight key insights about routing behav
 
     async def execute_tool(self, request: RoutingStatusRequest) -> str:
         """Execute the routing status tool."""
-        
+
         try:
             # Try to import routing components
             from routing.integration import get_integration_instance
             integration = get_integration_instance()
-            
+
             if not integration.enabled:
                 return self._format_disabled_response()
-                
+
             # Handle different actions
             if request.action == "status":
                 return self._get_general_status(integration)
@@ -118,12 +119,12 @@ Always format information clearly and highlight key insights about routing behav
                 return self._get_recommendation(integration, request.prompt, request.context or {})
             else:
                 return f"Error: Unknown action '{request.action}'. Valid actions: status, models, stats, config, recommend"
-                
+
         except ImportError:
             return self._format_not_available_response()
         except Exception as e:
             return f"Error accessing routing system: {str(e)}"
-    
+
     def _format_disabled_response(self) -> str:
         """Format response when routing is disabled."""
         return """# Dynamic Model Routing Status
@@ -163,9 +164,9 @@ Please check your installation or contact support for assistance."""
     def _get_general_status(self, integration) -> str:
         """Get general routing status."""
         stats = integration.get_routing_stats()
-        
+
         status_icon = "✅" if integration.enabled else "❌"
-        
+
         response = f"""# Dynamic Model Routing Status
 
 **Status**: {status_icon} ENABLED
@@ -193,30 +194,30 @@ Please check your installation or contact support for assistance."""
         """Get information about available models."""
         if not integration.router:
             return "Router not available"
-            
+
         stats = integration.router.get_model_stats()
         models_by_level = stats.get('models_by_level', {})
-        
+
         response = ["# Available Models by Level\n"]
-        
+
         level_icons = {
             'free': '🆓',
-            'junior': '🥉', 
+            'junior': '🥉',
             'senior': '🥈',
             'executive': '🥇'
         }
-        
+
         for level, info in models_by_level.items():
             icon = level_icons.get(level, '⭐')
             total = info.get('total', 0)
             available = info.get('available', 0)
             avg_success = info.get('average_success_rate', 0)
-            
+
             response.append(f"## {icon} {level.title()} Level")
             response.append(f"- **Total Models**: {total}")
             response.append(f"- **Available**: {available}")
             response.append(f"- **Average Success Rate**: {avg_success:.1%}")
-            
+
             # Get specific models for this level
             try:
                 level_models = integration.router.get_models_by_level(level)
@@ -234,9 +235,9 @@ Please check your installation or contact support for assistance."""
                         response.append(f"  - ... and {len(level_models) - 5} more")
             except:
                 pass  # Skip model details if not available
-                
+
             response.append("")
-        
+
         # Top performers
         top_performers = stats.get('top_performers', [])
         if top_performers:
@@ -247,18 +248,18 @@ Please check your installation or contact support for assistance."""
                 success_rate = model['success_rate']
                 requests = model['total_requests']
                 response.append(f"{i}. **{name}** ({level}) - {success_rate:.1%} success rate ({requests} requests)")
-        
+
         return "\n".join(response)
 
     def _get_statistics(self, integration) -> str:
         """Get detailed routing statistics."""
         stats = integration.get_routing_stats()
-        
+
         total_decisions = stats.get('routing_decisions', 0)
         successes = stats.get('routing_successes', 0)
         failures = stats.get('routing_failures', 0)
         free_selections = stats.get('free_model_selections', 0)
-        
+
         response = f"""# Routing Statistics
 
 ## Decision Summary
@@ -289,21 +290,21 @@ Please check your installation or contact support for assistance."""
         """Get routing configuration information."""
         if not integration.router:
             return "Router configuration not available"
-            
+
         config = integration.router.routing_config
-        
+
         response = ["# Routing Configuration\n"]
-        
+
         # Routing levels
         response.append("## Model Levels")
         levels = config.get('levels', {})
         for level, settings in levels.items():
             cost_limit = settings.get('cost_limit', 'N/A')
-            priority = settings.get('priority', 'N/A') 
+            priority = settings.get('priority', 'N/A')
             response.append(f"- **{level.title()}**: Cost limit ${cost_limit}, Priority {priority}")
-        
+
         response.append("")
-        
+
         # Complexity thresholds
         response.append("## Complexity Thresholds")
         thresholds = config.get('complexity_thresholds', {})
@@ -311,31 +312,31 @@ Please check your installation or contact support for assistance."""
             max_level = settings.get('max_level', 'N/A')
             confidence = settings.get('confidence_threshold', 'N/A')
             response.append(f"- **{complexity.title()}**: Max level {max_level}, Confidence threshold {confidence}")
-        
+
         response.append("")
-        
+
         # Settings
         response.append("## Routing Settings")
         response.append(f"- **Free Model Preference**: {'✅' if config.get('free_model_preference') else '❌'}")
         response.append(f"- **Cost Optimization**: {'✅' if config.get('cost_optimization') else '❌'}")
         response.append(f"- **Fallback Strategy**: {config.get('fallback_strategy', 'escalate')}")
-        
+
         return "\n".join(response)
 
     def _get_recommendation(self, integration, prompt: str, context: Dict[str, Any]) -> str:
         """Get model recommendation for a specific prompt."""
         recommendation = integration.get_model_recommendation(prompt, context)
-        
+
         if "error" in recommendation:
             return f"Error getting recommendation: {recommendation['error']}"
-        
+
         model_name = recommendation.get('model', 'Unknown')
         level = recommendation.get('level', 'Unknown')
         confidence = recommendation.get('confidence', 0)
         reasoning = recommendation.get('reasoning', 'No reasoning provided')
         cost = recommendation.get('estimated_cost', 0)
         fallbacks = recommendation.get('fallback_models', [])
-        
+
         response = f"""# Model Recommendation
 
 **Prompt**: "{prompt[:100]}{'...' if len(prompt) > 100 else ''}"
@@ -351,13 +352,13 @@ Please check your installation or contact support for assistance."""
 
 ## Alternative Models
 """
-        
+
         if fallbacks:
             for i, fallback in enumerate(fallbacks[:3], 1):
                 response += f"{i}. {fallback}\n"
         else:
             response += "No alternatives available\n"
-        
+
         # Context analysis
         if context:
             response += "\n## Context Analysis\n"
@@ -368,14 +369,14 @@ Please check your installation or contact support for assistance."""
             if context.get('tool_name'):
                 response += f"- **Tool**: {context['tool_name']}\n"
             if context.get('error'):
-                response += f"- **Error Context**: Present\n"
-        
+                response += "- **Error Context**: Present\n"
+
         return response
 
     def requires_model(self) -> bool:
         """This tool doesn't require AI model access."""
         return False
-        
+
     async def prepare_prompt(self, request: RoutingStatusRequest) -> str:
         """Prepare prompt for the tool execution."""
         # This tool doesn't use AI models, so return empty prompt

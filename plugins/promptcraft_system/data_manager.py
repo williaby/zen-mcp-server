@@ -7,13 +7,12 @@ performance metrics, and channel configuration data.
 
 import json
 import logging
-import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import threading
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class ExperimentalModel:
     last_used: Optional[str] = None
     graduation_eligible: bool = False
 
-@dataclass  
+@dataclass
 class GraduationCandidate:
     """Data structure for models in graduation queue."""
     model_id: str
@@ -58,26 +57,26 @@ class PromptCraftDataManager:
     - Performance metrics tracking
     - Channel configuration management
     """
-    
+
     def __init__(self, data_dir: Optional[Path] = None):
         if data_dir is None:
             self.data_dir = Path("data/promptcraft")
         else:
             self.data_dir = Path(data_dir) if isinstance(data_dir, str) else data_dir
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # File paths
         self.experimental_models_path = self.data_dir / "experimental_models.json"
-        self.graduation_queue_path = self.data_dir / "graduation_queue.json"  
+        self.graduation_queue_path = self.data_dir / "graduation_queue.json"
         self.performance_metrics_path = self.data_dir / "performance_metrics.json"
         self.channel_config_path = self.data_dir / "channel_config.json"
-        
+
         # Thread lock for concurrent access
         self._lock = threading.Lock()
-        
+
         # Initialize files if they don't exist
         self._initialize_data_files()
-        
+
     def _initialize_data_files(self):
         """Initialize data files with default structures if they don't exist."""
         default_files = {
@@ -109,7 +108,7 @@ class PromptCraftDataManager:
                 "last_updated": datetime.now().isoformat()
             }
         }
-        
+
         for file_path, default_content in default_files.items():
             if not file_path.exists():
                 try:
@@ -118,54 +117,54 @@ class PromptCraftDataManager:
                     logger.info(f"✅ Initialized {file_path.name}")
                 except Exception as e:
                     logger.error(f"❌ Failed to initialize {file_path.name}: {e}")
-    
+
     def get_experimental_models(self) -> List[ExperimentalModel]:
         """Get all experimental models."""
         with self._lock:
             try:
-                with open(self.experimental_models_path, 'r') as f:
+                with open(self.experimental_models_path) as f:
                     data = json.load(f)
                 return [ExperimentalModel(**model) for model in data]
             except Exception as e:
                 logger.error(f"Error loading experimental models: {e}")
                 return []
-    
+
     def add_experimental_model(self, model: ExperimentalModel) -> bool:
         """Add a new experimental model."""
         with self._lock:
             try:
                 models = self.get_experimental_models()
-                
+
                 # Check if model already exists
                 if any(m.id == model.id for m in models):
                     logger.warning(f"Model {model.id} already exists in experimental channel")
                     return False
-                
+
                 # Add new model
                 models.append(model)
-                
+
                 # Save to file
                 with open(self.experimental_models_path, 'w') as f:
                     json.dump([asdict(m) for m in models], f, indent=2)
-                
+
                 logger.info(f"✅ Added experimental model: {model.id}")
                 return True
-                
+
             except Exception as e:
                 logger.error(f"❌ Failed to add experimental model {model.id}: {e}")
                 return False
-    
+
     def update_model_usage(self, model_id: str, success: bool) -> bool:
         """Update usage statistics for a model."""
         with self._lock:
             try:
                 models = self.get_experimental_models()
-                
+
                 for model in models:
                     if model.id == model_id:
                         model.usage_count += 1
                         model.last_used = datetime.now().isoformat()
-                        
+
                         # Update success rate
                         if model.usage_count == 1:
                             model.success_rate = 1.0 if success else 0.0
@@ -174,62 +173,62 @@ class PromptCraftDataManager:
                             old_total = model.success_rate * (model.usage_count - 1)
                             new_total = old_total + (1.0 if success else 0.0)
                             model.success_rate = new_total / model.usage_count
-                        
+
                         break
-                
+
                 # Save updated models
                 with open(self.experimental_models_path, 'w') as f:
                     json.dump([asdict(m) for m in models], f, indent=2)
-                
+
                 return True
-                
+
             except Exception as e:
                 logger.error(f"❌ Failed to update model usage for {model_id}: {e}")
                 return False
-    
+
     def get_graduation_queue(self) -> List[GraduationCandidate]:
         """Get all models in graduation queue."""
         with self._lock:
             try:
-                with open(self.graduation_queue_path, 'r') as f:
+                with open(self.graduation_queue_path) as f:
                     data = json.load(f)
                 return [GraduationCandidate(**candidate) for candidate in data]
             except Exception as e:
                 logger.error(f"Error loading graduation queue: {e}")
                 return []
-    
+
     def add_to_graduation_queue(self, candidate: GraduationCandidate) -> bool:
         """Add a model to graduation queue."""
         with self._lock:
             try:
                 queue = self.get_graduation_queue()
-                
+
                 # Check if already in queue
                 if any(c.model_id == candidate.model_id for c in queue):
                     logger.info(f"Model {candidate.model_id} already in graduation queue")
                     return False
-                
+
                 queue.append(candidate)
-                
+
                 with open(self.graduation_queue_path, 'w') as f:
                     json.dump([asdict(c) for c in queue], f, indent=2)
-                
+
                 logger.info(f"✅ Added {candidate.model_id} to graduation queue")
                 return True
-                
+
             except Exception as e:
                 logger.error(f"❌ Failed to add {candidate.model_id} to graduation queue: {e}")
                 return False
-    
+
     def remove_from_graduation_queue(self, model_id: str) -> bool:
         """Remove a model from graduation queue (after graduation)."""
         with self._lock:
             try:
                 queue = self.get_graduation_queue()
                 original_length = len(queue)
-                
+
                 queue = [c for c in queue if c.model_id != model_id]
-                
+
                 if len(queue) < original_length:
                     with open(self.graduation_queue_path, 'w') as f:
                         json.dump([asdict(c) for c in queue], f, indent=2)
@@ -238,41 +237,41 @@ class PromptCraftDataManager:
                 else:
                     logger.warning(f"Model {model_id} not found in graduation queue")
                     return False
-                    
+
             except Exception as e:
                 logger.error(f"❌ Failed to remove {model_id} from graduation queue: {e}")
                 return False
-    
+
     def get_graduation_criteria(self) -> Dict[str, Any]:
         """Get current graduation criteria configuration."""
         try:
-            with open(self.channel_config_path, 'r') as f:
+            with open(self.channel_config_path) as f:
                 config = json.load(f)
             return config.get("graduation_criteria", {})
         except Exception as e:
             logger.error(f"Error loading graduation criteria: {e}")
             return {}
-    
+
     def update_performance_metrics(self, metrics: Dict[str, Any]) -> bool:
         """Update system performance metrics."""
         with self._lock:
             try:
-                with open(self.performance_metrics_path, 'r') as f:
+                with open(self.performance_metrics_path) as f:
                     current_metrics = json.load(f)
-                
+
                 # Update metrics
                 current_metrics.update(metrics)
                 current_metrics["last_updated"] = datetime.now().isoformat()
-                
+
                 with open(self.performance_metrics_path, 'w') as f:
                     json.dump(current_metrics, f, indent=2)
-                
+
                 return True
-                
+
             except Exception as e:
                 logger.error(f"❌ Failed to update performance metrics: {e}")
                 return False
-    
+
     def get_models_by_channel(self, channel: ModelChannel) -> List[Dict[str, Any]]:
         """Get models filtered by channel (stable or experimental)."""
         if channel == ModelChannel.STABLE:
@@ -292,13 +291,13 @@ class PromptCraftDataManager:
             except Exception as e:
                 logger.debug(f"Error loading stable models: {e}")
                 return []
-        
+
         elif channel == ModelChannel.EXPERIMENTAL:
             experimental_models = self.get_experimental_models()
             return [asdict(m) for m in experimental_models]
-        
+
         return []
-    
+
     def health_check(self) -> bool:
         """Check if data manager is healthy and all files are accessible."""
         try:
@@ -309,31 +308,31 @@ class PromptCraftDataManager:
                 self.performance_metrics_path,
                 self.channel_config_path
             ]
-            
+
             for file_path in required_files:
                 if not file_path.exists():
                     logger.error(f"Required file missing: {file_path}")
                     return False
-                
+
                 # Try to read each file
-                with open(file_path, 'r') as f:
+                with open(file_path) as f:
                     json.load(f)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Data manager health check failed: {e}")
             return False
-    
+
     def get_stats(self) -> Dict[str, Any]:
         """Get current statistics for the PromptCraft system."""
         try:
             experimental_models = self.get_experimental_models()
             graduation_queue = self.get_graduation_queue()
-            
-            with open(self.performance_metrics_path, 'r') as f:
+
+            with open(self.performance_metrics_path) as f:
                 performance_data = json.load(f)
-            
+
             stats = {
                 "experimental_models": len(experimental_models),
                 "graduation_queue": len(graduation_queue),
@@ -343,9 +342,9 @@ class PromptCraftDataManager:
                 "api_metrics": performance_data.get("api_metrics", {}),
                 "last_updated": datetime.now().isoformat()
             }
-            
+
             return stats
-            
+
         except Exception as e:
             logger.error(f"Failed to generate stats: {e}")
             return {"error": str(e)}

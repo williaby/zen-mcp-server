@@ -6,8 +6,8 @@ cost optimization, and availability. Designed to prioritize free models
 while providing escalation paths to premium models when needed.
 """
 
-from .model_level_router import ModelLevelRouter
 from .complexity_analyzer import ComplexityAnalyzer
+from .model_level_router import ModelLevelRouter
 
 __version__ = "1.0.0"
 __all__ = ["ModelLevelRouter", "ComplexityAnalyzer"]
