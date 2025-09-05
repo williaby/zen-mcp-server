@@ -2,6 +2,49 @@
 
 <!-- version list -->
 
+## v5.11.0 (2025-08-26)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`9735469`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/973546990f2c45afa93f1aa6de33ff461ecf1a83))
+
+### Features
+
+- Codex CLI support
+  ([`ce56d16`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/ce56d16240ddcc476145a512561efe5c66438f0d))
+
+
+## v5.10.3 (2025-08-24)
+
+### Bug Fixes
+
+- Address test failures and PR feedback
+  ([`6bd9d67`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/6bd9d6709acfb584ab30a0a4d6891cabdb6d3ccf))
+
+- Resolve temperature handling issues for O3/custom models
+  ([#245](https://github.com/BeehiveInnovations/zen-mcp-server/pull/245),
+  [`3b4fd88`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/3b4fd88d7e9a3f09fea616a10cb3e9d6c1a0d63b))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`d6e6808`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/d6e6808be525192ab8388c0f01bc1bbd016fc23a))
+
+
+## v5.10.2 (2025-08-24)
+
+### Bug Fixes
+
+- Another fix for https://github.com/BeehiveInnovations/zen-mcp-server/issues/251
+  ([`a07036e`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/a07036e6805042895109c00f921c58a09caaa319))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`9da5c37`](https://github.com/BeehiveInnovations/zen-mcp-server/commit/9da5c37809cbde19d0c7ffed273ae93ca883a016))
+
+
 ## v5.10.0 (2025-08-22)
 
 ### Chores
