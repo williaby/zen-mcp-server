@@ -80,12 +80,12 @@ from tools import (  # noqa: E402
 from tools.custom.layered_consensus import LayeredConsensusTool  # noqa: E402
 from tools.models import ToolOutput  # noqa: E402
 
-# Import routing status tool
+# Plugin system for extensions (safe for upstream pulls)
 try:
-    from tools.routing_status import RoutingStatusTool
-    _routing_status_available = True
+    from plugins import get_plugin_tools
+    _plugins_available = True
 except ImportError:
-    _routing_status_available = False
+    _plugins_available = False
 
 # Configure logging for server operations
 # Can be controlled via LOG_LEVEL environment variable (DEBUG, INFO, WARNING, ERROR)
@@ -287,9 +287,12 @@ TOOLS = {
     "version": VersionTool(),  # Display server version and system information
 }
 
-# Add routing status tool if available
-if _routing_status_available:
-    TOOLS["routing_status"] = RoutingStatusTool()  # Dynamic model routing status and control
+# Load plugin tools (including dynamic routing)
+if _plugins_available:
+    plugin_tools = get_plugin_tools()
+    TOOLS.update(plugin_tools)
+    if plugin_tools:
+        logger.info(f"Loaded {len(plugin_tools)} plugin tools: {list(plugin_tools.keys())}")
 
 # Load custom tools from tools/custom directory (one-time setup for local customizations)
 try:
@@ -1330,14 +1333,15 @@ async def main():
     # Validate and configure providers based on available API keys
     configure_providers()
 
-    # Initialize dynamic model routing if enabled
-    try:
-        from routing.integration import integrate_with_server
-        integrate_with_server()
-    except ImportError as e:
-        logger.debug(f"Dynamic model routing not available: {e}")
-    except Exception as e:
-        logger.warning(f"Failed to initialize dynamic model routing: {e}")
+    # Initialize plugins (including dynamic routing)
+    if _plugins_available:
+        try:
+            from plugins import load_plugins
+            plugins = load_plugins()
+            if plugins:
+                logger.info(f"Initialized {len(plugins)} plugins: {list(plugins.keys())}")
+        except Exception as e:
+            logger.warning(f"Failed to initialize plugins: {e}")
 
     # Log startup message
     logger.info("Zen MCP Server starting up...")

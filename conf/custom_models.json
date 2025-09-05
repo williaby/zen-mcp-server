@@ -242,18 +242,6 @@
       "description": "Local Llama 3.2 model via custom endpoint (Ollama/vLLM) - 128K context window (text-only)"
     },
     {
-      "model_name": "anthropic/claude-opus-4.1",
-      "aliases": ["opus-4.1", "claude-opus-4.1", "opus41"],
-      "context_window": 200000,
-      "max_output_tokens": 64000,
-      "supports_extended_thinking": false,
-      "supports_json_mode": false,
-      "supports_function_calling": false,
-      "supports_images": true,
-      "max_image_size_mb": 5.0,
-      "description": "Claude 4.1 Opus - Enhanced version with improved performance"
-    },
-    {
       "model_name": "deepseek/deepseek-chat:free",
       "aliases": ["deepseek-chat-free", "deepseek-free"],
       "context_window": 65536,
