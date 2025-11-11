@@ -68,7 +68,9 @@ class AvailabilityCache:
 
         return cached.is_available
 
-    def set_available(self, model: str, is_available: bool, error_code: Optional[int] = None, error_message: Optional[str] = None):
+    def set_available(
+        self, model: str, is_available: bool, error_code: Optional[int] = None, error_message: Optional[str] = None
+    ):
         """
         Update model availability in cache.
 
@@ -211,8 +213,7 @@ class TierManager:
 
         if len(available) < target:
             logger.warning(
-                f"Only found {len(available)} available free models "
-                f"(target: {target}, attempts: {attempts})"
+                f"Only found {len(available)} available free models " f"(target: {target}, attempts: {attempts})"
             )
 
         return available
@@ -377,14 +378,14 @@ class TierManager:
             True if paid model, False if free
         """
         # Check models.csv for model status
-        model_data = self.band_selector.models_df[self.band_selector.models_df['model'] == model]
+        model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
 
         if model_data.empty:
             logger.warning(f"Model {model} not found in registry")
             return False
 
-        status = model_data.iloc[0]['status']
-        return status != 'free'
+        status = model_data.iloc[0]["status"]
+        return status != "free"
 
     def _alert_paid_model_failure(self, model: str, tier: str = "unknown", error_code: Optional[int] = None):
         """
@@ -425,11 +426,11 @@ class TierManager:
         total_output_cost = 0.0
 
         for model in models:
-            model_data = self.band_selector.models_df[self.band_selector.models_df['model'] == model]
+            model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
 
             if not model_data.empty:
-                total_input_cost += model_data.iloc[0]['input_cost']
-                total_output_cost += model_data.iloc[0]['output_cost']
+                total_input_cost += model_data.iloc[0]["input_cost"]
+                total_output_cost += model_data.iloc[0]["output_cost"]
 
         # Rough estimate: 1K input tokens, 2K output tokens per model
         input_tokens = 1000

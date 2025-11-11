@@ -90,13 +90,10 @@ class TestComplexityAnalyzer:
     @pytest.mark.parametrize("test_case", COMPLEXITY_TEST_CASES)
     def test_complexity_test_cases(self, test_case):
         """Test all predefined complexity test cases."""
-        complexity, confidence, task_type = self.analyzer.analyze(
-            test_case.prompt, test_case.context
-        )
+        complexity, confidence, task_type = self.analyzer.analyze(test_case.prompt, test_case.context)
 
         assert complexity == test_case.expected_complexity, (
-            f"Expected {test_case.expected_complexity}, got {complexity} "
-            f"for prompt: {test_case.prompt[:50]}..."
+            f"Expected {test_case.expected_complexity}, got {complexity} " f"for prompt: {test_case.prompt[:50]}..."
         )
         assert task_type.value == test_case.expected_task_type
 
@@ -123,7 +120,7 @@ class TestModelLevelRouter:
         self.routing_config_path = os.path.join(self.temp_dir, "routing.json")
 
         # Write test configurations
-        with open(self.models_config_path, 'w') as f:
+        with open(self.models_config_path, "w") as f:
             json.dump(MOCK_MODEL_CONFIG, f)
 
         routing_config = {
@@ -131,29 +128,27 @@ class TestModelLevelRouter:
                 "free": {"cost_limit": 0.0, "priority": 1},
                 "junior": {"cost_limit": 0.001, "priority": 2},
                 "senior": {"cost_limit": 0.01, "priority": 3},
-                "executive": {"cost_limit": 0.1, "priority": 4}
+                "executive": {"cost_limit": 0.1, "priority": 4},
             },
             "complexity_thresholds": {
                 "simple": {"max_level": "free", "confidence_threshold": 0.8},
                 "moderate": {"max_level": "junior", "confidence_threshold": 0.7},
                 "complex": {"max_level": "senior", "confidence_threshold": 0.6},
-                "expert": {"max_level": "executive", "confidence_threshold": 0.5}
+                "expert": {"max_level": "executive", "confidence_threshold": 0.5},
             },
             "free_model_preference": True,
-            "cost_optimization": True
+            "cost_optimization": True,
         }
 
-        with open(self.routing_config_path, 'w') as f:
+        with open(self.routing_config_path, "w") as f:
             json.dump(routing_config, f)
 
-        self.router = ModelLevelRouter(
-            config_path=self.routing_config_path,
-            models_config_path=self.models_config_path
-        )
+        self.router = ModelLevelRouter(config_path=self.routing_config_path, models_config_path=self.models_config_path)
 
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_model_initialization(self):
@@ -177,8 +172,7 @@ class TestModelLevelRouter:
             if model_name in self.router.models:
                 actual_level = self.router.models[model_name].level.value
                 assert actual_level == expected_level, (
-                    f"Model {model_name} expected level {expected_level}, "
-                    f"got {actual_level}"
+                    f"Model {model_name} expected level {expected_level}, " f"got {actual_level}"
                 )
 
     def test_free_model_prioritization(self):
@@ -187,22 +181,19 @@ class TestModelLevelRouter:
         result = self.router.select_model(prompt, prefer_free=True)
 
         assert result.model.cost_per_token == 0.0, (
-            f"Expected free model, got {result.model.name} "
-            f"with cost {result.model.cost_per_token}"
+            f"Expected free model, got {result.model.name} " f"with cost {result.model.cost_per_token}"
         )
 
     def test_complexity_based_routing(self):
         """Test that routing respects complexity levels."""
         # Simple task should get free model
-        simple_result = self.router.select_model(
-            "Simple explanation task", prefer_free=True
-        )
+        simple_result = self.router.select_model("Simple explanation task", prefer_free=True)
         assert simple_result.model.level in [ModelLevel.FREE, ModelLevel.JUNIOR]
 
         # Complex task should get higher level model (but may still prefer free)
         complex_result = self.router.select_model(
             "Complex distributed system architecture analysis with security audit",
-            prefer_free=False  # Don't prefer free to test level escalation
+            prefer_free=False,  # Don't prefer free to test level escalation
         )
         assert complex_result.model.level in [ModelLevel.SENIOR, ModelLevel.EXECUTIVE]
 
@@ -211,9 +202,7 @@ class TestModelLevelRouter:
         prompt = "Any task"
         max_cost = 0.001
 
-        result = self.router.select_model(
-            prompt, prefer_free=False, max_cost=max_cost
-        )
+        result = self.router.select_model(prompt, prefer_free=False, max_cost=max_cost)
 
         assert result.model.cost_per_token <= max_cost
 
@@ -284,9 +273,7 @@ class TestModelLevelRouter:
     def test_cost_optimization_cases(self, cost_case):
         """Test cost optimization scenarios."""
         result = self.router.select_model(
-            cost_case["prompt"],
-            prefer_free=cost_case["prefer_free"],
-            max_cost=cost_case["max_cost"]
+            cost_case["prompt"], prefer_free=cost_case["prefer_free"], max_cost=cost_case["max_cost"]
         )
 
         if callable(cost_case["expected_cost"]):
@@ -322,10 +309,7 @@ class TestRoutingIntegration:
     def test_error_handling(self):
         """Test graceful error handling."""
         # Test with invalid config paths
-        router = ModelLevelRouter(
-            config_path="/nonexistent/path.json",
-            models_config_path="/nonexistent/models.json"
-        )
+        router = ModelLevelRouter(config_path="/nonexistent/path.json", models_config_path="/nonexistent/models.json")
 
         # Should still work with default configs
         result = router.select_model("Test prompt")
@@ -333,7 +317,7 @@ class TestRoutingIntegration:
 
     def test_disabled_routing_fallback(self):
         """Test behavior when routing components fail."""
-        with patch('routing.complexity_analyzer.ComplexityAnalyzer') as mock_analyzer:
+        with patch("routing.complexity_analyzer.ComplexityAnalyzer") as mock_analyzer:
             mock_analyzer.side_effect = Exception("Analysis failed")
 
             # Router should still work with basic heuristics
@@ -357,12 +341,9 @@ class TestRoutingConfigurationLoading:
 
     def test_custom_config_loading(self):
         """Test loading custom configurations."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             config = {
-                "levels": {
-                    "free": {"cost_limit": 0.0, "priority": 1},
-                    "premium": {"cost_limit": 1.0, "priority": 2}
-                }
+                "levels": {"free": {"cost_limit": 0.0, "priority": 1}, "premium": {"cost_limit": 1.0, "priority": 2}}
             }
             json.dump(config, f)
             config_path = f.name
@@ -375,7 +356,7 @@ class TestRoutingConfigurationLoading:
 
     def test_invalid_config_handling(self):
         """Test handling of invalid configurations."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("invalid json content")
             config_path = f.name
 
@@ -423,9 +404,7 @@ class TestPerformanceRequirements:
         memory_increase = final_memory - initial_memory
 
         # Memory increase should be reasonable (less than 50MB)
-        assert memory_increase < 50 * 1024 * 1024, (
-            f"Memory usage too high: {memory_increase / 1024 / 1024:.1f}MB"
-        )
+        assert memory_increase < 50 * 1024 * 1024, f"Memory usage too high: {memory_increase / 1024 / 1024:.1f}MB"
 
     def test_cache_efficiency(self):
         """Test that caching reduces computation time."""

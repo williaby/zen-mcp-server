@@ -12,7 +12,6 @@ NOTE: Currently uses simulated model responses.
       Phase 2 will replace with real API calls.
 """
 
-
 import pytest
 
 from tools.custom.tiered_consensus import TieredConsensusRequest, TieredConsensusTool
@@ -151,8 +150,7 @@ class TestTieredConsensusWorkflow:
 
         # First 3 models of Level 2 should match Level 1
         for i, model in enumerate(level1_models):
-            assert level2_models[i] == model, \
-                f"Level 2 model {i} ({level2_models[i]}) != Level 1 model {i} ({model})"
+            assert level2_models[i] == model, f"Level 2 model {i} ({level2_models[i]}) != Level 1 model {i} ({model})"
 
     # === Level 3: Executive Tier (8 models) ===
 
@@ -189,8 +187,7 @@ class TestTieredConsensusWorkflow:
 
         # First 6 models of Level 3 should match Level 2
         for i, model in enumerate(level2_models):
-            assert level3_models[i] == model, \
-                f"Level 3 model {i} ({level3_models[i]}) != Level 2 model {i} ({model})"
+            assert level3_models[i] == model, f"Level 3 model {i} ({level3_models[i]}) != Level 2 model {i} ({model})"
 
 
 class TestDomainSpecificRoles:
@@ -242,24 +239,24 @@ class TestCostEstimation:
         """Test Level 1 cost estimation (should be $0)."""
         costs = tool.tier_manager.get_tier_costs(1)
 
-        assert costs['estimated_cost_per_call'] == 0.0
-        assert costs['cost_tier'] == 'free'
+        assert costs["estimated_cost_per_call"] == 0.0
+        assert costs["cost_tier"] == "free"
 
     def test_level_2_cost_estimation(self, tool):
         """Test Level 2 cost estimation (~$0.50)."""
         costs = tool.tier_manager.get_tier_costs(2)
 
         # Level 2 includes economy models
-        assert 0.30 <= costs['estimated_cost_per_call'] <= 0.70
-        assert costs['cost_tier'] == 'economy'
+        assert 0.30 <= costs["estimated_cost_per_call"] <= 0.70
+        assert costs["cost_tier"] == "economy"
 
     def test_level_3_cost_estimation(self, tool):
         """Test Level 3 cost estimation (~$5.00)."""
         costs = tool.tier_manager.get_tier_costs(3)
 
         # Level 3 includes premium models
-        assert 3.0 <= costs['estimated_cost_per_call'] <= 7.0
-        assert costs['cost_tier'] == 'premium'
+        assert 3.0 <= costs["estimated_cost_per_call"] <= 7.0
+        assert costs["cost_tier"] == "premium"
 
 
 class TestErrorHandling:
@@ -425,6 +422,7 @@ class TestOptionalParameters:
 
 
 # === Test Utilities ===
+
 
 class TestToolMetadata:
     """Test tool metadata and discovery."""

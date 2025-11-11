@@ -34,11 +34,7 @@ class TestMCPProtocolBridge:
 
     def test_route_analysis_http_to_mcp(self):
         """Test converting route analysis HTTP request to MCP call."""
-        http_request = {
-            "prompt": "Write Python code to sort a list",
-            "user_tier": "full",
-            "task_type": "coding"
-        }
+        http_request = {"prompt": "Write Python code to sort a list", "user_tier": "full", "task_type": "coding"}
 
         mcp_call = self.bridge.http_to_mcp_request("/api/promptcraft/route/analyze", http_request)
 
@@ -69,12 +65,7 @@ class TestMCPProtocolBridge:
 
     def test_model_listing_http_to_mcp(self):
         """Test converting model listing HTTP request to MCP call."""
-        http_request = {
-            "user_tier": "limited",
-            "channel": "stable",
-            "include_metadata": True,
-            "format": "api"
-        }
+        http_request = {"user_tier": "limited", "channel": "stable", "include_metadata": True, "format": "api"}
 
         mcp_call = self.bridge.http_to_mcp_request("/api/promptcraft/models/available", http_request)
 
@@ -87,8 +78,9 @@ class TestMCPProtocolBridge:
     def test_mcp_to_http_response_route_analysis(self):
         """Test converting MCP result to HTTP response for route analysis."""
         mcp_result = {
-            "content": [{
-                "text": """PromptCraft MCP Bridge Result:
+            "content": [
+                {
+                    "text": """PromptCraft MCP Bridge Result:
 
 {
   "success": true,
@@ -108,7 +100,8 @@ class TestMCPProtocolBridge:
   "processing_time": 0.15,
   "bridge_version": "1.0.0"
 }"""
-            }]
+                }
+            ]
         }
 
         http_response = self.bridge.mcp_to_http_response("/api/promptcraft/route/analyze", mcp_result)
@@ -177,12 +170,10 @@ class TestPromptCraftMCPBridge:
         }
 
         # Mock the dynamic model selector tool
-        with patch.object(self.bridge_tool, '_call_internal_tool', new_callable=AsyncMock) as mock_call:
+        with patch.object(self.bridge_tool, "_call_internal_tool", new_callable=AsyncMock) as mock_call:
             mock_call.return_value = {"content": "Analysis completed successfully"}
 
-            result = await self.bridge_tool._analyze_route_action(
-                self.bridge_tool.get_request_model()(**request)
-            )
+            result = await self.bridge_tool._analyze_route_action(self.bridge_tool.get_request_model()(**request))
 
             assert result["success"] is True
             assert "analysis" in result
@@ -201,15 +192,13 @@ class TestPromptCraftMCPBridge:
             "model": "auto",
         }
 
-        with patch.object(self.bridge_tool, '_call_internal_tool', new_callable=AsyncMock) as mock_call:
+        with patch.object(self.bridge_tool, "_call_internal_tool", new_callable=AsyncMock) as mock_call:
             mock_call.return_value = {
                 "content": "Execution completed successfully",
-                "metadata": {"model": "claude-3-5-sonnet-20241022"}
+                "metadata": {"model": "claude-3-5-sonnet-20241022"},
             }
 
-            result = await self.bridge_tool._smart_execute_action(
-                self.bridge_tool.get_request_model()(**request)
-            )
+            result = await self.bridge_tool._smart_execute_action(self.bridge_tool.get_request_model()(**request))
 
             assert result["success"] is True
             assert "response" in result
@@ -229,12 +218,10 @@ class TestPromptCraftMCPBridge:
             "model": "flash",
         }
 
-        with patch.object(self.bridge_tool, '_call_internal_tool', new_callable=AsyncMock) as mock_call:
+        with patch.object(self.bridge_tool, "_call_internal_tool", new_callable=AsyncMock) as mock_call:
             mock_call.return_value = {"content": "Models listed successfully"}
 
-            result = await self.bridge_tool._list_models_action(
-                self.bridge_tool.get_request_model()(**request)
-            )
+            result = await self.bridge_tool._list_models_action(self.bridge_tool.get_request_model()(**request))
 
             assert result["success"] is True
             assert "models" in result
@@ -323,6 +310,7 @@ class TestMCPConnectionManager:
         """Test success in half-open state closes circuit."""
         # Simulate half-open state
         from tools.custom.promptcraft_mcp_client.error_handler import CircuitBreakerState
+
         self.manager.circuit_state = CircuitBreakerState.HALF_OPEN
         self.manager.failure_count = 2
 
@@ -338,6 +326,7 @@ class TestMCPConnectionManager:
             self.manager._record_failure()
 
         from tools.custom.promptcraft_mcp_client.error_handler import CircuitBreakerState
+
         assert self.manager.circuit_state == CircuitBreakerState.OPEN
 
     def test_get_circuit_breaker_status(self):
@@ -357,6 +346,7 @@ class TestMCPConnectionManager:
         # Force circuit breaker open
         self.manager.failure_count = 5
         from tools.custom.promptcraft_mcp_client.error_handler import CircuitBreakerState
+
         self.manager.circuit_state = CircuitBreakerState.OPEN
 
         await self.manager.reset_circuit_breaker()
@@ -368,12 +358,12 @@ class TestMCPConnectionManager:
         """Test getting performance metrics."""
         metrics = self.manager.get_metrics()
 
-        assert hasattr(metrics, 'total_requests')
-        assert hasattr(metrics, 'successful_requests')
-        assert hasattr(metrics, 'failed_requests')
-        assert hasattr(metrics, 'mcp_requests')
-        assert hasattr(metrics, 'http_fallback_requests')
-        assert hasattr(metrics, 'average_latency_ms')
+        assert hasattr(metrics, "total_requests")
+        assert hasattr(metrics, "successful_requests")
+        assert hasattr(metrics, "failed_requests")
+        assert hasattr(metrics, "mcp_requests")
+        assert hasattr(metrics, "http_fallback_requests")
+        assert hasattr(metrics, "average_latency_ms")
 
 
 class TestZenMCPStdioClientIntegration:
@@ -402,12 +392,14 @@ class TestZenMCPStdioClientIntegration:
     async def test_client_context_manager(self):
         """Test client as async context manager."""
         # Mock the connection process since we don't want to start actual server
-        with patch('tools.custom.promptcraft_mcp_client.subprocess_manager.ProcessPool.get_process') as mock_get_process:
+        with patch(
+            "tools.custom.promptcraft_mcp_client.subprocess_manager.ProcessPool.get_process"
+        ) as mock_get_process:
             mock_process = Mock()
             mock_process.is_running.return_value = True
             mock_get_process.return_value = mock_process
 
-            with patch.object(ZenMCPStdioClient, '_test_connection', return_value=True):
+            with patch.object(ZenMCPStdioClient, "_test_connection", return_value=True):
                 async with ZenMCPStdioClient(self.server_path) as client:
                     assert client.connected is True
 
@@ -417,7 +409,7 @@ class TestZenMCPStdioClientIntegration:
     @pytest.mark.asyncio
     async def test_convenience_create_client_function(self):
         """Test convenience function for creating clients."""
-        with patch('tools.custom.promptcraft_mcp_client.client.ZenMCPStdioClient.connect') as mock_connect:
+        with patch("tools.custom.promptcraft_mcp_client.client.ZenMCPStdioClient.connect") as mock_connect:
             mock_connect.return_value = True
 
             client = await create_client(
@@ -460,18 +452,18 @@ class TestZenMCPStdioClientIntegration:
                 "complexity_score": 0.7,
                 "complexity_level": "medium",
                 "indicators": ["code_generation"],
-                "reasoning": "Code generation task"
+                "reasoning": "Code generation task",
             },
             "recommendations": {
                 "primary_model": "claude-3-5-sonnet-20241022",
                 "alternative_models": [],
                 "estimated_cost": 0.02,
-                "confidence": 0.85
+                "confidence": 0.85,
             },
-            "processing_time": 0.1
+            "processing_time": 0.1,
         }
 
-        with patch.object(client.connection_manager, 'with_fallback_to_http') as mock_fallback:
+        with patch.object(client.connection_manager, "with_fallback_to_http") as mock_fallback:
             mock_fallback.return_value = (mock_result, True)
 
             request = RouteAnalysisRequest(

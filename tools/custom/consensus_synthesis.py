@@ -167,19 +167,19 @@ class SynthesisEngine:
         key_points = []
 
         # Split into lines and look for bullet points or numbered items
-        lines = analysis.split('\n')
+        lines = analysis.split("\n")
         for line in lines:
             line = line.strip()
             # Match bullets (-, *, •) or numbers (1., 2., etc.)
-            if line.startswith(('-', '*', '•')) or (len(line) > 2 and line[0].isdigit() and line[1:3] in ['. ', ') ']):
+            if line.startswith(("-", "*", "•")) or (len(line) > 2 and line[0].isdigit() and line[1:3] in [". ", ") "]):
                 # Remove bullet/number prefix
-                point = line.lstrip('-*•0123456789.) ').strip()
+                point = line.lstrip("-*•0123456789.) ").strip()
                 if point and len(point) > 10:  # Filter out very short items
                     key_points.append(point)
 
         # If no structured points found, take first few sentences
         if not key_points:
-            sentences = [s.strip() for s in analysis.split('.') if s.strip()]
+            sentences = [s.strip() for s in analysis.split(".") if s.strip()]
             key_points = sentences[:3]
 
         return key_points[:5]  # Limit to top 5
@@ -198,15 +198,22 @@ class SynthesisEngine:
 
         # Look for concern indicators
         concern_keywords = [
-            'concern', 'risk', 'issue', 'problem', 'warning',
-            'caution', 'danger', 'vulnerability', 'weakness'
+            "concern",
+            "risk",
+            "issue",
+            "problem",
+            "warning",
+            "caution",
+            "danger",
+            "vulnerability",
+            "weakness",
         ]
 
-        lines = analysis.split('\n')
+        lines = analysis.split("\n")
         for line in lines:
             line_lower = line.lower()
             if any(keyword in line_lower for keyword in concern_keywords):
-                concern = line.strip().lstrip('-*•0123456789.) ')
+                concern = line.strip().lstrip("-*•0123456789.) ")
                 if concern and len(concern) > 10:
                     concerns.append(concern)
 
@@ -225,16 +232,13 @@ class SynthesisEngine:
         recommendations = []
 
         # Look for recommendation indicators
-        rec_keywords = [
-            'recommend', 'suggest', 'should', 'propose',
-            'advise', 'consider', 'implement', 'adopt'
-        ]
+        rec_keywords = ["recommend", "suggest", "should", "propose", "advise", "consider", "implement", "adopt"]
 
-        lines = analysis.split('\n')
+        lines = analysis.split("\n")
         for line in lines:
             line_lower = line.lower()
             if any(keyword in line_lower for keyword in rec_keywords):
-                rec = line.strip().lstrip('-*•0123456789.) ')
+                rec = line.strip().lstrip("-*•0123456789.) ")
                 if rec and len(rec) > 10:
                     recommendations.append(rec)
 
@@ -308,16 +312,16 @@ class SynthesisEngine:
         role_groups = {}
         for perspective in self.perspectives:
             # Categorize roles
-            if 'security' in perspective.role.lower():
-                category = 'security'
-            elif 'architect' in perspective.role.lower():
-                category = 'architecture'
-            elif 'developer' in perspective.role.lower():
-                category = 'development'
-            elif 'director' in perspective.role.lower() or 'lead' in perspective.role.lower():
-                category = 'leadership'
+            if "security" in perspective.role.lower():
+                category = "security"
+            elif "architect" in perspective.role.lower():
+                category = "architecture"
+            elif "developer" in perspective.role.lower():
+                category = "development"
+            elif "director" in perspective.role.lower() or "lead" in perspective.role.lower():
+                category = "leadership"
             else:
-                category = 'validation'
+                category = "validation"
 
             if category not in role_groups:
                 role_groups[category] = []
@@ -327,7 +331,7 @@ class SynthesisEngine:
         if len(role_groups) >= 2:
             categories = list(role_groups.keys())
             for i, cat1 in enumerate(categories):
-                for cat2 in categories[i + 1:]:
+                for cat2 in categories[i + 1 :]:
                     # Compare concerns between these categories
                     cat1_concerns = set()
                     for p in role_groups[cat1]:
@@ -385,18 +389,18 @@ class SynthesisEngine:
         if disagreements:
             synthesis_parts.append("\n\n### Points of Disagreement\n")
             for i, disagreement in enumerate(disagreements, 1):
-                cat1 = disagreement['category1']
-                cat2 = disagreement['category2']
+                cat1 = disagreement["category1"]
+                cat2 = disagreement["category2"]
                 synthesis_parts.append(f"\n**{i}. {cat1.title()} vs {cat2.title()}:**")
 
-                if disagreement['unique_to_category1']:
+                if disagreement["unique_to_category1"]:
                     synthesis_parts.append(f"\n{cat1.title()} concerns:")
-                    for concern in disagreement['unique_to_category1']:
+                    for concern in disagreement["unique_to_category1"]:
                         synthesis_parts.append(f"- {concern}")
 
-                if disagreement['unique_to_category2']:
+                if disagreement["unique_to_category2"]:
                     synthesis_parts.append(f"\n{cat2.title()} concerns:")
-                    for concern in disagreement['unique_to_category2']:
+                    for concern in disagreement["unique_to_category2"]:
                         synthesis_parts.append(f"- {concern}")
         else:
             synthesis_parts.append("\n\n### Points of Disagreement\n")
@@ -409,7 +413,7 @@ class SynthesisEngine:
                 synthesis_parts.append(f"\n**{perspective.role.replace('_', ' ').title()}:**")
                 synthesis_parts.append(f"- {perspective.key_points[0]}")
 
-        return '\n'.join(synthesis_parts)
+        return "\n".join(synthesis_parts)
 
     def _generate_executive_summary(self, consensus_points: List[str], disagreements: List[Dict[str, any]]) -> str:
         """
@@ -434,14 +438,16 @@ class SynthesisEngine:
         elif not consensus_points and disagreements:
             summary_parts.append("**Overall Assessment:** Significant disagreements across perspectives.\n")
         else:
-            summary_parts.append("**Overall Assessment:** Perspectives are aligned but highlight different priorities.\n")
+            summary_parts.append(
+                "**Overall Assessment:** Perspectives are aligned but highlight different priorities.\n"
+            )
 
         # Key takeaways
         summary_parts.append("\n**Key Takeaways:**\n")
         if consensus_points:
             for i, point in enumerate(consensus_points[:3], 1):
                 # Remove the count suffix for cleaner summary
-                clean_point = point.split(' (mentioned by')[0]
+                clean_point = point.split(" (mentioned by")[0]
                 summary_parts.append(f"{i}. {clean_point}")
         else:
             summary_parts.append("1. Each professional role highlighted different priorities")
@@ -483,7 +489,7 @@ class SynthesisEngine:
             for i, rec in enumerate(unique_recs, 1):
                 summary_parts.append(f"{i}. {rec}")
 
-        return '\n'.join(summary_parts)
+        return "\n".join(summary_parts)
 
     def clear(self):
         """Clear all perspectives for new analysis."""
@@ -533,4 +539,4 @@ def format_consensus_result(result: ConsensusResult, include_full_perspectives: 
     output_parts.append(f"- Professional roles: {result.metadata['unique_roles']}")
     output_parts.append(f"- Estimated cost: ${result.total_cost:.4f}")
 
-    return '\n'.join(output_parts)
+    return "\n".join(output_parts)

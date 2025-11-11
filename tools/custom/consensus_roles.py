@@ -244,10 +244,7 @@ class RoleAssigner:
             raise ValueError(f"Invalid level: {level}. Must be 1, 2, or 3")
 
         if domain not in self.domain_roles:
-            raise ValueError(
-                f"Invalid domain: {domain}. "
-                f"Valid domains: {', '.join(self.domain_roles.keys())}"
-            )
+            raise ValueError(f"Invalid domain: {domain}. " f"Valid domains: {', '.join(self.domain_roles.keys())}")
 
         return self.domain_roles[domain][level]
 
@@ -265,10 +262,7 @@ class RoleAssigner:
             ValueError: If role not found
         """
         if role not in self.role_definitions:
-            raise ValueError(
-                f"Invalid role: {role}. "
-                f"Valid roles: {', '.join(self.role_definitions.keys())}"
-            )
+            raise ValueError(f"Invalid role: {role}. " f"Valid roles: {', '.join(self.role_definitions.keys())}")
 
         return self.role_definitions[role]
 

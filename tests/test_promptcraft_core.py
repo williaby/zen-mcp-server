@@ -31,7 +31,7 @@ class TestPromptCraftCore:
                 provider="test",
                 cost_per_token=0.0,
                 context_window=4000,
-                added_date=datetime.now().isoformat()
+                added_date=datetime.now().isoformat(),
             )
 
             assert dm.add_experimental_model(model)
@@ -53,6 +53,7 @@ class TestPromptCraftCore:
             dm = PromptCraftDataManager(temp_dir)
 
             from plugins.promptcraft_system.api_server import PromptCraftAPIServer
+
             api_server = PromptCraftAPIServer(dm)
 
             assert api_server.app is not None

@@ -17,10 +17,11 @@ from .data_manager import ExperimentalModel, GraduationCandidate, ModelChannel
 
 logger = logging.getLogger(__name__)
 
+
 class ModelDetectionWorker:
     """
     Background worker for detecting new models from OpenRouter API.
-    
+
     Runs every N hours (configurable) to:
     1. Fetch current model list from OpenRouter
     2. Compare with known models (stable + experimental)
@@ -90,9 +91,7 @@ class ModelDetectionWorker:
         try:
             # OpenRouter models API endpoint
             url = "https://openrouter.ai/api/v1/models"
-            headers = {
-                "User-Agent": "zen-mcp-server/1.0"
-            }
+            headers = {"User-Agent": "zen-mcp-server/1.0"}
 
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
@@ -190,7 +189,7 @@ class ModelDetectionWorker:
                 success_rate=0.0,
                 humaneval_score=None,
                 last_used=None,
-                graduation_eligible=False
+                graduation_eligible=False,
             )
 
             # Add to data manager
@@ -204,10 +203,11 @@ class ModelDetectionWorker:
             logger.error(f"❌ Failed to add experimental model: {e}")
             return False
 
+
 class GraduationWorker:
     """
     Background worker for graduating experimental models to stable channel.
-    
+
     Runs daily to:
     1. Check experimental models against graduation criteria
     2. Run benchmarks on qualifying models
@@ -277,11 +277,13 @@ class GraduationWorker:
         except Exception as e:
             logger.error(f"❌ Graduation cycle failed: {e}")
 
-    def _evaluate_graduation_eligibility(self, model: ExperimentalModel, criteria: Dict[str, Any]) -> Optional[GraduationCandidate]:
+    def _evaluate_graduation_eligibility(
+        self, model: ExperimentalModel, criteria: Dict[str, Any]
+    ) -> Optional[GraduationCandidate]:
         """Evaluate if a model is eligible for graduation."""
         try:
             # Check age requirement
-            added_date = datetime.fromisoformat(model.added_date.replace('Z', '+00:00'))
+            added_date = datetime.fromisoformat(model.added_date.replace("Z", "+00:00"))
             days_in_experimental = (datetime.now() - added_date).days
 
             min_age_days = criteria.get("minimum_age_days", 7)
@@ -293,15 +295,15 @@ class GraduationWorker:
                 "age_requirement": days_in_experimental >= min_age_days,
                 "usage_requirement": model.usage_count >= min_usage,
                 "success_rate_requirement": model.success_rate >= min_success_rate,
-                "has_benchmark_score": model.humaneval_score is not None
+                "has_benchmark_score": model.humaneval_score is not None,
             }
 
             # Calculate graduation score
             score_components = {
                 "age_score": min(days_in_experimental / min_age_days, 2.0) * 2.0,  # Max 4.0
-                "usage_score": min(model.usage_count / min_usage, 2.0) * 1.5,     # Max 3.0
-                "success_rate_score": model.success_rate * 2.0,                   # Max 2.0
-                "benchmark_score": (model.humaneval_score or 0) / 100.0 * 1.0    # Max 1.0
+                "usage_score": min(model.usage_count / min_usage, 2.0) * 1.5,  # Max 3.0
+                "success_rate_score": model.success_rate * 2.0,  # Max 2.0
+                "benchmark_score": (model.humaneval_score or 0) / 100.0 * 1.0,  # Max 1.0
             }
 
             graduation_score = sum(score_components.values())
@@ -316,7 +318,7 @@ class GraduationWorker:
                     humaneval_score=model.humaneval_score,
                     days_in_experimental=days_in_experimental,
                     graduation_score=graduation_score,
-                    criteria_met=criteria_met
+                    criteria_met=criteria_met,
                 )
 
             return None
@@ -372,10 +374,11 @@ class GraduationWorker:
             logger.error(f"❌ Failed to graduate {candidate.model_id}: {e}")
             return False
 
+
 class WorkerManager:
     """
     Manages lifecycle of all background workers.
-    
+
     Provides centralized control for starting/stopping workers
     and monitoring their health status.
     """
@@ -390,29 +393,15 @@ class WorkerManager:
         try:
             # Start model detection worker
             detection_worker = ModelDetectionWorker(self.data_manager)
-            detection_thread = threading.Thread(
-                target=detection_worker.start,
-                name="ModelDetectionWorker",
-                daemon=True
-            )
+            detection_thread = threading.Thread(target=detection_worker.start, name="ModelDetectionWorker", daemon=True)
             detection_thread.start()
-            self.workers["model_detection"] = {
-                "worker": detection_worker,
-                "thread": detection_thread
-            }
+            self.workers["model_detection"] = {"worker": detection_worker, "thread": detection_thread}
 
             # Start graduation worker
             graduation_worker = GraduationWorker(self.data_manager)
-            graduation_thread = threading.Thread(
-                target=graduation_worker.start,
-                name="GraduationWorker",
-                daemon=True
-            )
+            graduation_thread = threading.Thread(target=graduation_worker.start, name="GraduationWorker", daemon=True)
             graduation_thread.start()
-            self.workers["graduation"] = {
-                "worker": graduation_worker,
-                "thread": graduation_thread
-            }
+            self.workers["graduation"] = {"worker": graduation_worker, "thread": graduation_thread}
 
             self.running = True
             logger.info(f"🚀 Started {len(self.workers)} background workers")
@@ -437,11 +426,7 @@ class WorkerManager:
 
     def get_worker_status(self) -> Dict[str, Any]:
         """Get status of all workers."""
-        status = {
-            "manager_running": self.running,
-            "total_workers": len(self.workers),
-            "workers": {}
-        }
+        status = {"manager_running": self.running, "total_workers": len(self.workers), "workers": {}}
 
         for name, worker_info in self.workers.items():
             worker = worker_info["worker"]
@@ -450,7 +435,7 @@ class WorkerManager:
             status["workers"][name] = {
                 "running": worker.running,
                 "thread_alive": thread.is_alive(),
-                "thread_name": thread.name
+                "thread_name": thread.name,
             }
 
         return status

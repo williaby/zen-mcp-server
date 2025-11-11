@@ -31,11 +31,13 @@ logger = logging.getLogger(__name__)
 # Rate limiting setup
 limiter = Limiter(key_func=get_remote_address)
 
+
 # Pydantic models for API requests/responses
 class RouteAnalysisRequest(BaseModel):
     prompt: str = Field(..., description="The prompt to analyze")
     user_tier: str = Field(..., description="User tier: free|limited|full|premium|admin")
     task_type: Optional[str] = Field(None, description="Optional task type hint")
+
 
 class SmartExecutionRequest(BaseModel):
     prompt: str = Field(..., description="The enhanced prompt from Journey 1")
@@ -44,16 +46,18 @@ class SmartExecutionRequest(BaseModel):
     cost_optimization: bool = Field(True, description="Enable cost optimization")
     include_reasoning: bool = Field(True, description="Include reasoning in response")
 
+
 class ModelListRequest(BaseModel):
     user_tier: Optional[str] = Field(None, description="Filter by user tier")
     channel: str = Field("stable", description="Model channel: stable|experimental")
     include_metadata: bool = Field(True, description="Include detailed metadata")
     format: str = Field("ui", description="Response format: ui|api")
 
+
 class PromptCraftAPIServer:
     """
     FastAPI server providing PromptCraft integration endpoints.
-    
+
     Integrates with existing zen-mcp-server routing infrastructure
     while providing external HTTP API access.
     """
@@ -89,7 +93,7 @@ class PromptCraftAPIServer:
             title="PromptCraft API",
             description="Zen MCP Server integration endpoints for PromptCraft",
             version="1.0.0",
-            lifespan=lifespan
+            lifespan=lifespan,
         )
 
         # Add rate limiting
@@ -99,7 +103,7 @@ class PromptCraftAPIServer:
         # Add CORS middleware
         allowed_origins = [
             "http://localhost:7860",  # Default PromptCraft origin
-            os.getenv("PROMPTCRAFT_ORIGIN", "http://localhost:7860")
+            os.getenv("PROMPTCRAFT_ORIGIN", "http://localhost:7860"),
         ]
 
         self.app.add_middleware(
@@ -139,7 +143,7 @@ class PromptCraftAPIServer:
                 "status": "healthy",
                 "timestamp": datetime.now().isoformat(),
                 "service": "promptcraft-api",
-                "version": "1.0.0"
+                "version": "1.0.0",
             }
 
         @self.app.post("/api/promptcraft/route/analyze")
@@ -147,7 +151,7 @@ class PromptCraftAPIServer:
         async def analyze_route(request: Request, data: RouteAnalysisRequest):
             """
             Analyze prompt complexity and provide model recommendations.
-            
+
             This endpoint performs complexity analysis and returns routing recommendations
             without actually executing the prompt.
             """
@@ -158,9 +162,7 @@ class PromptCraftAPIServer:
                 analysis = await self._analyze_prompt_complexity(data.prompt, data.task_type)
 
                 # Get routing recommendations
-                recommendations = await self._get_routing_recommendations(
-                    analysis, data.user_tier
-                )
+                recommendations = await self._get_routing_recommendations(analysis, data.user_tier)
 
                 processing_time = time.time() - start_time
 
@@ -171,10 +173,10 @@ class PromptCraftAPIServer:
                         "complexity_score": analysis["complexity_score"],
                         "complexity_level": analysis["complexity_level"],
                         "indicators": analysis.get("indicators", []),
-                        "reasoning": analysis.get("reasoning", "")
+                        "reasoning": analysis.get("reasoning", ""),
                     },
                     "recommendations": recommendations,
-                    "processing_time": processing_time
+                    "processing_time": processing_time,
                 }
 
             except Exception as e:
@@ -186,7 +188,7 @@ class PromptCraftAPIServer:
         async def smart_execution(request: Request, data: SmartExecutionRequest):
             """
             Route and execute prompt in a single call with intelligence.
-            
+
             This endpoint combines complexity analysis, model selection, and execution
             for seamless integration with PromptCraft applications.
             """
@@ -202,18 +204,13 @@ class PromptCraftAPIServer:
                 )
 
                 # Execute with selected model
-                execution_result = await self._execute_with_model(
-                    data.prompt, selected_model, analysis
-                )
+                execution_result = await self._execute_with_model(data.prompt, selected_model, analysis)
 
                 processing_time = time.time() - start_time
 
                 # Update model usage stats if experimental
                 if data.channel == "experimental":
-                    self.data_manager.update_model_usage(
-                        selected_model["id"],
-                        execution_result["success"]
-                    )
+                    self.data_manager.update_model_usage(selected_model["id"], execution_result["success"])
 
                 return {
                     "success": True,
@@ -233,9 +230,9 @@ class PromptCraftAPIServer:
                         "performance_metrics": {
                             "tokens_used": execution_result.get("tokens_used", 0),
                             "processing_time": processing_time,
-                            "model_response_time": execution_result["response_time"]
-                        }
-                    }
+                            "model_response_time": execution_result["response_time"],
+                        },
+                    },
                 }
 
             except Exception as e:
@@ -249,11 +246,11 @@ class PromptCraftAPIServer:
             user_tier: Optional[str] = None,
             channel: str = "stable",
             include_metadata: bool = True,
-            format: str = "ui"
+            format: str = "ui",
         ):
             """
             Get available models filtered by user tier and channel.
-            
+
             Returns models from either stable (verified) or experimental channels
             based on user permissions and preferences.
             """
@@ -274,7 +271,7 @@ class PromptCraftAPIServer:
                     "user_tier": user_tier,
                     "total_models": len(formatted_models),
                     "channels_available": ["stable", "experimental"],
-                    "last_updated": datetime.now().isoformat()
+                    "last_updated": datetime.now().isoformat(),
                 }
 
             except Exception as e:
@@ -290,10 +287,7 @@ class PromptCraftAPIServer:
                 # Add API server metrics
                 stats["api_server"] = self.get_metrics()
 
-                return {
-                    "success": True,
-                    "stats": stats
-                }
+                return {"success": True, "stats": stats}
 
             except Exception as e:
                 logger.error(f"System stats error: {e}")
@@ -307,11 +301,19 @@ class PromptCraftAPIServer:
 
             # Convert to expected format
             return {
-                "task_type": analysis_result.task_type.value if hasattr(analysis_result.task_type, 'value') else str(analysis_result.task_type),
+                "task_type": (
+                    analysis_result.task_type.value
+                    if hasattr(analysis_result.task_type, "value")
+                    else str(analysis_result.task_type)
+                ),
                 "complexity_score": analysis_result.complexity_score,
                 "complexity_level": analysis_result.complexity_level,
-                "indicators": getattr(analysis_result, 'indicators', []),
-                "reasoning": getattr(analysis_result, 'reasoning', f"Detected {analysis_result.task_type} task with {analysis_result.complexity_level} complexity")
+                "indicators": getattr(analysis_result, "indicators", []),
+                "reasoning": getattr(
+                    analysis_result,
+                    "reasoning",
+                    f"Detected {analysis_result.task_type} task with {analysis_result.complexity_level} complexity",
+                ),
             }
 
         except Exception as e:
@@ -322,7 +324,7 @@ class PromptCraftAPIServer:
                 "complexity_score": 0.5,
                 "complexity_level": "moderate",
                 "indicators": [],
-                "reasoning": "Fallback analysis due to complexity analyzer error"
+                "reasoning": "Fallback analysis due to complexity analyzer error",
             }
 
     async def _get_routing_recommendations(self, analysis: Dict[str, Any], user_tier: str) -> Dict[str, Any]:
@@ -334,7 +336,7 @@ class PromptCraftAPIServer:
                 "limited": ModelLevel.FREE,
                 "full": ModelLevel.JUNIOR,
                 "premium": ModelLevel.SENIOR,
-                "admin": ModelLevel.EXECUTIVE
+                "admin": ModelLevel.EXECUTIVE,
             }
 
             model_level = tier_mapping.get(user_tier, ModelLevel.FREE)
@@ -344,33 +346,27 @@ class PromptCraftAPIServer:
                 complexity_score=analysis["complexity_score"],
                 task_type=analysis["task_type"],
                 user_level=model_level,
-                cost_optimization=True
+                cost_optimization=True,
             )
 
             # Get alternative models
-            alternatives = self.model_router.get_fallback_models(
-                selected_model,
-                max_alternatives=3
-            )
+            alternatives = self.model_router.get_fallback_models(selected_model, max_alternatives=3)
 
             return {
                 "primary": {
                     "model_id": selected_model.name,
                     "model_name": selected_model.display_name or selected_model.name,
                     "tier": selected_model.tier,
-                    "reasoning": f"Selected for {analysis['task_type']} task with cost optimization"
+                    "reasoning": f"Selected for {analysis['task_type']} task with cost optimization",
                 },
                 "alternatives": [
-                    {
-                        "model_id": alt.name,
-                        "model_name": alt.display_name or alt.name,
-                        "tier": alt.tier
-                    } for alt in alternatives
+                    {"model_id": alt.name, "model_name": alt.display_name or alt.name, "tier": alt.tier}
+                    for alt in alternatives
                 ],
                 "cost_comparison": {
                     "recommended_cost": selected_model.cost_per_token or 0.0,
-                    "premium_alternative_cost": alternatives[0].cost_per_token if alternatives else 0.0
-                }
+                    "premium_alternative_cost": alternatives[0].cost_per_token if alternatives else 0.0,
+                },
             }
 
         except Exception as e:
@@ -380,13 +376,15 @@ class PromptCraftAPIServer:
                     "model_id": "fallback-model",
                     "model_name": "Fallback Model",
                     "tier": "free_champion",
-                    "reasoning": "Fallback due to routing error"
+                    "reasoning": "Fallback due to routing error",
                 },
                 "alternatives": [],
-                "cost_comparison": {"recommended_cost": 0.0, "premium_alternative_cost": 0.0}
+                "cost_comparison": {"recommended_cost": 0.0, "premium_alternative_cost": 0.0},
             }
 
-    async def _select_optimal_model(self, analysis: Dict[str, Any], user_tier: str, channel: str, cost_optimization: bool) -> Dict[str, Any]:
+    async def _select_optimal_model(
+        self, analysis: Dict[str, Any], user_tier: str, channel: str, cost_optimization: bool
+    ) -> Dict[str, Any]:
         """Select optimal model for execution."""
         # Implementation similar to _get_routing_recommendations but focused on single best model
         recommendations = await self._get_routing_recommendations(analysis, user_tier)
@@ -408,7 +406,7 @@ class PromptCraftAPIServer:
             "response": f"Mock response from {model['model_id']} for prompt: {prompt[:50]}...",
             "response_time": response_time,
             "tokens_used": len(prompt) // 4,  # Rough token estimation
-            "confidence": 0.85
+            "confidence": 0.85,
         }
 
     async def _get_models_by_channel(self, channel: str, user_tier: Optional[str]) -> List[Dict[str, Any]]:
@@ -443,7 +441,7 @@ class PromptCraftAPIServer:
                 "context_window": model.get("context_window", 0),
                 "provider": model.get("provider", "unknown"),
                 "status": "active",
-                "channel": "stable" if "experimental" not in model.get("id", "") else "experimental"
+                "channel": "stable" if "experimental" not in model.get("id", "") else "experimental",
             }
             formatted.append(formatted_model)
 
@@ -466,11 +464,7 @@ class PromptCraftAPIServer:
         """Start the FastAPI server."""
         try:
             config = uvicorn.Config(
-                self.app,
-                host=host,
-                port=port,
-                log_level="info",
-                access_log=False  # We have our own request middleware
+                self.app, host=host, port=port, log_level="info", access_log=False  # We have our own request middleware
             )
 
             self.server = uvicorn.Server(config)
@@ -495,20 +489,14 @@ class PromptCraftAPIServer:
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get API server performance metrics."""
-        avg_response_time = (
-            self.total_response_time / self.request_count
-            if self.request_count > 0 else 0.0
-        )
+        avg_response_time = self.total_response_time / self.request_count if self.request_count > 0 else 0.0
 
-        success_rate = (
-            self.successful_requests / self.request_count
-            if self.request_count > 0 else 0.0
-        )
+        success_rate = self.successful_requests / self.request_count if self.request_count > 0 else 0.0
 
         return {
             "total_requests": self.request_count,
             "successful_requests": self.successful_requests,
             "success_rate": success_rate,
             "average_response_time": avg_response_time,
-            "uptime": time.time() - getattr(self, '_start_time', time.time())
+            "uptime": time.time() - getattr(self, "_start_time", time.time()),
         }

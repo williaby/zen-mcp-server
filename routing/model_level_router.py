@@ -17,16 +17,20 @@ from .complexity_analyzer import ComplexityAnalyzer, TaskType
 
 logger = logging.getLogger(__name__)
 
+
 class ModelLevel(Enum):
     """Model capability levels."""
+
     FREE = "free"
     JUNIOR = "junior"
     SENIOR = "senior"
     EXECUTIVE = "executive"
 
+
 @dataclass
 class ModelInfo:
     """Model information container."""
+
     name: str
     level: ModelLevel
     cost_per_token: float = 0.0
@@ -39,19 +43,22 @@ class ModelInfo:
     success_rate: float = 1.0
     aliases: List[str] = field(default_factory=list)
 
+
 @dataclass
 class RoutingResult:
     """Model selection result."""
+
     model: ModelInfo
     confidence: float
     reasoning: str
     fallback_models: List[ModelInfo]
     estimated_cost: float = 0.0
 
+
 class ModelLevelRouter:
     """
     Dynamic model routing system with level-based selection.
-    
+
     Features:
     - Free model prioritization
     - Intelligent complexity analysis
@@ -65,9 +72,7 @@ class ModelLevelRouter:
         self.models_config_path = models_config_path or self._get_default_models_config_path()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.models: Dict[str, ModelInfo] = {}
-        self.level_models: Dict[ModelLevel, List[ModelInfo]] = {
-            level: [] for level in ModelLevel
-        }
+        self.level_models: Dict[ModelLevel, List[ModelInfo]] = {level: [] for level in ModelLevel}
         self.cache = {}
         self.cache_ttl = 300  # 5 minutes
 
@@ -115,17 +120,17 @@ class ModelLevelRouter:
                 "free": {"cost_limit": 0.0, "priority": 1},
                 "junior": {"cost_limit": 0.001, "priority": 2},
                 "senior": {"cost_limit": 0.01, "priority": 3},
-                "executive": {"cost_limit": 0.1, "priority": 4}
+                "executive": {"cost_limit": 0.1, "priority": 4},
             },
             "complexity_thresholds": {
                 "simple": {"max_level": "free", "confidence_threshold": 0.8},
                 "moderate": {"max_level": "junior", "confidence_threshold": 0.7},
                 "complex": {"max_level": "senior", "confidence_threshold": 0.6},
-                "expert": {"max_level": "executive", "confidence_threshold": 0.5}
+                "expert": {"max_level": "executive", "confidence_threshold": 0.5},
             },
             "fallback_strategy": "escalate",
             "cost_optimization": True,
-            "free_model_preference": True
+            "free_model_preference": True,
         }
 
     def _initialize_models(self):
@@ -153,10 +158,10 @@ class ModelLevelRouter:
                 name=model_name,
                 level=level,
                 cost_per_token=self._estimate_cost_per_token(model_name, model_config),
-                max_tokens=model_config.get('max_output_tokens', 4096),
-                context_window=model_config.get('context_window', 4096),
+                max_tokens=model_config.get("max_output_tokens", 4096),
+                context_window=model_config.get("context_window", 4096),
                 specializations=self._extract_specializations(model_config),
-                aliases=model_config.get('aliases', [])
+                aliases=model_config.get("aliases", []),
             )
 
             self.models[model_info.name] = model_info
@@ -171,13 +176,13 @@ class ModelLevelRouter:
     def _determine_model_level(self, model_name: str, model_config: Dict[str, Any]) -> ModelLevel:
         """Determine the level of a model based on its configuration."""
         # Check if explicitly marked as free
-        if (model_name.endswith(':free') or
-            'free' in model_name.lower() or
-            model_config.get('is_custom', False)):  # Local models are typically free
+        if (
+            model_name.endswith(":free") or "free" in model_name.lower() or model_config.get("is_custom", False)
+        ):  # Local models are typically free
             return ModelLevel.FREE
 
         # Check routing config for level mappings
-        level_mappings = self.routing_config.get('model_level_mappings', {})
+        level_mappings = self.routing_config.get("model_level_mappings", {})
         for level_name, model_patterns in level_mappings.items():
             if any(pattern in model_name.lower() for pattern in model_patterns):
                 return ModelLevel(level_name)
@@ -186,22 +191,26 @@ class ModelLevelRouter:
         model_lower = model_name.lower()
 
         # Executive level (premium models)
-        if any(keyword in model_lower for keyword in [
-            'gpt-4', 'gpt-5', 'claude-opus', 'claude-4', 'o3-pro', 'o4'
-        ]):
+        if any(keyword in model_lower for keyword in ["gpt-4", "gpt-5", "claude-opus", "claude-4", "o3-pro", "o4"]):
             return ModelLevel.EXECUTIVE
 
         # Senior level (capable models)
-        elif any(keyword in model_lower for keyword in [
-            'gpt-3.5', 'claude-sonnet', 'claude-3', 'gemini-pro', 'gemini-2.5-pro',
-            'o3-mini', 'mistral-large'
-        ]):
+        elif any(
+            keyword in model_lower
+            for keyword in [
+                "gpt-3.5",
+                "claude-sonnet",
+                "claude-3",
+                "gemini-pro",
+                "gemini-2.5-pro",
+                "o3-mini",
+                "mistral-large",
+            ]
+        ):
             return ModelLevel.SENIOR
 
         # Junior level (entry-level paid models)
-        elif any(keyword in model_lower for keyword in [
-            'claude-haiku', 'gemini-flash', 'mistral', 'llama-3-70b'
-        ]):
+        elif any(keyword in model_lower for keyword in ["claude-haiku", "gemini-flash", "mistral", "llama-3-70b"]):
             return ModelLevel.JUNIOR
 
         # Default to FREE for everything else (especially local models)
@@ -211,21 +220,19 @@ class ModelLevelRouter:
     def _estimate_cost_per_token(self, model_name: str, model_config: Dict[str, Any]) -> float:
         """Estimate cost per token based on model type."""
         # Free models (local, marked as free)
-        if (model_name.endswith(':free') or
-            'free' in model_name.lower() or
-            model_config.get('is_custom', False)):
+        if model_name.endswith(":free") or "free" in model_name.lower() or model_config.get("is_custom", False):
             return 0.0
 
         # Rough cost estimates (per 1K tokens)
         model_lower = model_name.lower()
 
-        if any(keyword in model_lower for keyword in ['gpt-4', 'gpt-5', 'o3-pro', 'o4']):
+        if any(keyword in model_lower for keyword in ["gpt-4", "gpt-5", "o3-pro", "o4"]):
             return 0.03  # Premium models
-        elif any(keyword in model_lower for keyword in ['claude-opus', 'claude-4']):
+        elif any(keyword in model_lower for keyword in ["claude-opus", "claude-4"]):
             return 0.015  # High-end Claude
-        elif any(keyword in model_lower for keyword in ['claude-sonnet', 'gemini-pro']):
+        elif any(keyword in model_lower for keyword in ["claude-sonnet", "gemini-pro"]):
             return 0.003  # Mid-tier
-        elif any(keyword in model_lower for keyword in ['claude-haiku', 'gpt-3.5']):
+        elif any(keyword in model_lower for keyword in ["claude-haiku", "gpt-3.5"]):
             return 0.0005  # Entry level
         else:
             return 0.001  # Default estimate
@@ -235,31 +242,31 @@ class ModelLevelRouter:
         specializations = []
 
         # Check explicit specializations
-        if 'specializations' in model_config:
-            for spec in model_config['specializations']:
+        if "specializations" in model_config:
+            for spec in model_config["specializations"]:
                 try:
                     specializations.append(TaskType(spec))
                 except ValueError:
                     continue
 
         # Infer specializations from model description or name
-        description = model_config.get('description', '').lower()
-        model_name = model_config.get('model_name', '').lower()
+        description = model_config.get("description", "").lower()
+        model_name = model_config.get("model_name", "").lower()
 
         # Code-related specializations
-        if any(keyword in description + model_name for keyword in ['code', 'coder', 'programming']):
+        if any(keyword in description + model_name for keyword in ["code", "coder", "programming"]):
             specializations.extend([TaskType.CODE_GENERATION, TaskType.CODE_REVIEW])
 
         # Analysis specializations
-        if any(keyword in description for keyword in ['analysis', 'reasoning', 'thinking']):
+        if any(keyword in description for keyword in ["analysis", "reasoning", "thinking"]):
             specializations.append(TaskType.ANALYSIS)
 
         # Debugging specializations
-        if any(keyword in description for keyword in ['debug', 'fix', 'problem']):
+        if any(keyword in description for keyword in ["debug", "fix", "problem"]):
             specializations.append(TaskType.DEBUGGING)
 
         # Vision models for analysis
-        if model_config.get('supports_images', False):
+        if model_config.get("supports_images", False):
             specializations.append(TaskType.ANALYSIS)
 
         return specializations or [TaskType.GENERAL]
@@ -274,30 +281,28 @@ class ModelLevelRouter:
     def analyze_task_complexity(self, prompt: str, context: Dict[str, Any] = None) -> Tuple[str, float, TaskType]:
         """
         Analyze task complexity and type.
-        
+
         Args:
             prompt: The input prompt/task description
             context: Additional context information
-            
+
         Returns:
             tuple: (complexity_level, confidence, task_type)
         """
         return self.complexity_analyzer.analyze(prompt, context)
 
-    def select_model(self,
-                    prompt: str,
-                    context: Dict[str, Any] = None,
-                    prefer_free: bool = True,
-                    max_cost: float = None) -> RoutingResult:
+    def select_model(
+        self, prompt: str, context: Dict[str, Any] = None, prefer_free: bool = True, max_cost: float = None
+    ) -> RoutingResult:
         """
         Select the best model for a given prompt and context.
-        
+
         Args:
             prompt: The input prompt/task description
             context: Additional context (file types, errors, etc.)
             prefer_free: Whether to prioritize free models
             max_cost: Maximum allowed cost per token
-            
+
         Returns:
             RoutingResult with selected model and reasoning
         """
@@ -339,7 +344,7 @@ class ModelLevelRouter:
             confidence=confidence,
             reasoning=self._generate_reasoning(selected_model, complexity, task_type, prefer_free),
             fallback_models=fallback_models,
-            estimated_cost=estimated_cost
+            estimated_cost=estimated_cost,
         )
 
         # Cache result
@@ -354,34 +359,32 @@ class ModelLevelRouter:
 
     def _get_required_level(self, complexity: str, confidence: float) -> ModelLevel:
         """Determine required model level based on complexity analysis."""
-        thresholds = self.routing_config.get('complexity_thresholds', {})
+        thresholds = self.routing_config.get("complexity_thresholds", {})
 
         if complexity in thresholds:
             threshold_config = thresholds[complexity]
-            if confidence >= threshold_config.get('confidence_threshold', 0.5):
-                return ModelLevel(threshold_config['max_level'])
+            if confidence >= threshold_config.get("confidence_threshold", 0.5):
+                return ModelLevel(threshold_config["max_level"])
 
         # Default mapping
         level_mapping = {
-            'simple': ModelLevel.FREE,
-            'moderate': ModelLevel.JUNIOR,
-            'complex': ModelLevel.SENIOR,
-            'expert': ModelLevel.EXECUTIVE
+            "simple": ModelLevel.FREE,
+            "moderate": ModelLevel.JUNIOR,
+            "complex": ModelLevel.SENIOR,
+            "expert": ModelLevel.EXECUTIVE,
         }
 
         return level_mapping.get(complexity, ModelLevel.JUNIOR)
 
-    def _get_candidate_models(self,
-                            required_level: ModelLevel,
-                            task_type: TaskType,
-                            max_cost: float = None,
-                            prefer_free: bool = True) -> List[ModelInfo]:
+    def _get_candidate_models(
+        self, required_level: ModelLevel, task_type: TaskType, max_cost: float = None, prefer_free: bool = True
+    ) -> List[ModelInfo]:
         """Get candidate models for selection."""
         candidates = []
 
         # Start with free models if preferred
         levels_to_check = []
-        if prefer_free and self.routing_config.get('free_model_preference', True):
+        if prefer_free and self.routing_config.get("free_model_preference", True):
             levels_to_check.append(ModelLevel.FREE)
 
         # Add required level and potentially higher levels
@@ -416,8 +419,12 @@ class ModelLevelRouter:
             candidates.extend([model for model, _ in level_candidates])
 
             # If we have good free options and prefer free, stop here
-            if (prefer_free and level == ModelLevel.FREE and
-                len(candidates) >= 3 and self.routing_config.get('cost_optimization', True)):
+            if (
+                prefer_free
+                and level == ModelLevel.FREE
+                and len(candidates) >= 3
+                and self.routing_config.get("cost_optimization", True)
+            ):
                 break
 
         return candidates
@@ -439,11 +446,7 @@ class ModelLevelRouter:
         # Simple heuristic: ~4 characters per token for English text
         return max(len(prompt) // 4, 10)
 
-    def _generate_reasoning(self,
-                          model: ModelInfo,
-                          complexity: str,
-                          task_type: TaskType,
-                          prefer_free: bool) -> str:
+    def _generate_reasoning(self, model: ModelInfo, complexity: str, task_type: TaskType, prefer_free: bool) -> str:
         """Generate human-readable reasoning for model selection."""
         reasons = []
 
@@ -483,11 +486,11 @@ class ModelLevelRouter:
                 logger.warning(f"Disabled model {model_name} due to repeated failures")
 
         # Update success rate (rolling average)
-        total_requests = getattr(model, 'total_requests', 0) + 1
+        total_requests = getattr(model, "total_requests", 0) + 1
         if success:
-            successful_requests = getattr(model, 'successful_requests', 0) + 1
+            successful_requests = getattr(model, "successful_requests", 0) + 1
         else:
-            successful_requests = getattr(model, 'successful_requests', 0)
+            successful_requests = getattr(model, "successful_requests", 0)
 
         model.success_rate = successful_requests / total_requests
         model.total_requests = total_requests
@@ -496,34 +499,36 @@ class ModelLevelRouter:
     def get_model_stats(self) -> Dict[str, Any]:
         """Get routing and model performance statistics."""
         stats = {
-            'total_models': len(self.models),
-            'available_models': sum(1 for m in self.models.values() if m.is_available),
-            'models_by_level': {},
-            'cache_size': len(self.cache),
-            'top_performers': []
+            "total_models": len(self.models),
+            "available_models": sum(1 for m in self.models.values() if m.is_available),
+            "models_by_level": {},
+            "cache_size": len(self.cache),
+            "top_performers": [],
         }
 
         # Models by level
         for level in ModelLevel:
             level_models = self.level_models[level]
-            stats['models_by_level'][level.value] = {
-                'total': len(level_models),
-                'available': sum(1 for m in level_models if m.is_available),
-                'average_success_rate': sum(m.success_rate for m in level_models) / len(level_models) if level_models else 0
+            stats["models_by_level"][level.value] = {
+                "total": len(level_models),
+                "available": sum(1 for m in level_models if m.is_available),
+                "average_success_rate": (
+                    sum(m.success_rate for m in level_models) / len(level_models) if level_models else 0
+                ),
             }
 
         # Top performers
         sorted_models = sorted(
-            [m for m in self.models.values() if getattr(m, 'total_requests', 0) > 0],
+            [m for m in self.models.values() if getattr(m, "total_requests", 0) > 0],
             key=lambda m: m.success_rate,
-            reverse=True
+            reverse=True,
         )
-        stats['top_performers'] = [
+        stats["top_performers"] = [
             {
-                'name': m.name,
-                'level': m.level.value,
-                'success_rate': m.success_rate,
-                'total_requests': getattr(m, 'total_requests', 0)
+                "name": m.name,
+                "level": m.level.value,
+                "success_rate": m.success_rate,
+                "total_requests": getattr(m, "total_requests", 0),
             }
             for m in sorted_models[:5]
         ]
@@ -536,14 +541,14 @@ class ModelLevelRouter:
             model_level = ModelLevel(level)
             return [
                 {
-                    'name': model.name,
-                    'aliases': model.aliases,
-                    'cost_per_token': model.cost_per_token,
-                    'context_window': model.context_window,
-                    'max_tokens': model.max_tokens,
-                    'specializations': [spec.value for spec in model.specializations],
-                    'is_available': model.is_available,
-                    'success_rate': model.success_rate
+                    "name": model.name,
+                    "aliases": model.aliases,
+                    "cost_per_token": model.cost_per_token,
+                    "context_window": model.context_window,
+                    "max_tokens": model.max_tokens,
+                    "specializations": [spec.value for spec in model.specializations],
+                    "is_available": model.is_available,
+                    "success_rate": model.success_rate,
                 }
                 for model in self.level_models[model_level]
             ]

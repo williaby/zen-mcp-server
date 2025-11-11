@@ -71,6 +71,7 @@ from utils.env import env_override_enabled, get_env  # noqa: E402
 # Plugin system for extensions (safe for upstream pulls)
 try:
     from plugins import get_plugin_tools
+
     _plugins_available = True
 except ImportError:
     _plugins_available = False
@@ -1485,6 +1486,7 @@ async def main():
     if _plugins_available:
         try:
             from plugins import load_plugins
+
             plugins = load_plugins()
             if plugins:
                 logger.info(f"Initialized {len(plugins)} plugins: {list(plugins.keys())}")

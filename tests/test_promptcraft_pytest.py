@@ -51,7 +51,7 @@ def sample_experimental_model():
         context_window=8000,
         added_date=datetime.now().isoformat(),
         usage_count=0,
-        success_rate=0.0
+        success_rate=0.0,
     )
 
 
@@ -70,8 +70,8 @@ def sample_graduation_candidate():
             "age_requirement": True,
             "usage_requirement": True,
             "success_rate_requirement": True,
-            "benchmark_requirement": True
-        }
+            "benchmark_requirement": True,
+        },
     )
 
 
@@ -115,7 +115,7 @@ class TestDataManager:
         models = data_manager.get_experimental_models()
         model = models[0]
         assert model.usage_count == 3
-        assert abs(model.success_rate - (2/3)) < 0.001  # 66.7% success rate
+        assert abs(model.success_rate - (2 / 3)) < 0.001  # 66.7% success rate
         assert model.last_used is not None
 
     def test_graduation_queue_operations(self, data_manager, sample_graduation_candidate):
@@ -147,10 +147,7 @@ class TestDataManager:
 
     def test_performance_metrics(self, data_manager):
         """Test performance metrics management."""
-        test_metrics = {
-            "test_metric": 123,
-            "api_calls": 456
-        }
+        test_metrics = {"test_metric": 123, "api_calls": 456}
 
         assert data_manager.update_performance_metrics(test_metrics)
 
@@ -214,7 +211,7 @@ class TestAPIServer:
         """Test prompt complexity analysis."""
         test_prompt = "Write a Python function to calculate fibonacci numbers"
 
-        with patch.object(api_server.complexity_analyzer, 'analyze') as mock_analyze:
+        with patch.object(api_server.complexity_analyzer, "analyze") as mock_analyze:
             # Mock analysis result
             mock_result = Mock()
             mock_result.task_type = "code_generation"
@@ -238,7 +235,7 @@ class TestAPIServer:
             "name": "Free Coding Model",
             "cost_per_token": 0.0,
             "specialization": "coding",
-            "humaneval_score": 85.5
+            "humaneval_score": 85.5,
         }
 
         display_name = api_server._generate_display_name(free_model)
@@ -251,7 +248,7 @@ class TestAPIServer:
             "name": "Premium Model",
             "cost_per_token": 0.005,
             "specialization": "general",
-            "humaneval_score": 0
+            "humaneval_score": 0,
         }
 
         display_name = api_server._generate_display_name(paid_model)
@@ -274,11 +271,8 @@ class TestBackgroundWorkers:
             "minimum_success_rate": 0.95,
             "minimum_humaneval_score": 70.0,
             "detection_config": {
-                "quality_filters": {
-                    "min_context_window": 4000,
-                    "exclude_providers": ["test", "demo"]
-                }
-            }
+                "quality_filters": {"min_context_window": 4000, "exclude_providers": ["test", "demo"]}
+            },
         }
         return mock
 
@@ -290,7 +284,7 @@ class TestBackgroundWorkers:
         assert worker.check_interval_hours == 1
         assert not worker.running
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_detection_cycle(self, mock_get, mock_data_manager):
         """Test model detection cycle."""
         # Mock OpenRouter API response
@@ -301,17 +295,14 @@ class TestBackgroundWorkers:
                     "id": "new/test-model:free",
                     "name": "New Test Model",
                     "context_length": 8000,
-                    "pricing": {
-                        "prompt": "$0.000000",
-                        "completion": "$0.000000"
-                    }
+                    "pricing": {"prompt": "$0.000000", "completion": "$0.000000"},
                 },
                 {
                     "id": "filtered/low-context:free",
                     "name": "Low Context Model",
                     "context_length": 2000,  # Below threshold
-                    "pricing": {"prompt": "$0", "completion": "$0"}
-                }
+                    "pricing": {"prompt": "$0", "completion": "$0"},
+                },
             ]
         }
         mock_response.raise_for_status.return_value = None
@@ -353,14 +344,14 @@ class TestBackgroundWorkers:
             added_date="2025-01-01T00:00:00Z",  # Old enough
             usage_count=100,  # Above threshold
             success_rate=0.97,  # Above threshold
-            humaneval_score=85.0  # Above threshold
+            humaneval_score=85.0,  # Above threshold
         )
 
         criteria = {
             "minimum_age_days": 7,
             "minimum_usage_requests": 50,
             "minimum_success_rate": 0.95,
-            "minimum_humaneval_score": 70.0
+            "minimum_humaneval_score": 70.0,
         }
 
         candidate = worker._evaluate_graduation_eligibility(qualified_model, criteria)
@@ -396,8 +387,12 @@ class TestPluginIntegration:
         status = plugin.get_status()
 
         expected_keys = [
-            "plugin_name", "plugin_version", "initialized",
-            "api_server_running", "background_workers", "data_manager_healthy"
+            "plugin_name",
+            "plugin_version",
+            "initialized",
+            "api_server_running",
+            "background_workers",
+            "data_manager_healthy",
         ]
 
         for key in expected_keys:
@@ -415,7 +410,7 @@ class TestPluginIntegration:
         assert isinstance(tools, dict)
         # API-based integration should return empty dict
 
-    @patch.dict('os.environ', {'ENABLE_PROMPTCRAFT_WORKERS': 'false'})
+    @patch.dict("os.environ", {"ENABLE_PROMPTCRAFT_WORKERS": "false"})
     def test_plugin_without_workers(self):
         """Test plugin with workers disabled."""
         plugin = PromptCraftSystemPlugin()
@@ -444,8 +439,8 @@ class TestRoutingIntegration:
         api_server = PromptCraftAPIServer(data_manager)
 
         # Should have routing components
-        assert hasattr(api_server, 'model_router')
-        assert hasattr(api_server, 'complexity_analyzer')
+        assert hasattr(api_server, "model_router")
+        assert hasattr(api_server, "complexity_analyzer")
 
         # Should be able to use them
         assert api_server.model_router is not None

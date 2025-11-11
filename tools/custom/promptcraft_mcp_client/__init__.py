@@ -15,11 +15,11 @@ Features:
 
 Usage:
     Basic usage with context manager:
-    
+
     ```python
     from promptcraft_mcp_client import ZenMCPStdioClient
     from promptcraft_mcp_client.models import RouteAnalysisRequest
-    
+
     async with ZenMCPStdioClient("/path/to/server.py") as client:
         request = RouteAnalysisRequest(
             prompt="Write Python code to sort a list",
@@ -28,18 +28,18 @@ Usage:
         result = await client.analyze_route(request)
         print(result.analysis)
     ```
-    
+
     Or create client directly:
-    
+
     ```python
     from promptcraft_mcp_client import create_client
-    
+
     client = await create_client(
         server_path="/path/to/zen-mcp-server/server.py",
         env_vars={"LOG_LEVEL": "INFO"},
         http_fallback_url="http://localhost:8000"
     )
-    
+
     # Use client...
     await client.disconnect()
     ```
@@ -51,21 +51,17 @@ from .models import (
     RouteAnalysisRequest,
     SmartExecutionRequest,
     ModelListRequest,
-    
-    # Result models  
+    # Result models
     AnalysisResult,
     ExecutionResult,
     ModelListResult,
-    
     # Configuration models
     MCPConnectionConfig,
     FallbackConfig,
-    
     # Status and monitoring models
     MCPConnectionStatus,
     MCPHealthCheck,
     BridgeMetrics,
-    
     # MCP protocol models
     MCPToolCall,
     MCPToolResult,
@@ -83,26 +79,21 @@ __all__ = [
     # Main client classes
     "ZenMCPStdioClient",
     "create_client",
-    
     # Request models for PromptCraft operations
-    "RouteAnalysisRequest", 
+    "RouteAnalysisRequest",
     "SmartExecutionRequest",
     "ModelListRequest",
-    
     # Result models
     "AnalysisResult",
-    "ExecutionResult", 
+    "ExecutionResult",
     "ModelListResult",
-    
     # Configuration
     "MCPConnectionConfig",
     "FallbackConfig",
-    
     # Status and monitoring
     "MCPConnectionStatus",
-    "MCPHealthCheck", 
+    "MCPHealthCheck",
     "BridgeMetrics",
-    
     # Advanced usage (for custom integrations)
     "ZenMCPProcess",
     "ProcessPool",
@@ -110,7 +101,6 @@ __all__ = [
     "MCPConnectionManager",
     "RetryHandler",
     "CircuitBreakerState",
-    
     # MCP protocol types
     "MCPToolCall",
     "MCPToolResult",
@@ -124,7 +114,7 @@ LIBRARY_INFO = {
     "features": [
         "Native MCP stdio communication",
         "Automatic HTTP fallback",
-        "Process lifecycle management", 
+        "Process lifecycle management",
         "Circuit breaker reliability patterns",
         "Performance monitoring",
         "Comprehensive error handling",
@@ -136,10 +126,12 @@ LIBRARY_INFO = {
     },
 }
 
+
 def get_library_info() -> dict:
     """Get library information and metadata."""
     return LIBRARY_INFO.copy()
 
+
 def get_version() -> str:
-    """Get library version string.""" 
+    """Get library version string."""
     return __version__

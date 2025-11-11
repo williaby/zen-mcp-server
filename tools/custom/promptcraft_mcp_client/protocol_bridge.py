@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 
 from .models import (
     RouteAnalysisRequest,
-    SmartExecutionRequest, 
+    SmartExecutionRequest,
     ModelListRequest,
     MCPToolCall,
     AnalysisResult,
@@ -24,22 +24,22 @@ logger = logging.getLogger(__name__)
 class MCPProtocolBridge:
     """
     Bridge between HTTP API requests and MCP tool calls.
-    
+
     This class handles the translation between PromptCraft's HTTP API format
     and the MCP protocol used by zen-mcp-server.
     """
-    
+
     def __init__(self):
         self.bridge_tool_name = "promptcraft_mcp_bridge"
-    
+
     def http_to_mcp_request(self, endpoint: str, http_request: Dict[str, Any]) -> MCPToolCall:
         """
         Convert HTTP API request to MCP tool call.
-        
+
         Args:
             endpoint: HTTP endpoint path (e.g., "/api/promptcraft/route/analyze")
             http_request: HTTP request body as dict
-            
+
         Returns:
             MCPToolCall: MCP tool call with translated parameters
         """
@@ -56,7 +56,7 @@ class MCPProtocolBridge:
                     "task_type": request.task_type,
                     "model": "flash",  # Default model for analysis
                 }
-                
+
             elif endpoint.endswith("/execute/smart"):
                 action = "smart_execute"
                 # Validate and extract parameters for smart execution
@@ -70,7 +70,7 @@ class MCPProtocolBridge:
                     "include_reasoning": request.include_reasoning,
                     "model": "auto",  # Let the bridge decide
                 }
-                
+
             elif endpoint.endswith("/models/available"):
                 action = "list_models"
                 # Validate and extract parameters for model listing
@@ -83,13 +83,13 @@ class MCPProtocolBridge:
                     "format": request.format,
                     "model": "flash",  # Fast model for listing
                 }
-                
+
             else:
                 raise ValueError(f"Unsupported endpoint: {endpoint}")
-            
+
             logger.debug(f"Translated HTTP request to MCP: {action}")
             return MCPToolCall(name=self.bridge_tool_name, arguments=arguments)
-            
+
         except Exception as e:
             logger.error(f"Failed to translate HTTP request to MCP: {e}")
             raise
@@ -97,11 +97,11 @@ class MCPProtocolBridge:
     def mcp_to_http_response(self, endpoint: str, mcp_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Convert MCP tool result to HTTP API response.
-        
+
         Args:
             endpoint: Original HTTP endpoint path
             mcp_result: MCP tool result as dict
-            
+
         Returns:
             Dict[str, Any]: HTTP response in expected format
         """
@@ -113,6 +113,7 @@ class MCPProtocolBridge:
                 if content_list and isinstance(content_list, list) and len(content_list) > 0:
                     # Extract text content and parse as JSON
                     import json
+
                     text_content = content_list[0].get("text", "")
                     if "PromptCraft MCP Bridge Result:" in text_content:
                         # Extract JSON part after the header
@@ -143,7 +144,7 @@ class MCPProtocolBridge:
             else:
                 # Generic response format
                 return self._format_generic_response(parsed_result)
-                
+
         except Exception as e:
             logger.error(f"Failed to translate MCP result to HTTP response: {e}")
             return {
@@ -161,11 +162,11 @@ class MCPProtocolBridge:
                     "error": mcp_result.get("error", "Route analysis failed"),
                     "processing_time": mcp_result.get("processing_time", 0.0),
                 }
-            
+
             # Extract analysis and recommendations from MCP result
             analysis = mcp_result.get("analysis", {})
             recommendations = mcp_result.get("recommendations", {})
-            
+
             return {
                 "success": True,
                 "analysis": {
@@ -184,7 +185,7 @@ class MCPProtocolBridge:
                 "processing_time": mcp_result.get("processing_time", 0.0),
                 "bridge_version": mcp_result.get("bridge_version", "1.0.0"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error formatting route analysis response: {e}")
             return {"success": False, "error": str(e)}
@@ -198,11 +199,11 @@ class MCPProtocolBridge:
                     "error": mcp_result.get("error", "Smart execution failed"),
                     "processing_time": mcp_result.get("processing_time", 0.0),
                 }
-            
+
             # Extract response and metadata from MCP result
             response = mcp_result.get("response", {})
             execution_metadata = mcp_result.get("execution_metadata", {})
-            
+
             return {
                 "success": True,
                 "result": {
@@ -218,7 +219,7 @@ class MCPProtocolBridge:
                 },
                 "bridge_version": mcp_result.get("bridge_version", "1.0.0"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error formatting smart execution response: {e}")
             return {"success": False, "error": str(e)}
@@ -232,11 +233,11 @@ class MCPProtocolBridge:
                     "error": mcp_result.get("error", "Model listing failed"),
                     "processing_time": mcp_result.get("processing_time", 0.0),
                 }
-            
+
             # Extract models and metadata from MCP result
             models = mcp_result.get("models", [])
             metadata = mcp_result.get("metadata", {})
-            
+
             return {
                 "success": True,
                 "models": models,
@@ -249,7 +250,7 @@ class MCPProtocolBridge:
                 "processing_time": mcp_result.get("processing_time", 0.0),
                 "bridge_version": mcp_result.get("bridge_version", "1.0.0"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error formatting model list response: {e}")
             return {"success": False, "error": str(e)}
@@ -268,11 +269,11 @@ class MCPProtocolBridge:
     def validate_http_request(self, endpoint: str, request_data: Dict[str, Any]) -> bool:
         """
         Validate HTTP request data for the given endpoint.
-        
+
         Args:
             endpoint: HTTP endpoint path
             request_data: Request data to validate
-            
+
         Returns:
             bool: True if request is valid, raises exception otherwise
         """
@@ -285,9 +286,9 @@ class MCPProtocolBridge:
                 ModelListRequest(**request_data)
             else:
                 raise ValueError(f"Unknown endpoint: {endpoint}")
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"HTTP request validation failed for {endpoint}: {e}")
             raise
@@ -296,7 +297,7 @@ class MCPProtocolBridge:
         """Get list of supported HTTP endpoints."""
         return [
             "/api/promptcraft/route/analyze",
-            "/api/promptcraft/execute/smart", 
+            "/api/promptcraft/execute/smart",
             "/api/promptcraft/models/available",
         ]
 

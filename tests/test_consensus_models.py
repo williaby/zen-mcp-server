@@ -44,6 +44,7 @@ class TestAvailabilityCache:
         cache.set_available("test-model", True)
 
         import time
+
         time.sleep(0.1)  # Wait for expiration
 
         assert cache.is_available("test-model") is None  # Expired
@@ -91,7 +92,7 @@ class TestTierManager:
         with pytest.raises(ValueError, match="Invalid level.*Must be 1, 2, or 3"):
             manager.get_tier_models(4)
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_level_1_returns_free_models(self, mock_band_selector):
         """Test Level 1 returns only free models."""
         # Mock BandSelector to return specific models
@@ -112,7 +113,7 @@ class TestTierManager:
         assert len(models) == 3
         assert all("free" in model for model in models)
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_level_2_additive_architecture(self, mock_band_selector):
         """Test Level 2 includes Level 1's models (ADDITIVE)."""
         # Mock BandSelector
@@ -139,7 +140,7 @@ class TestTierManager:
         # Next 3 should be economy models
         assert tier2_models[3:] == ["economy1", "economy2", "economy3"]
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_level_3_additive_architecture(self, mock_band_selector):
         """Test Level 3 includes Level 1 + Level 2's models (ADDITIVE)."""
         # Mock BandSelector
@@ -171,7 +172,7 @@ class TestTierManager:
         # Last 2 should be premium models
         assert tier3_models[6:] == ["premium1", "premium2"]
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_tier_costs_calculation(self, mock_band_selector):
         """Test tier cost estimation."""
         # Mock BandSelector with cost data
@@ -180,23 +181,26 @@ class TestTierManager:
 
         # Mock models DataFrame
         import pandas as pd
-        mock_selector.models_df = pd.DataFrame({
-            'model': ['model1', 'model2', 'model3'],
-            'input_cost': [1.0, 2.0, 3.0],
-            'output_cost': [5.0, 10.0, 15.0],
-        })
+
+        mock_selector.models_df = pd.DataFrame(
+            {
+                "model": ["model1", "model2", "model3"],
+                "input_cost": [1.0, 2.0, 3.0],
+                "output_cost": [5.0, 10.0, 15.0],
+            }
+        )
 
         manager = TierManager(band_selector=mock_selector)
         costs = manager.get_tier_costs(1)
 
         # Should calculate total costs
-        assert costs['level'] == 1
-        assert costs['model_count'] == 3
-        assert costs['input_cost_per_million'] == 6.0  # 1+2+3
-        assert costs['output_cost_per_million'] == 30.0  # 5+10+15
+        assert costs["level"] == 1
+        assert costs["model_count"] == 3
+        assert costs["input_cost_per_million"] == 6.0  # 1+2+3
+        assert costs["output_cost_per_million"] == 30.0  # 5+10+15
 
         # Estimated cost: (6*1000 + 30*2000) / 1M = 0.066
-        assert 0.06 < costs['estimated_cost_per_call'] < 0.07
+        assert 0.06 < costs["estimated_cost_per_call"] < 0.07
 
     def test_get_level_description(self):
         """Test level descriptions."""
@@ -213,7 +217,7 @@ class TestTierManager:
         assert "Executive" in desc3
         assert "$5" in desc3
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_tier_summary(self, mock_band_selector):
         """Test tier summary generation."""
         # Mock BandSelector
@@ -221,38 +225,39 @@ class TestTierManager:
         mock_selector.get_models_by_cost_tier.return_value = ["model1", "model2"]
 
         import pandas as pd
-        mock_selector.models_df = pd.DataFrame({
-            'model': ['model1', 'model2'],
-            'input_cost': [1.0, 2.0],
-            'output_cost': [5.0, 10.0],
-        })
+
+        mock_selector.models_df = pd.DataFrame(
+            {
+                "model": ["model1", "model2"],
+                "input_cost": [1.0, 2.0],
+                "output_cost": [5.0, 10.0],
+            }
+        )
 
         manager = TierManager(band_selector=mock_selector)
         summary = manager.get_tier_summary(1)
 
-        assert summary['level'] == 1
-        assert summary['model_count'] == 2
-        assert 'models' in summary
-        assert 'costs' in summary
-        assert 'cache_stats' in summary
+        assert summary["level"] == 1
+        assert summary["model_count"] == 2
+        assert "models" in summary
+        assert "costs" in summary
+        assert "cache_stats" in summary
 
 
 class TestFreeModelFailover:
     """Test free model failover behavior."""
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_failover_tries_multiple_free_models(self, mock_band_selector):
         """Test failover tries multiple free models when some are unavailable."""
         # Mock BandSelector to return 5 candidate free models
         mock_selector = Mock()
-        mock_selector.get_models_by_cost_tier.return_value = [
-            "free1", "free2", "free3", "free4", "free5"
-        ]
+        mock_selector.get_models_by_cost_tier.return_value = ["free1", "free2", "free3", "free4", "free5"]
 
         manager = TierManager(band_selector=mock_selector)
 
         # Mock availability checks: first 2 fail, next 3 succeed
-        with patch.object(manager, '_check_model_availability') as mock_check:
+        with patch.object(manager, "_check_model_availability") as mock_check:
             mock_check.side_effect = [False, False, True, True, True]
 
             models = manager._get_available_free_models(target=3, max_attempts=10)
@@ -264,20 +269,18 @@ class TestFreeModelFailover:
             assert len(models) == 3
             assert models == ["free3", "free4", "free5"]
 
-    @patch('tools.custom.consensus_models.BandSelector')
+    @patch("tools.custom.consensus_models.BandSelector")
     def test_failover_respects_cache(self, mock_band_selector):
         """Test failover skips models cached as unavailable."""
         mock_selector = Mock()
-        mock_selector.get_models_by_cost_tier.return_value = [
-            "free1", "free2", "free3"
-        ]
+        mock_selector.get_models_by_cost_tier.return_value = ["free1", "free2", "free3"]
 
         manager = TierManager(band_selector=mock_selector)
 
         # Pre-populate cache: free1 is unavailable
         manager.availability_cache.set_available("free1", False)
 
-        with patch.object(manager, '_check_model_availability') as mock_check:
+        with patch.object(manager, "_check_model_availability") as mock_check:
             mock_check.return_value = True  # All checks succeed
 
             models = manager._get_available_free_models(target=2, max_attempts=10)

@@ -30,6 +30,7 @@ class TestPromptCraftDataManager:
     def teardown_method(self):
         """Cleanup test data."""
         import shutil
+
         if self.test_data_dir.exists():
             shutil.rmtree(self.test_data_dir)
 
@@ -50,7 +51,7 @@ class TestPromptCraftDataManager:
             provider="test",
             cost_per_token=0.0,
             context_window=4000,
-            added_date="2025-01-05T10:00:00Z"
+            added_date="2025-01-05T10:00:00Z",
         )
 
         # Add model
@@ -74,7 +75,7 @@ class TestPromptCraftDataManager:
             provider="test",
             cost_per_token=0.0,
             context_window=4000,
-            added_date="2025-01-05T10:00:00Z"
+            added_date="2025-01-05T10:00:00Z",
         )
         self.data_manager.add_experimental_model(test_model)
 
@@ -105,8 +106,8 @@ class TestPromptCraftDataManager:
                 "age_requirement": True,
                 "usage_requirement": True,
                 "success_rate_requirement": True,
-                "benchmark_requirement": True
-            }
+                "benchmark_requirement": True,
+            },
         )
 
         # Add to queue
@@ -128,7 +129,7 @@ class TestPromptCraftDataManager:
         assert self.data_manager.health_check()
 
         # Test with corrupted file
-        with open(self.data_manager.experimental_models_path, 'w') as f:
+        with open(self.data_manager.experimental_models_path, "w") as f:
             f.write("invalid json")
 
         assert not self.data_manager.health_check()
@@ -147,6 +148,7 @@ class TestPromptCraftAPIServer:
     def teardown_method(self):
         """Cleanup test data."""
         import shutil
+
         if self.test_data_dir.exists():
             shutil.rmtree(self.test_data_dir)
 
@@ -156,7 +158,7 @@ class TestPromptCraftAPIServer:
         assert self.api_server.model_router is not None
         assert self.api_server.complexity_analyzer is not None
 
-    @patch('plugins.promptcraft_system.api_server.ComplexityAnalyzer')
+    @patch("plugins.promptcraft_system.api_server.ComplexityAnalyzer")
     def test_complexity_analysis(self, mock_analyzer_class):
         """Test prompt complexity analysis."""
         # Mock analyzer result
@@ -175,6 +177,7 @@ class TestPromptCraftAPIServer:
 
         # Test analysis
         import asyncio
+
         analysis = asyncio.run(api_server._analyze_prompt_complexity("def test(): pass"))
 
         assert analysis["task_type"] == "code_generation"
@@ -210,10 +213,11 @@ class TestBackgroundWorkers:
     def teardown_method(self):
         """Cleanup test data."""
         import shutil
+
         if self.test_data_dir.exists():
             shutil.rmtree(self.test_data_dir)
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_model_detection_worker(self, mock_get):
         """Test model detection from OpenRouter."""
         # Mock OpenRouter API response
@@ -224,10 +228,7 @@ class TestBackgroundWorkers:
                     "id": "new/test-model:free",
                     "name": "New Test Model",
                     "context_length": 8000,
-                    "pricing": {
-                        "prompt": "$0.000000",
-                        "completion": "$0.000000"
-                    }
+                    "pricing": {"prompt": "$0.000000", "completion": "$0.000000"},
                 }
             ]
         }
@@ -245,10 +246,7 @@ class TestBackgroundWorkers:
         assert len(experimental_models) >= 1
 
         # Find our test model
-        test_model = next(
-            (m for m in experimental_models if m.id == "new/test-model:free"),
-            None
-        )
+        test_model = next((m for m in experimental_models if m.id == "new/test-model:free"), None)
         assert test_model is not None
         assert test_model.name == "New Test Model"
         assert test_model.context_window == 8000
@@ -265,7 +263,7 @@ class TestBackgroundWorkers:
             added_date="2025-01-01T10:00:00Z",  # 4+ days old
             usage_count=100,  # > 50 required
             success_rate=0.98,  # > 0.95 required
-            humaneval_score=80.0  # > 70.0 required
+            humaneval_score=80.0,  # > 70.0 required
         )
         self.data_manager.add_experimental_model(qualified_model)
 
@@ -295,6 +293,7 @@ class TestPromptCraftIntegration:
     def teardown_method(self):
         """Cleanup test environment."""
         import shutil
+
         if self.test_data_dir.exists():
             shutil.rmtree(self.test_data_dir)
 
@@ -321,7 +320,7 @@ class TestPromptCraftIntegration:
         assert "api_server_running" in status
         assert "data_manager_healthy" in status
 
-    @patch.dict('os.environ', {'ENABLE_PROMPTCRAFT_WORKERS': 'false'})
+    @patch.dict("os.environ", {"ENABLE_PROMPTCRAFT_WORKERS": "false"})
     def test_plugin_without_workers(self):
         """Test plugin initialization without background workers."""
         plugin = PromptCraftSystemPlugin()
@@ -342,20 +341,18 @@ class TestPromptCraftIntegration:
             provider="test",
             cost_per_token=0.0,
             context_window=4000,
-            added_date="2025-01-05T10:00:00Z"
+            added_date="2025-01-05T10:00:00Z",
         )
 
         assert plugin.data_manager.add_experimental_model(test_model)
 
         # Verify model appears in experimental channel
         from plugins.promptcraft_system.data_manager import ModelChannel
+
         experimental_models = plugin.data_manager.get_models_by_channel(ModelChannel.EXPERIMENTAL)
 
         assert len(experimental_models) >= 1
-        test_model_found = any(
-            model.get("id") == "consistency/test-model:free"
-            for model in experimental_models
-        )
+        test_model_found = any(model.get("id") == "consistency/test-model:free" for model in experimental_models)
         assert test_model_found
 
 
@@ -390,14 +387,10 @@ class TestPromptCraftAPIEndpoints:
             payload = {
                 "prompt": "Write a Python function to sort a list",
                 "user_tier": "free",
-                "task_type": "code_generation"
+                "task_type": "code_generation",
             }
 
-            response = requests.post(
-                f"{api_server_url}/api/promptcraft/route/analyze",
-                json=payload,
-                timeout=10
-            )
+            response = requests.post(f"{api_server_url}/api/promptcraft/route/analyze", json=payload, timeout=10)
 
             assert response.status_code == 200
 
@@ -414,17 +407,9 @@ class TestPromptCraftAPIEndpoints:
     def test_models_list_endpoint(self, api_server_url):
         """Test models list endpoint."""
         try:
-            params = {
-                "user_tier": "free",
-                "channel": "stable",
-                "include_metadata": "true"
-            }
+            params = {"user_tier": "free", "channel": "stable", "include_metadata": "true"}
 
-            response = requests.get(
-                f"{api_server_url}/api/promptcraft/models/available",
-                params=params,
-                timeout=10
-            )
+            response = requests.get(f"{api_server_url}/api/promptcraft/models/available", params=params, timeout=10)
 
             assert response.status_code == 200
 
@@ -452,7 +437,7 @@ class TestPromptCraftUtilities:
             "name": "Free Test Model",
             "cost_per_token": 0.0,
             "specialization": "coding",
-            "humaneval_score": 85.0
+            "humaneval_score": 85.0,
         }
 
         display_name = api_server._generate_display_name(free_model)
@@ -465,7 +450,7 @@ class TestPromptCraftUtilities:
             "name": "Premium Model",
             "cost_per_token": 0.005,
             "specialization": "general",
-            "humaneval_score": 0.0
+            "humaneval_score": 0.0,
         }
 
         display_name = api_server._generate_display_name(paid_model)

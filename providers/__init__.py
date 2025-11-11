@@ -11,6 +11,7 @@ from .shared import ModelCapabilities, ModelResponse
 # Optional Gemini provider - requires google-genai package
 try:
     from .gemini import GeminiModelProvider
+
     _gemini_available = True
 except ImportError:
     GeminiModelProvider = None  # type: ignore

@@ -65,15 +65,12 @@ class TieredConsensusRequest(WorkflowRequest):
         description="Override cost limit (default: based on level)",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_domain(self):
         """Validate domain is supported."""
         valid_domains = ["code_review", "security", "architecture", "general"]
         if self.domain not in valid_domains:
-            raise ValueError(
-                f"Invalid domain: {self.domain}. "
-                f"Valid domains: {', '.join(valid_domains)}"
-            )
+            raise ValueError(f"Invalid domain: {self.domain}. " f"Valid domains: {', '.join(valid_domains)}")
         return self
 
 
@@ -301,7 +298,7 @@ class TieredConsensusTool(WorkflowTool):
 
             # Calculate actual cost (placeholder)
             tier_costs = self.tier_manager.get_tier_costs(request.level)
-            total_cost = tier_costs['estimated_cost_per_call']
+            total_cost = tier_costs["estimated_cost_per_call"]
 
             # Generate consensus result
             result = self.synthesis_engine.generate_consensus(
@@ -326,9 +323,7 @@ class TieredConsensusTool(WorkflowTool):
             return self._create_text_content(formatted_output)
 
         # Shouldn't reach here
-        return self._create_text_content(
-            f"Error: Unexpected step number {request.step_number}/{request.total_steps}"
-        )
+        return self._create_text_content(f"Error: Unexpected step number {request.step_number}/{request.total_steps}")
 
     async def _call_model_with_failover(
         self,
@@ -381,17 +376,11 @@ class TieredConsensusTool(WorkflowTool):
             tried_models.append(fallback_model)
 
             # Check if switching from free to paid (Level 1 only)
-            is_paid_fallback = (
-                level == 1
-                and ":free" not in fallback_model
-                and not free_exhausted
-            )
+            is_paid_fallback = level == 1 and ":free" not in fallback_model and not free_exhausted
 
             if is_paid_fallback:
                 free_exhausted = True
-                logger.warning(
-                    f"⚠️ All free models exhausted. Falling back to economy model: {fallback_model}"
-                )
+                logger.warning(f"⚠️ All free models exhausted. Falling back to economy model: {fallback_model}")
 
             try:
                 response, cost = await self._call_model(
@@ -408,8 +397,7 @@ class TieredConsensusTool(WorkflowTool):
                     )
                 else:
                     logger.info(
-                        f"✅ Failover successful: {fallback_model} "
-                        f"(attempt {attempt}/{max_failover_attempts})"
+                        f"✅ Failover successful: {fallback_model} " f"(attempt {attempt}/{max_failover_attempts})"
                     )
 
                 return (response, cost, fallback_model, True)
@@ -426,20 +414,14 @@ class TieredConsensusTool(WorkflowTool):
                     )
                 elif "no endpoints found for" in error_str:
                     logger.warning(
-                        f"⚠️  Model {fallback_model} not found on OpenRouter (may be deprecated). "
-                        f"Skipping."
+                        f"⚠️  Model {fallback_model} not found on OpenRouter (may be deprecated). " f"Skipping."
                     )
                 else:
-                    logger.warning(
-                        f"Failover attempt {attempt} failed for {fallback_model}: {e}"
-                    )
+                    logger.warning(f"Failover attempt {attempt} failed for {fallback_model}: {e}")
                 continue
 
         # All failover attempts exhausted - use simulation as last resort
-        logger.error(
-            f"❌ All models failed (tried {len(tried_models)}). "
-            f"Using simulation as last resort."
-        )
+        logger.error(f"❌ All models failed (tried {len(tried_models)}). " f"Using simulation as last resort.")
         simulation_response = self._simulate_model_response(primary_model, role, prompt)
         return (simulation_response, 0.0, primary_model, False)
 
@@ -470,13 +452,10 @@ class TieredConsensusTool(WorkflowTool):
         # Resolve model to provider
         provider = ModelProviderRegistry.get_provider_for_model(model_name)
         if not provider:
-            raise ValueError(
-                f"No provider found for model: {model_name}. "
-                "Check API keys and model availability."
-            )
+            raise ValueError(f"No provider found for model: {model_name}. " "Check API keys and model availability.")
 
         # Build system prompt for this role
-        role_clean = role.replace('_', ' ').title()
+        role_clean = role.replace("_", " ").title()
         system_prompt = f"""You are a {role_clean} providing expert analysis.
 
 Your analysis should be:
@@ -528,7 +507,8 @@ Provide your analysis in a structured format with:
                 if attempt < max_retries:
                     # Wait briefly before retry (exponential backoff)
                     import asyncio
-                    await asyncio.sleep(2 ** attempt)
+
+                    await asyncio.sleep(2**attempt)
                     continue
                 else:
                     # Final attempt failed
@@ -587,7 +567,7 @@ Provide your analysis in a structured format with:
         Returns:
             Simulated model response
         """
-        role_clean = role.replace('_', ' ').title()
+        role_clean = role.replace("_", " ").title()
 
         return f"""**{role_clean} Analysis ({model})**
 
@@ -625,9 +605,7 @@ This requires careful consideration of {role} factors before making a final deci
 
     # WorkflowMixin abstract methods (not used in our simplified workflow)
 
-    def get_required_actions(
-        self, step_number: int, confidence: str, findings: str, total_steps: int
-    ) -> List[str]:
+    def get_required_actions(self, step_number: int, confidence: str, findings: str, total_steps: int) -> List[str]:
         """
         Get required actions for current step (not used in our workflow).
 
@@ -656,9 +634,7 @@ This requires careful consideration of {role} factors before making a final deci
         # We don't use external expert analysis - synthesis is built-in
         return False
 
-    def prepare_expert_analysis_context(
-        self, consolidated_findings, request_data: dict
-    ) -> tuple[str, dict]:
+    def prepare_expert_analysis_context(self, consolidated_findings, request_data: dict) -> tuple[str, dict]:
         """
         Prepare context for expert analysis (not used in our workflow).
 

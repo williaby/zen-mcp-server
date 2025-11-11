@@ -16,10 +16,11 @@ from .model_level_router import ModelLevelRouter, RoutingResult
 
 logger = logging.getLogger(__name__)
 
+
 class ModelRoutingIntegration:
     """
     Main integration class for dynamic model routing.
-    
+
     Provides seamless integration with existing Zen MCP server and tool architecture
     by intercepting model provider selection and injecting intelligent routing decisions.
     """
@@ -33,7 +34,7 @@ class ModelRoutingIntegration:
             "routing_successes": 0,
             "routing_failures": 0,
             "cost_savings": 0.0,
-            "free_model_selections": 0
+            "free_model_selections": 0,
         }
 
         if self.enabled:
@@ -52,13 +53,14 @@ class ModelRoutingIntegration:
     def wrap_get_model_provider(self, original_method: Callable) -> Callable:
         """
         Wrap the get_model_provider method to inject dynamic routing.
-        
+
         Args:
             original_method: The original get_model_provider method from BaseTool
-            
+
         Returns:
             Wrapped method that performs intelligent model selection
         """
+
         @wraps(original_method)
         def wrapped_get_model_provider(tool_instance, model_name: str, **kwargs):
             if not self.enabled:
@@ -69,9 +71,7 @@ class ModelRoutingIntegration:
                 context = self._extract_tool_context(tool_instance, kwargs)
 
                 # Get routing recommendation
-                routing_result = self._get_routing_recommendation(
-                    model_name, tool_instance, context
-                )
+                routing_result = self._get_routing_recommendation(model_name, tool_instance, context)
 
                 if routing_result:
                     # Use routed model instead of originally requested model
@@ -111,8 +111,7 @@ class ModelRoutingIntegration:
                 context["files"] = request.files
                 # Extract file types
                 context["file_types"] = [
-                    file_path.split(".")[-1] if "." in file_path else ""
-                    for file_path in request.files
+                    file_path.split(".")[-1] if "." in file_path else "" for file_path in request.files
                 ]
 
         # Extract any error context
@@ -121,10 +120,9 @@ class ModelRoutingIntegration:
 
         return context
 
-    def _get_routing_recommendation(self,
-                                  original_model: str,
-                                  tool_instance,
-                                  context: Dict[str, Any]) -> Optional[RoutingResult]:
+    def _get_routing_recommendation(
+        self, original_model: str, tool_instance, context: Dict[str, Any]
+    ) -> Optional[RoutingResult]:
         """Get routing recommendation for model selection."""
         if not self.router:
             return None
@@ -143,9 +141,7 @@ class ModelRoutingIntegration:
 
             # Get routing decision
             routing_result = self.router.select_model(
-                prompt=prompt,
-                context=context,
-                prefer_free=True  # Default to preferring free models
+                prompt=prompt, context=context, prefer_free=True  # Default to preferring free models
             )
 
             self.metrics["routing_decisions"] += 1
@@ -183,9 +179,7 @@ class ModelRoutingIntegration:
 
         return "; ".join(prompt_parts)
 
-    def _should_override_model(self,
-                              original_model: str,
-                              routing_result: RoutingResult) -> bool:
+    def _should_override_model(self, original_model: str, routing_result: RoutingResult) -> bool:
         """Determine if we should override the original model choice."""
         # Always override if we can use a free model
         if routing_result.model.cost_per_token == 0:
@@ -207,15 +201,14 @@ class ModelRoutingIntegration:
 
     def _is_tool_routing_disabled(self, tool_name: str, tool_class_name: str) -> bool:
         """Check if routing is disabled for a specific tool."""
-        if not self.router or not hasattr(self.router, 'routing_config'):
+        if not self.router or not hasattr(self.router, "routing_config"):
             return False
 
         # Check environment variable exclusions first
         excluded_tools = os.getenv("ZEN_ROUTING_EXCLUDE_TOOLS", "").lower()
         if excluded_tools:
             excluded_list = [tool.strip() for tool in excluded_tools.split(",")]
-            if (tool_name.lower() in excluded_list or
-                tool_class_name.lower() in excluded_list):
+            if tool_name.lower() in excluded_list or tool_class_name.lower() in excluded_list:
                 logger.debug(f"Tool {tool_name} excluded via ZEN_ROUTING_EXCLUDE_TOOLS")
                 return True
 
@@ -231,16 +224,12 @@ class ModelRoutingIntegration:
 
         # Check for partial matches (e.g., "consensus" matches "layered_consensus")
         for rule_name, rule_config in tool_rules.items():
-            if (rule_name.lower() in tool_name.lower() or
-                rule_name.lower() in tool_class_name.lower()):
+            if rule_name.lower() in tool_name.lower() or rule_name.lower() in tool_class_name.lower():
                 return not rule_config.get("enabled", True)
 
         return False
 
-    def _log_routing_decision(self,
-                            original_model: str,
-                            routed_model: str,
-                            routing_result: RoutingResult):
+    def _log_routing_decision(self, original_model: str, routed_model: str, routing_result: RoutingResult):
         """Log routing decision for monitoring."""
         logger.info(
             f"Model routing: {original_model} -> {routed_model} "
@@ -252,7 +241,7 @@ class ModelRoutingIntegration:
     def integrate_with_base_tool(self, base_tool_class):
         """
         Integrate routing with BaseTool class.
-        
+
         This method patches the BaseTool class to add routing capabilities
         to all tools that inherit from it.
         """
@@ -264,9 +253,7 @@ class ModelRoutingIntegration:
 
         # Create wrapper that maintains 'self' binding correctly
         def new_get_model_provider(tool_self, model_name: str, **kwargs):
-            return self.wrap_get_model_provider(original_get_model_provider)(
-                tool_self, model_name, **kwargs
-            )
+            return self.wrap_get_model_provider(original_get_model_provider)(tool_self, model_name, **kwargs)
 
         # Replace method on class
         base_tool_class.get_model_provider = new_get_model_provider
@@ -307,7 +294,7 @@ class ModelRoutingIntegration:
                 "confidence": routing_result.confidence,
                 "reasoning": routing_result.reasoning,
                 "estimated_cost": routing_result.estimated_cost,
-                "fallback_models": [m.name for m in routing_result.fallback_models]
+                "fallback_models": [m.name for m in routing_result.fallback_models],
             }
         except Exception as e:
             return {"error": str(e)}
@@ -316,6 +303,7 @@ class ModelRoutingIntegration:
 # Global integration instance
 _integration_instance = None
 
+
 def get_integration_instance() -> ModelRoutingIntegration:
     """Get the global integration instance."""
     global _integration_instance
@@ -323,10 +311,11 @@ def get_integration_instance() -> ModelRoutingIntegration:
         _integration_instance = ModelRoutingIntegration()
     return _integration_instance
 
+
 def integrate_with_server():
     """
     Main integration function to be called during server startup.
-    
+
     This function should be called from server.py to enable model routing
     across all tools.
     """
@@ -336,6 +325,7 @@ def integrate_with_server():
         # Import BaseTool and integrate
         try:
             from tools.shared.base_tool import BaseTool
+
             integration.integrate_with_base_tool(BaseTool)
             logger.info("Dynamic model routing integration complete")
         except ImportError as e:
@@ -344,14 +334,15 @@ def integrate_with_server():
     else:
         logger.info("Dynamic model routing disabled (ZEN_SMART_ROUTING not set to true)")
 
+
 def route_model_request(prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Convenience function for external model routing requests.
-    
+
     Args:
         prompt: The task description/prompt
         context: Additional context (files, errors, etc.)
-        
+
     Returns:
         Dict with model recommendation or error
     """
