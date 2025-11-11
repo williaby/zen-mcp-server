@@ -54,6 +54,27 @@ tail -f logs/mcp_activity.log | grep -E "(TOOL_CALL|TOOL_COMPLETED|ERROR)"
 1. `./run_integration_tests.sh`
 2. All tests must pass 100%
 
+## Git Workflow Rules
+
+> **CRITICAL**: Correct remote repository usage is essential.
+
+### Repository Configuration
+
+**Correct Remote Repository:**
+- ✅ `https://github.com/williaby/zen-mcp-server` - Official repository
+- ✅ Normal git workflow applies (push, PR, branches)
+- ✅ Follow global git standards from CLAUDE.md
+
+**NEVER use this repository:**
+- ❌ `https://github.com/BeehiveInnovations/zen-mcp-server` - **WRONG REPOSITORY**
+- ❌ Do not push to BeehiveInnovations organization
+- ❌ Do not create PRs to BeehiveInnovations
+
+**If uncertain about remote:**
+1. Run `git remote -v` to verify correct remote
+2. Ensure origin points to `williaby/zen-mcp-server`
+3. Consult with user before any push operations
+
 ## Project Architecture
 
 ### Key Files

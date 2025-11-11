@@ -4,13 +4,13 @@ Unit tests for consensus_models.py
 Tests TierManager additive architecture and BandSelector integration.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
 from tools.custom.consensus_models import (
-    TierManager,
     AvailabilityCache,
-    ModelAvailability,
+    TierManager,
     get_level_description,
 )
 

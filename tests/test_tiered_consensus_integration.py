@@ -12,10 +12,10 @@ NOTE: Currently uses simulated model responses.
       Phase 2 will replace with real API calls.
 """
 
-import pytest
-from typing import Dict, Any, List
 
-from tools.custom.tiered_consensus import TieredConsensusTool, TieredConsensusRequest
+import pytest
+
+from tools.custom.tiered_consensus import TieredConsensusRequest, TieredConsensusTool
 
 
 class TestTieredConsensusWorkflow:
