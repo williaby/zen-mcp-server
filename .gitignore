@@ -171,6 +171,13 @@ test-setup/
 FEATURE_*.md
 # Temporary files
 /tmp/
+tmp_cleanup/.tmp-*
+tmp_cleanup/*.json
+tmp_cleanup/*.py
+tmp_cleanup/*.sh
+
+# Configuration backup files with timestamps
+*.backup-*
 
 # Local user instructions
 CLAUDE.local.md
