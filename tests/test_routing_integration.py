@@ -99,17 +99,15 @@ class TestModelRoutingIntegration:
 
         context = {"tool_name": "codereview", "files": ["test.py"]}
 
-        with patch.object(self.integration, '_build_analysis_prompt') as mock_build:
+        with patch.object(self.integration, "_build_analysis_prompt") as mock_build:
             mock_build.return_value = "Review Python code"
 
-            result = self.integration._get_routing_recommendation(
-                "auto", tool_instance, context
-            )
+            result = self.integration._get_routing_recommendation("auto", tool_instance, context)
 
             if result:  # May return None if no override needed
-                assert hasattr(result, 'model')
-                assert hasattr(result, 'confidence')
-                assert hasattr(result, 'reasoning')
+                assert hasattr(result, "model")
+                assert hasattr(result, "confidence")
+                assert hasattr(result, "reasoning")
 
     def test_model_override_decision(self):
         """Test decision logic for model overriding."""
@@ -187,9 +185,7 @@ class TestToolHooks:
         # Should have hooks for major tools
         expected_tools = ["chat", "codereview", "debug", "analyze", "consensus"]
         for tool in expected_tools:
-            assert any(tool in hook for hook in available_hooks), (
-                f"Missing hook for {tool}"
-            )
+            assert any(tool in hook for hook in available_hooks), f"Missing hook for {tool}"
 
     def test_analysis_prompt_building(self):
         """Test analysis prompt building for different tools."""
@@ -254,8 +250,8 @@ class TestModelWrapper:
     def test_wrapper_creation(self):
         """Test wrapper creation and initialization."""
         assert self.wrapper is not None
-        assert hasattr(self.wrapper, 'router')
-        assert hasattr(self.wrapper, 'complexity_analyzer')
+        assert hasattr(self.wrapper, "router")
+        assert hasattr(self.wrapper, "complexity_analyzer")
 
     def test_model_call_wrapping(self):
         """Test wrapping of model calls."""
@@ -264,11 +260,8 @@ class TestModelWrapper:
 
         # Create context
         from routing.model_wrapper import ModelCallContext
-        context = ModelCallContext(
-            tool_name="test_tool",
-            prompt="Test prompt",
-            model_requested="auto"
-        )
+
+        context = ModelCallContext(tool_name="test_tool", prompt="Test prompt", model_requested="auto")
 
         # Wrap the call
         wrapped_call = self.wrapper.wrap_model_call(original_call, context)
@@ -285,17 +278,14 @@ class TestModelWrapper:
         from routing.model_wrapper import ModelCallContext
 
         context = ModelCallContext(
-            tool_name="codereview",
-            prompt="Review this Python function",
-            files=["test.py"],
-            model_requested="auto"
+            tool_name="codereview", prompt="Review this Python function", files=["test.py"], model_requested="auto"
         )
 
         decision = self.wrapper._make_routing_decision(context)
 
-        assert hasattr(decision, 'original_model')
-        assert hasattr(decision, 'selected_model')
-        assert hasattr(decision, 'routing_used')
+        assert hasattr(decision, "original_model")
+        assert hasattr(decision, "selected_model")
+        assert hasattr(decision, "routing_used")
         assert decision.original_model == "auto"
 
     def test_call_statistics_tracking(self):
@@ -303,10 +293,7 @@ class TestModelWrapper:
         # Simulate some calls
         from routing.model_wrapper import ModelCallContext
 
-        context = ModelCallContext(
-            tool_name="test_tool",
-            prompt="Test prompt"
-        )
+        context = ModelCallContext(tool_name="test_tool", prompt="Test prompt")
 
         # Mock successful call tracking
         self.wrapper._track_call_result(context, None, True, 0.1)
@@ -324,10 +311,7 @@ class TestModelWrapper:
         """Test tracking of recent failures."""
         from routing.model_wrapper import ModelCallContext
 
-        context = ModelCallContext(
-            tool_name="test_tool",
-            prompt="Test prompt"
-        )
+        context = ModelCallContext(tool_name="test_tool", prompt="Test prompt")
 
         # Track a failure
         self.wrapper._track_call_result(context, None, False, 0.1, "Test error")
@@ -360,7 +344,7 @@ class TestServerIntegration:
     @patch.dict(os.environ, {"ZEN_SMART_ROUTING": "true"})
     def test_server_integration_enabled(self):
         """Test server integration when routing is enabled."""
-        with patch('routing.integration.BaseTool') as mock_base_tool:
+        with patch("routing.integration.BaseTool") as mock_base_tool:
             # Mock BaseTool to avoid actual integration
             mock_base_tool.get_model_provider = Mock()
 
@@ -444,7 +428,7 @@ class TestBackwardsCompatibility:
         integration = ModelRoutingIntegration()
 
         # Mock routing result that doesn't warrant override
-        with patch.object(integration, '_get_routing_recommendation') as mock_routing:
+        with patch.object(integration, "_get_routing_recommendation") as mock_routing:
             mock_routing.return_value = None  # No routing recommendation
 
             original_method = Mock(return_value="specific_model_provider")
@@ -472,7 +456,7 @@ class TestErrorHandling:
     def test_configuration_errors(self):
         """Test handling of configuration errors."""
         # Test with invalid configuration paths
-        with patch('routing.integration.ModelLevelRouter') as mock_router:
+        with patch("routing.integration.ModelLevelRouter") as mock_router:
             mock_router.side_effect = Exception("Config error")
 
             # Should not crash, should disable routing
@@ -520,10 +504,7 @@ class TestConcurrency:
             return integration.get_model_recommendation(prompt)
 
         # Make concurrent requests
-        tasks = [
-            make_request(f"Concurrent request {i}")
-            for i in range(10)
-        ]
+        tasks = [make_request(f"Concurrent request {i}") for i in range(10)]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 

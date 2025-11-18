@@ -31,28 +31,24 @@ class TestRealWorldScenarios:
                 "step": "Initial review request",
                 "prompt": "Please review this Python module for best practices",
                 "context": {"files": ["user_service.py"], "file_types": [".py"]},
-                "expected_level": ["junior", "senior"]
+                "expected_level": ["junior", "senior"],
             },
             {
                 "step": "Security focused review",
                 "prompt": "Focus on security vulnerabilities in authentication code",
                 "context": {"files": ["auth.py", "security.py"], "file_types": [".py"]},
-                "expected_level": ["senior", "executive"]
+                "expected_level": ["senior", "executive"],
             },
             {
                 "step": "Performance review",
                 "prompt": "Check for performance bottlenecks in database queries",
                 "context": {"files": ["models.py", "queries.py"], "file_types": [".py"]},
-                "expected_level": ["senior", "executive"]
-            }
+                "expected_level": ["senior", "executive"],
+            },
         ]
 
         for scenario in scenarios:
-            result = self.router.select_model(
-                scenario["prompt"],
-                scenario["context"],
-                prefer_free=True
-            )
+            result = self.router.select_model(scenario["prompt"], scenario["context"], prefer_free=True)
 
             # Check that appropriate level model was selected
             if result.model.cost_per_token == 0:
@@ -68,8 +64,7 @@ class TestRealWorldScenarios:
         """Test debugging workflow with escalation."""
         # Start with simple error
         simple_result = self.router.select_model(
-            "Fix this syntax error: SyntaxError: invalid syntax",
-            {"error": "SyntaxError: invalid syntax"}
+            "Fix this syntax error: SyntaxError: invalid syntax", {"error": "SyntaxError: invalid syntax"}
         )
 
         # Complex concurrency bug should escalate
@@ -77,8 +72,8 @@ class TestRealWorldScenarios:
             "Debug this race condition causing data corruption in multi-threaded environment",
             {
                 "files": ["threading_manager.py", "data_processor.py"],
-                "error": "Data corruption detected in concurrent operations"
-            }
+                "error": "Data corruption detected in concurrent operations",
+            },
         )
 
         # Complex bug should get higher level model (unless free model is capable)
@@ -89,27 +84,25 @@ class TestRealWorldScenarios:
         """Test large project analysis workflow."""
         # Small project analysis
         small_result = self.router.select_model(
-            "Analyze this Python script structure",
-            {"files": ["main.py"], "file_types": [".py"]}
+            "Analyze this Python script structure", {"files": ["main.py"], "file_types": [".py"]}
         )
 
         # Large project analysis
         large_result = self.router.select_model(
             "Analyze this entire microservices architecture",
             {
-                "files": [f"service_{i}.py" for i in range(15)] +
-                       [f"model_{i}.py" for i in range(10)] +
-                       ["config.yaml", "docker-compose.yml"],
-                "file_types": [".py", ".yaml", ".yml"]
-            }
+                "files": [f"service_{i}.py" for i in range(15)]
+                + [f"model_{i}.py" for i in range(10)]
+                + ["config.yaml", "docker-compose.yml"],
+                "file_types": [".py", ".yaml", ".yml"],
+            },
         )
 
         # Large project should get more capable model (or free if available)
         assert large_result.model is not None
 
         # If paid models are selected, large should be >= small in capability
-        if (large_result.model.cost_per_token > 0 and
-            small_result.model.cost_per_token > 0):
+        if large_result.model.cost_per_token > 0 and small_result.model.cost_per_token > 0:
             large_level_priority = list(self.router.level_models.keys()).index(large_result.model.level)
             small_level_priority = list(self.router.level_models.keys()).index(small_result.model.level)
             assert large_level_priority >= small_level_priority
@@ -121,28 +114,24 @@ class TestRealWorldScenarios:
                 "description": "Simple consensus on code style",
                 "prompt": "Get consensus on variable naming conventions",
                 "context": {"tool_name": "consensus"},
-                "expected_complexity": ["simple", "moderate"]
+                "expected_complexity": ["simple", "moderate"],
             },
             {
                 "description": "Architecture decision consensus",
                 "prompt": "Reach consensus on microservices vs monolith for new project",
                 "context": {"tool_name": "consensus", "files": ["requirements.md"]},
-                "expected_complexity": ["complex", "expert"]
+                "expected_complexity": ["complex", "expert"],
             },
             {
                 "description": "Security policy consensus",
                 "prompt": "Get team consensus on authentication strategy",
                 "context": {"tool_name": "consensus", "files": ["security_requirements.md"]},
-                "expected_complexity": ["complex", "expert"]
-            }
+                "expected_complexity": ["complex", "expert"],
+            },
         ]
 
         for scenario in scenarios:
-            result = self.router.select_model(
-                scenario["prompt"],
-                scenario["context"],
-                prefer_free=True
-            )
+            result = self.router.select_model(scenario["prompt"], scenario["context"], prefer_free=True)
 
             # Consensus tasks should generally get appropriate models
             assert result.model is not None
@@ -152,19 +141,20 @@ class TestRealWorldScenarios:
         """Test routing for multi-language projects."""
         context = {
             "files": [
-                "backend.py", "models.py",  # Python
-                "frontend.js", "components.jsx",  # JavaScript/React
-                "service.go", "handlers.go",  # Go
-                "Dockerfile", "docker-compose.yml",  # Docker
-                "schema.sql"  # SQL
+                "backend.py",
+                "models.py",  # Python
+                "frontend.js",
+                "components.jsx",  # JavaScript/React
+                "service.go",
+                "handlers.go",  # Go
+                "Dockerfile",
+                "docker-compose.yml",  # Docker
+                "schema.sql",  # SQL
             ],
-            "file_types": [".py", ".js", ".jsx", ".go", ".yml", ".sql"]
+            "file_types": [".py", ".js", ".jsx", ".go", ".yml", ".sql"],
         }
 
-        result = self.router.select_model(
-            "Analyze this full-stack application for architectural improvements",
-            context
-        )
+        result = self.router.select_model("Analyze this full-stack application for architectural improvements", context)
 
         # Multi-language project should be recognized as complex
         complexity, confidence, task_type = self.router.complexity_analyzer.analyze(
@@ -186,11 +176,7 @@ class TestToolSpecificScenarios:
     def test_tool_specific_routing(self, tool_name, scenarios):
         """Test routing for tool-specific scenarios."""
         for scenario in scenarios:
-            result = self.router.select_model(
-                scenario["prompt"],
-                scenario["context"],
-                prefer_free=True
-            )
+            result = self.router.select_model(scenario["prompt"], scenario["context"], prefer_free=True)
 
             assert result.model is not None
 
@@ -203,32 +189,26 @@ class TestToolSpecificScenarios:
             {
                 "prompt": "What is Python?",
                 "context": {"tool_name": "chat"},
-                "expected": "Should use free model for simple questions"
+                "expected": "Should use free model for simple questions",
             },
             {
                 "prompt": "Explain the differences between async/await and threading in Python with code examples",
                 "context": {"tool_name": "chat"},
-                "expected": "May use junior model for detailed explanations"
+                "expected": "May use junior model for detailed explanations",
             },
             {
                 "prompt": "Help me debug this complex memory management issue in C++",
                 "context": {"tool_name": "chat", "files": ["memory_manager.cpp"]},
-                "expected": "Should escalate to senior model for complex debugging"
-            }
+                "expected": "Should escalate to senior model for complex debugging",
+            },
         ]
 
         for scenario in scenarios:
-            result = self.router.select_model(
-                scenario["prompt"],
-                scenario["context"],
-                prefer_free=True
-            )
+            result = self.router.select_model(scenario["prompt"], scenario["context"], prefer_free=True)
 
             # Free models preferred, but higher levels acceptable for complex tasks
             if result.model.cost_per_token > 0:
-                complexity, _, _ = self.router.complexity_analyzer.analyze(
-                    scenario["prompt"], scenario["context"]
-                )
+                complexity, _, _ = self.router.complexity_analyzer.analyze(scenario["prompt"], scenario["context"])
                 if complexity in ["simple"]:
                     # Simple tasks getting paid models is okay if that's all that's available
                     pass
@@ -239,31 +219,23 @@ class TestToolSpecificScenarios:
             {
                 "prompt": "Check for basic input validation issues",
                 "context": {"tool_name": "secaudit", "files": ["forms.py"]},
-                "expected_min_level": "junior"
+                "expected_min_level": "junior",
             },
             {
                 "prompt": "Comprehensive security audit for payment processing system",
-                "context": {
-                    "tool_name": "secaudit",
-                    "files": ["payment.py", "encryption.py", "auth.py"]
-                },
-                "expected_min_level": "senior"
+                "context": {"tool_name": "secaudit", "files": ["payment.py", "encryption.py", "auth.py"]},
+                "expected_min_level": "senior",
             },
             {
                 "prompt": "Analyze for cryptographic vulnerabilities in blockchain implementation",
-                "context": {
-                    "tool_name": "secaudit",
-                    "files": ["blockchain.py", "crypto.py", "consensus.py"]
-                },
-                "expected_min_level": "executive"
-            }
+                "context": {"tool_name": "secaudit", "files": ["blockchain.py", "crypto.py", "consensus.py"]},
+                "expected_min_level": "executive",
+            },
         ]
 
         for scenario in scenarios:
             result = self.router.select_model(
-                scenario["prompt"],
-                scenario["context"],
-                prefer_free=False  # Security audits may need paid models
+                scenario["prompt"], scenario["context"], prefer_free=False  # Security audits may need paid models
             )
 
             # Security tasks should get appropriate models
@@ -292,7 +264,7 @@ class TestCostOptimizationScenarios:
             "Explain this function",
             "Debug basic syntax error",
             "Format this code",
-            "Write simple documentation"
+            "Write simple documentation",
         ]
 
         free_selections = 0
@@ -313,15 +285,11 @@ class TestCostOptimizationScenarios:
         max_costs = [0.0, 0.001, 0.01, 0.1]
 
         for max_cost in max_costs:
-            result = self.router.select_model(
-                "Test prompt for cost constraint",
-                max_cost=max_cost,
-                prefer_free=False
-            )
+            result = self.router.select_model("Test prompt for cost constraint", max_cost=max_cost, prefer_free=False)
 
-            assert result.model.cost_per_token <= max_cost, (
-                f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
-            )
+            assert (
+                result.model.cost_per_token <= max_cost
+            ), f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
 
     def test_cost_vs_complexity_tradeoff(self):
         """Test cost vs complexity tradeoff scenarios."""
@@ -330,21 +298,19 @@ class TestCostOptimizationScenarios:
                 "prompt": "Simple task - prefer cost savings",
                 "max_cost": 0.001,
                 "prefer_free": True,
-                "expected_behavior": "Should use free or very cheap model"
+                "expected_behavior": "Should use free or very cheap model",
             },
             {
                 "prompt": "Critical security analysis - prefer capability",
                 "max_cost": 0.1,
                 "prefer_free": False,
-                "expected_behavior": "Should use capable model within budget"
-            }
+                "expected_behavior": "Should use capable model within budget",
+            },
         ]
 
         for scenario in scenarios:
             result = self.router.select_model(
-                scenario["prompt"],
-                max_cost=scenario["max_cost"],
-                prefer_free=scenario["prefer_free"]
+                scenario["prompt"], max_cost=scenario["max_cost"], prefer_free=scenario["prefer_free"]
             )
 
             assert result.model.cost_per_token <= scenario["max_cost"]
@@ -372,9 +338,7 @@ class TestPerformanceScenarios:
         avg_time_per_request = total_time / len(PERFORMANCE_TEST_PROMPTS)
 
         # Should handle requests reasonably quickly
-        assert avg_time_per_request < 0.1, (
-            f"Routing too slow: {avg_time_per_request:.3f}s per request"
-        )
+        assert avg_time_per_request < 0.1, f"Routing too slow: {avg_time_per_request:.3f}s per request"
 
         # All requests should succeed
         assert len(results) == len(PERFORMANCE_TEST_PROMPTS)
@@ -421,9 +385,9 @@ class TestPerformanceScenarios:
                 memory_increase = current_memory - initial_memory
 
                 # Memory shouldn't grow excessively
-                assert memory_increase < 100 * 1024 * 1024, (
-                    f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
-                )
+                assert (
+                    memory_increase < 100 * 1024 * 1024
+                ), f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
 
 
 class TestErrorRecoveryScenarios:
@@ -444,10 +408,7 @@ class TestErrorRecoveryScenarios:
 
         try:
             # Should still be able to route
-            result = self.router.select_model(
-                "Complex task that would prefer expensive model",
-                prefer_free=False
-            )
+            result = self.router.select_model("Complex task that would prefer expensive model", prefer_free=False)
 
             assert result.model is not None
             assert result.model.is_available
@@ -459,7 +420,7 @@ class TestErrorRecoveryScenarios:
 
     def test_complexity_analysis_failure_fallback(self):
         """Test fallback when complexity analysis fails."""
-        with patch.object(self.router.complexity_analyzer, 'analyze') as mock_analyze:
+        with patch.object(self.router.complexity_analyzer, "analyze") as mock_analyze:
             mock_analyze.side_effect = Exception("Analysis failed")
 
             # Should still route with fallback logic
@@ -538,15 +499,9 @@ class TestEdgeCaseScenarios:
 
     def test_unusual_file_extensions(self):
         """Test handling of unusual file extensions."""
-        unusual_context = {
-            "files": ["weird.xyz", "unknown.abc", "noext"],
-            "file_types": [".xyz", ".abc", ""]
-        }
+        unusual_context = {"files": ["weird.xyz", "unknown.abc", "noext"], "file_types": [".xyz", ".abc", ""]}
 
-        result = self.router.select_model(
-            "Analyze these unusual files",
-            unusual_context
-        )
+        result = self.router.select_model("Analyze these unusual files", unusual_context)
 
         assert result.model is not None
         # Should handle gracefully with defaults
@@ -557,7 +512,7 @@ class TestEdgeCaseScenarios:
         result = self.router.select_model(
             "Expert level distributed systems architecture with ML optimization",
             prefer_free=True,
-            max_cost=0.0  # Force free only
+            max_cost=0.0,  # Force free only
         )
 
         # Should respect cost constraint
@@ -593,20 +548,19 @@ class TestWorkflowIntegrationScenarios:
         """Test analyze → codereview → debug workflow."""
         # 1. Analysis phase
         analyze_result = self.router.select_model(
-            "Analyze this codebase for issues",
-            {"tool_name": "analyze", "files": ["service.py", "utils.py"]}
+            "Analyze this codebase for issues", {"tool_name": "analyze", "files": ["service.py", "utils.py"]}
         )
 
         # 2. Code review phase
         review_result = self.router.select_model(
             "Review these files for the issues found in analysis",
-            {"tool_name": "codereview", "files": ["service.py", "utils.py"]}
+            {"tool_name": "codereview", "files": ["service.py", "utils.py"]},
         )
 
         # 3. Debug phase
         debug_result = self.router.select_model(
             "Debug the specific issues identified in review",
-            {"tool_name": "debug", "files": ["service.py"], "error": "Performance issue"}
+            {"tool_name": "debug", "files": ["service.py"], "error": "Performance issue"},
         )
 
         # All phases should get appropriate models
@@ -623,20 +577,17 @@ class TestWorkflowIntegrationScenarios:
         """Test consensus → planning → implementation workflow."""
         # 1. Consensus on approach
         consensus_result = self.router.select_model(
-            "Get team consensus on database migration strategy",
-            {"tool_name": "consensus"}
+            "Get team consensus on database migration strategy", {"tool_name": "consensus"}
         )
 
         # 2. Planning implementation
         planning_result = self.router.select_model(
-            "Plan the implementation of agreed migration strategy",
-            {"tool_name": "planner"}
+            "Plan the implementation of agreed migration strategy", {"tool_name": "planner"}
         )
 
         # 3. Implementation
         implementation_result = self.router.select_model(
-            "Implement the database migration script",
-            {"tool_name": "chat", "files": ["migration.py"]}
+            "Implement the database migration script", {"tool_name": "chat", "files": ["migration.py"]}
         )
 
         assert consensus_result.model is not None
@@ -659,7 +610,7 @@ class TestEndToEndScenarios:
             ("Code review", "Review the generated authentication code"),
             ("Testing", "Generate tests for authentication module"),
             ("Documentation", "Write API documentation"),
-            ("Deployment", "Create deployment configuration")
+            ("Deployment", "Create deployment configuration"),
         ]
 
         results = []

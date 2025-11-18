@@ -13,6 +13,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+
 def test_data_manager():
     """Test PromptCraft data manager functionality."""
     print("🧪 Testing PromptCraft Data Manager...")
@@ -42,7 +43,7 @@ def test_data_manager():
                 provider="test",
                 cost_per_token=0.0,
                 context_window=4000,
-                added_date=datetime.now().isoformat()
+                added_date=datetime.now().isoformat(),
             )
 
             assert data_manager.add_experimental_model(test_model), "Should add experimental model"
@@ -74,7 +75,7 @@ def test_data_manager():
                 humaneval_score=75.0,
                 days_in_experimental=10,
                 graduation_score=8.5,
-                criteria_met={"all": True}
+                criteria_met={"all": True},
             )
 
             assert data_manager.add_to_graduation_queue(candidate), "Should add to graduation queue"
@@ -88,6 +89,7 @@ def test_data_manager():
         print(f"  ❌ Data manager test failed: {e}")
         traceback.print_exc()
         return False
+
 
 def test_api_server_initialization():
     """Test API server initialization without starting the server."""
@@ -125,6 +127,7 @@ def test_api_server_initialization():
         traceback.print_exc()
         return False
 
+
 def test_background_workers():
     """Test background worker initialization and basic functionality."""
     print("🧪 Testing Background Workers...")
@@ -153,16 +156,11 @@ def test_background_workers():
         mock_data_manager.get_experimental_models.return_value = []
         mock_data_manager.get_models_by_channel.return_value = []
         mock_data_manager.get_graduation_criteria.return_value = {
-            "detection_config": {
-                "quality_filters": {
-                    "min_context_window": 4000,
-                    "exclude_providers": ["test"]
-                }
-            }
+            "detection_config": {"quality_filters": {"min_context_window": 4000, "exclude_providers": ["test"]}}
         }
 
         # Mock successful OpenRouter response
-        with patch('requests.get') as mock_get:
+        with patch("requests.get") as mock_get:
             mock_response = Mock()
             mock_response.json.return_value = {"data": []}
             mock_response.raise_for_status.return_value = None
@@ -181,6 +179,7 @@ def test_background_workers():
         print(f"  ❌ Background workers test failed: {e}")
         traceback.print_exc()
         return False
+
 
 def test_plugin_integration():
     """Test the main plugin integration."""
@@ -224,6 +223,7 @@ def test_plugin_integration():
         traceback.print_exc()
         return False
 
+
 def test_routing_integration():
     """Test integration with existing zen-mcp-server routing."""
     print("🧪 Testing Routing Integration...")
@@ -242,8 +242,8 @@ def test_routing_integration():
         test_prompt = "Write a Python function to sort a list"
         try:
             analysis = analyzer.analyze(test_prompt)
-            assert hasattr(analysis, 'complexity_score'), "Analysis should have complexity score"
-            assert hasattr(analysis, 'task_type'), "Analysis should have task type"
+            assert hasattr(analysis, "complexity_score"), "Analysis should have complexity score"
+            assert hasattr(analysis, "task_type"), "Analysis should have task type"
             print("  ✅ Complexity analysis works")
         except Exception as e:
             print(f"  ⚠️  Complexity analysis may need adjustment: {e}")
@@ -255,6 +255,7 @@ def test_routing_integration():
         traceback.print_exc()
         return False
 
+
 def main():
     """Run all tests."""
     print("🚀 Starting PromptCraft Integration Tests")
@@ -265,7 +266,7 @@ def main():
         test_api_server_initialization,
         test_background_workers,
         test_plugin_integration,
-        test_routing_integration
+        test_routing_integration,
     ]
 
     passed = 0
@@ -289,6 +290,7 @@ def main():
     else:
         print(f"⚠️  {total - passed} tests failed")
         return False
+
 
 if __name__ == "__main__":
     success = main()

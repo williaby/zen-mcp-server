@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class ToolHook(ABC):
     """Abstract base class for tool-specific hooks."""
 
@@ -31,6 +32,7 @@ class ToolHook(ABC):
     def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Suggest model preferences based on tool-specific knowledge."""
         return {}
+
 
 class ChatHook(ToolHook):
     """Hook for chat/general conversation tools."""
@@ -62,6 +64,7 @@ class ChatHook(ToolHook):
             indicators["code_context"] = True
 
         return indicators
+
 
 class CodeReviewHook(ToolHook):
     """Hook for code review tools."""
@@ -113,6 +116,7 @@ class CodeReviewHook(ToolHook):
 
         return preferences
 
+
 class DebugHook(ToolHook):
     """Hook for debugging tools."""
 
@@ -153,6 +157,7 @@ class DebugHook(ToolHook):
 
         return preferences
 
+
 class AnalyzeHook(ToolHook):
     """Hook for analysis tools."""
 
@@ -184,6 +189,7 @@ class AnalyzeHook(ToolHook):
             indicators["moderate_analysis"] = True
 
         return indicators
+
 
 class ConsensusHook(ToolHook):
     """Hook for consensus tools."""
@@ -218,6 +224,7 @@ class ConsensusHook(ToolHook):
 
         return preferences
 
+
 class PlannerHook(ToolHook):
     """Hook for planning tools."""
 
@@ -230,6 +237,7 @@ class PlannerHook(ToolHook):
 
     def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
         return {"planning_task": True}
+
 
 class SecauditHook(ToolHook):
     """Hook for security audit tools."""
@@ -252,6 +260,7 @@ class SecauditHook(ToolHook):
 
     def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
         return {"require_security_knowledge": True, "prefer_senior_models": True}
+
 
 class RefactorHook(ToolHook):
     """Hook for refactoring tools."""
@@ -281,6 +290,7 @@ class RefactorHook(ToolHook):
 
         return indicators
 
+
 class ToolHooks:
     """Main hooks manager for routing integration."""
 
@@ -298,7 +308,7 @@ class ToolHooks:
             ConsensusHook(),
             PlannerHook(),
             SecauditHook(),
-            RefactorHook()
+            RefactorHook(),
         ]
 
         for hook in hooks:

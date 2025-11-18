@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class DynamicRoutingPlugin:
     """Plugin that adds dynamic model routing capabilities."""
 
@@ -22,7 +23,7 @@ class DynamicRoutingPlugin:
     def initialize(self) -> bool:
         """
         Initialize the dynamic routing plugin.
-        
+
         Returns:
             bool: True if successfully initialized
         """
@@ -49,6 +50,7 @@ class DynamicRoutingPlugin:
         """Initialize the core routing integration with BaseTool."""
         try:
             from routing.integration import integrate_with_server
+
             integrate_with_server()
             self._integration_initialized = True
             logger.debug("Routing integration with BaseTool completed")
@@ -63,6 +65,7 @@ class DynamicRoutingPlugin:
         """Initialize the routing status tool."""
         try:
             from tools.routing_status import RoutingStatusTool
+
             self.routing_tool = RoutingStatusTool()
             logger.debug("Routing status tool initialized")
         except ImportError as e:
@@ -75,7 +78,7 @@ class DynamicRoutingPlugin:
     def get_tools(self) -> Dict[str, Any]:
         """
         Get tools provided by this plugin.
-        
+
         Returns:
             Dict of tool_name -> tool_instance
         """
@@ -89,7 +92,7 @@ class DynamicRoutingPlugin:
     def get_status(self) -> Dict[str, Any]:
         """
         Get plugin status information.
-        
+
         Returns:
             Dict with plugin status details
         """
@@ -97,5 +100,5 @@ class DynamicRoutingPlugin:
             "enabled": self.enabled,
             "integration_initialized": self._integration_initialized,
             "routing_tool_available": self.routing_tool is not None,
-            "environment_variable": os.getenv("ZEN_SMART_ROUTING", "not set")
+            "environment_variable": os.getenv("ZEN_SMART_ROUTING", "not set"),
         }

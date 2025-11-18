@@ -17,9 +17,11 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class RoutingEvent:
     """Individual routing event for tracking."""
+
     timestamp: float
     tool_name: str
     prompt_hash: str
@@ -39,9 +41,11 @@ class RoutingEvent:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
+
 @dataclass
 class ModelPerformance:
     """Performance metrics for a specific model."""
+
     model_name: str
     total_requests: int = 0
     successful_requests: int = 0
@@ -73,10 +77,11 @@ class ModelPerformance:
             return 0.0
         return self.total_cost / self.total_requests
 
+
 class RoutingMonitor:
     """
     Central monitoring system for model routing.
-    
+
     Features:
     - Real-time event tracking
     - Performance metrics collection
@@ -85,10 +90,7 @@ class RoutingMonitor:
     - Historical data persistence
     """
 
-    def __init__(self,
-                 metrics_dir: str = "metrics",
-                 max_events: int = 10000,
-                 persist_interval: int = 300):  # 5 minutes
+    def __init__(self, metrics_dir: str = "metrics", max_events: int = 10000, persist_interval: int = 300):  # 5 minutes
         self.metrics_dir = Path(metrics_dir)
         self.metrics_dir.mkdir(exist_ok=True)
 
@@ -113,18 +115,14 @@ class RoutingMonitor:
             "min_success_rate": 0.85,
             "max_error_rate": 0.15,
             "max_avg_response_time": 2.0,  # seconds
-            "min_free_model_usage": 0.3  # 30% of requests should use free models
+            "min_free_model_usage": 0.3,  # 30% of requests should use free models
         }
 
         self._start_background_tasks()
 
     def _start_background_tasks(self):
         """Start background monitoring tasks."""
-        self._background_thread = threading.Thread(
-            target=self._background_worker,
-            daemon=True,
-            name="RoutingMonitor"
-        )
+        self._background_thread = threading.Thread(target=self._background_worker, daemon=True, name="RoutingMonitor")
         self._background_thread.start()
 
     def _background_worker(self):
@@ -209,16 +207,16 @@ class RoutingMonitor:
                     "last_hour": recent_count,
                     "last_24h": daily_count,
                     "success_rate_hour": recent_successes / recent_count if recent_count > 0 else 1.0,
-                    "success_rate_day": daily_successes / daily_count if daily_count > 0 else 1.0
+                    "success_rate_day": daily_successes / daily_count if daily_count > 0 else 1.0,
                 },
                 "cost_metrics": {
                     "total_cost_24h": total_cost,
                     "free_model_usage": free_model_usage,
-                    "free_model_rate": free_model_usage / daily_count if daily_count > 0 else 0.0
+                    "free_model_rate": free_model_usage / daily_count if daily_count > 0 else 0.0,
                 },
                 "routing_effectiveness": {
                     "routing_used_count": routing_used_count,
-                    "routing_used_rate": routing_used_count / daily_count if daily_count > 0 else 0.0
+                    "routing_used_rate": routing_used_count / daily_count if daily_count > 0 else 0.0,
                 },
                 "model_performance": {
                     name: {
@@ -226,10 +224,10 @@ class RoutingMonitor:
                         "avg_response_time": perf.average_response_time,
                         "avg_cost": perf.average_cost,
                         "total_requests": perf.total_requests,
-                        "last_error": perf.last_error
+                        "last_error": perf.last_error,
                     }
                     for name, perf in self.model_performance.items()
-                }
+                },
             }
 
     def get_health_status(self) -> Dict[str, Any]:
@@ -244,7 +242,7 @@ class RoutingMonitor:
             "healthy": success_rate >= self.health_thresholds["min_success_rate"],
             "value": success_rate,
             "threshold": self.health_thresholds["min_success_rate"],
-            "message": f"Success rate: {success_rate:.1%}"
+            "message": f"Success rate: {success_rate:.1%}",
         }
 
         # Check free model usage
@@ -253,7 +251,7 @@ class RoutingMonitor:
             "healthy": free_rate >= self.health_thresholds["min_free_model_usage"],
             "value": free_rate,
             "threshold": self.health_thresholds["min_free_model_usage"],
-            "message": f"Free model usage: {free_rate:.1%}"
+            "message": f"Free model usage: {free_rate:.1%}",
         }
 
         # Check model performance
@@ -265,7 +263,7 @@ class RoutingMonitor:
         health_checks["model_performance"] = {
             "healthy": len(unhealthy_models) == 0,
             "value": len(unhealthy_models),
-            "message": f"Unhealthy models: {unhealthy_models}" if unhealthy_models else "All models performing well"
+            "message": f"Unhealthy models: {unhealthy_models}" if unhealthy_models else "All models performing well",
         }
 
         # Overall health
@@ -275,7 +273,7 @@ class RoutingMonitor:
             "overall_healthy": overall_healthy,
             "timestamp": time.time(),
             "checks": health_checks,
-            "summary": "System healthy" if overall_healthy else "Issues detected"
+            "summary": "System healthy" if overall_healthy else "Issues detected",
         }
 
     def get_cost_analysis(self) -> Dict[str, Any]:
@@ -314,18 +312,18 @@ class RoutingMonitor:
                     "free_requests": daily_free,
                     "paid_requests": daily_paid,
                     "total_cost": daily_cost,
-                    "cost_per_request": daily_cost / len(daily_events) if daily_events else 0
+                    "cost_per_request": daily_cost / len(daily_events) if daily_events else 0,
                 },
                 "weekly_analysis": {
                     "total_requests": len(weekly_events),
                     "free_requests": weekly_free,
                     "paid_requests": weekly_paid,
                     "total_cost": weekly_cost,
-                    "cost_per_request": weekly_cost / len(weekly_events) if weekly_events else 0
+                    "cost_per_request": weekly_cost / len(weekly_events) if weekly_events else 0,
                 },
                 "cost_by_tool": dict(tool_costs),
                 "cost_by_model": dict(model_costs),
-                "optimization_opportunities": self._identify_cost_optimizations()
+                "optimization_opportunities": self._identify_cost_optimizations(),
             }
 
     def _identify_cost_optimizations(self) -> List[str]:
@@ -342,29 +340,21 @@ class RoutingMonitor:
 
             # Check for overuse of expensive models on simple tasks
             simple_tasks_expensive = [
-                e for e in daily_events
-                if e.complexity_level == "simple" and e.estimated_cost > 0.001
+                e for e in daily_events if e.complexity_level == "simple" and e.estimated_cost > 0.001
             ]
 
             if simple_tasks_expensive:
-                opportunities.append(
-                    f"Found {len(simple_tasks_expensive)} simple tasks using expensive models"
-                )
+                opportunities.append(f"Found {len(simple_tasks_expensive)} simple tasks using expensive models")
 
             # Check for low free model usage
             free_usage = sum(1 for e in daily_events if e.estimated_cost == 0)
             free_rate = free_usage / len(daily_events)
 
             if free_rate < 0.5:
-                opportunities.append(
-                    f"Free model usage is only {free_rate:.1%} - consider prioritizing free models"
-                )
+                opportunities.append(f"Free model usage is only {free_rate:.1%} - consider prioritizing free models")
 
             # Check for failed expensive model usage
-            expensive_failures = [
-                e for e in daily_events
-                if not e.success and e.estimated_cost > 0.01
-            ]
+            expensive_failures = [e for e in daily_events if not e.success and e.estimated_cost > 0.01]
 
             if expensive_failures:
                 opportunities.append(
@@ -429,7 +419,7 @@ class RoutingMonitor:
             "avg_confidence": avg_confidence,
             "avg_response_time": avg_response_time,
             "tool_distribution": dict(tool_counts),
-            "complexity_distribution": dict(complexity_counts)
+            "complexity_distribution": dict(complexity_counts),
         }
 
     def _persist_metrics(self):
@@ -439,17 +429,17 @@ class RoutingMonitor:
 
             # Save current metrics
             metrics_file = self.metrics_dir / f"metrics_{timestamp}.json"
-            with open(metrics_file, 'w') as f:
+            with open(metrics_file, "w") as f:
                 json.dump(self.get_current_metrics(), f, indent=2)
 
             # Save health status
             health_file = self.metrics_dir / f"health_{timestamp}.json"
-            with open(health_file, 'w') as f:
+            with open(health_file, "w") as f:
                 json.dump(self.get_health_status(), f, indent=2)
 
             # Save cost analysis
             cost_file = self.metrics_dir / f"cost_{timestamp}.json"
-            with open(cost_file, 'w') as f:
+            with open(cost_file, "w") as f:
                 json.dump(self.get_cost_analysis(), f, indent=2)
 
             logger.debug(f"Persisted routing metrics to {self.metrics_dir}")
@@ -473,10 +463,7 @@ class RoutingMonitor:
             cutoff_hour = datetime.now() - timedelta(hours=hours_to_keep)
             cutoff_hour_str = cutoff_hour.strftime("%Y-%m-%d-%H")
 
-            old_hours = [
-                hour for hour in self.hourly_stats.keys()
-                if hour < cutoff_hour_str
-            ]
+            old_hours = [hour for hour in self.hourly_stats.keys() if hour < cutoff_hour_str]
 
             for hour in old_hours:
                 del self.hourly_stats[hour]
@@ -486,10 +473,7 @@ class RoutingMonitor:
             cutoff_day = datetime.now() - timedelta(days=days_to_keep)
             cutoff_day_str = cutoff_day.strftime("%Y-%m-%d")
 
-            old_days = [
-                day for day in self.daily_stats.keys()
-                if day < cutoff_day_str
-            ]
+            old_days = [day for day in self.daily_stats.keys() if day < cutoff_day_str]
 
             for day in old_days:
                 del self.daily_stats[day]
@@ -497,10 +481,9 @@ class RoutingMonitor:
         except Exception as e:
             logger.error(f"Failed to cleanup old routing data: {e}")
 
-    def export_metrics(self,
-                      format: str = "json",
-                      start_time: Optional[float] = None,
-                      end_time: Optional[float] = None) -> Dict[str, Any]:
+    def export_metrics(
+        self, format: str = "json", start_time: Optional[float] = None, end_time: Optional[float] = None
+    ) -> Dict[str, Any]:
         """Export metrics data for analysis."""
         with self._lock:
             # Filter events by time range
@@ -516,17 +499,11 @@ class RoutingMonitor:
                     "start_time": start_time,
                     "end_time": end_time,
                     "event_count": len(events),
-                    "format": format
+                    "format": format,
                 },
                 "events": [e.to_dict() for e in events],
-                "model_performance": {
-                    name: asdict(perf)
-                    for name, perf in self.model_performance.items()
-                },
-                "aggregated_stats": {
-                    "hourly": dict(self.hourly_stats),
-                    "daily": dict(self.daily_stats)
-                }
+                "model_performance": {name: asdict(perf) for name, perf in self.model_performance.items()},
+                "aggregated_stats": {"hourly": dict(self.hourly_stats), "daily": dict(self.daily_stats)},
             }
 
             return export_data
@@ -545,12 +522,14 @@ class RoutingMonitor:
 # Global monitor instance
 _global_monitor: Optional[RoutingMonitor] = None
 
+
 def get_global_monitor() -> RoutingMonitor:
     """Get the global routing monitor instance."""
     global _global_monitor
     if _global_monitor is None:
         _global_monitor = RoutingMonitor()
     return _global_monitor
+
 
 def record_routing_event(**kwargs):
     """Convenience function to record a routing event."""

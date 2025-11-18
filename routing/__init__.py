@@ -15,6 +15,7 @@ __all__ = ["ModelLevelRouter", "ComplexityAnalyzer"]
 # Default router instance for easy importing
 default_router = None
 
+
 def get_default_router():
     """Get the default ModelLevelRouter instance."""
     global default_router
@@ -22,15 +23,16 @@ def get_default_router():
         default_router = ModelLevelRouter()
     return default_router
 
+
 def route_model(prompt: str, context: dict = None, prefer_free: bool = True):
     """
     Convenience function for quick model routing.
-    
+
     Args:
         prompt: The input prompt/task description
         context: Additional context (file types, previous errors, etc.)
         prefer_free: Whether to prioritize free models
-        
+
     Returns:
         dict: Selected model information
     """

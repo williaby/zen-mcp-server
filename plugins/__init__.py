@@ -11,10 +11,11 @@ from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
+
 def load_plugins() -> Dict[str, Any]:
     """
     Auto-load all plugins from plugins/ directory.
-    
+
     Returns:
         Dict of plugin_name -> plugin_instance
     """
@@ -26,7 +27,7 @@ def load_plugins() -> Dict[str, Any]:
 
         routing_plugin = DynamicRoutingPlugin()
         if routing_plugin.initialize():
-            plugins['dynamic_routing'] = routing_plugin
+            plugins["dynamic_routing"] = routing_plugin
             logger.info("✅ Dynamic routing plugin loaded successfully")
         else:
             logger.warning("⚠️ Dynamic routing plugin failed to initialize")
@@ -41,7 +42,7 @@ def load_plugins() -> Dict[str, Any]:
         from .promptcraft_system import plugin_instance as promptcraft_plugin
 
         if promptcraft_plugin.initialize():
-            plugins['promptcraft_system'] = promptcraft_plugin
+            plugins["promptcraft_system"] = promptcraft_plugin
             logger.info("✅ PromptCraft system plugin loaded successfully")
 
             # Optionally start API server if enabled
@@ -60,10 +61,11 @@ def load_plugins() -> Dict[str, Any]:
 
     return plugins
 
+
 def get_plugin_tools() -> Dict[str, Any]:
     """
     Get tools provided by all loaded plugins.
-    
+
     Returns:
         Dict of tool_name -> tool_instance
     """
@@ -71,7 +73,7 @@ def get_plugin_tools() -> Dict[str, Any]:
     plugins = load_plugins()
 
     for plugin_name, plugin in plugins.items():
-        if hasattr(plugin, 'get_tools'):
+        if hasattr(plugin, "get_tools"):
             plugin_tools = plugin.get_tools()
             tools.update(plugin_tools)
             logger.debug(f"Loaded {len(plugin_tools)} tools from {plugin_name} plugin")

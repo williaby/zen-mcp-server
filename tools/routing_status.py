@@ -17,16 +17,13 @@ class RoutingStatusRequest(ToolRequest):
     """Request model for routing status queries."""
 
     action: str = Field(
-        default="status",
-        description="Action to perform: 'status', 'models', 'stats', 'config', 'recommend'"
+        default="status", description="Action to perform: 'status', 'models', 'stats', 'config', 'recommend'"
     )
     prompt: Optional[str] = Field(
-        default=None,
-        description="Prompt for model recommendation (only used with action='recommend')"
+        default=None, description="Prompt for model recommendation (only used with action='recommend')"
     )
     context: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Context for model recommendation (files, errors, etc.)"
+        default=None, description="Context for model recommendation (files, errors, etc.)"
     )
 
 
@@ -46,7 +43,7 @@ class RoutingStatusTool(SimpleTool):
                 "type": "string",
                 "default": "status",
                 "enum": ["status", "models", "stats", "config", "recommend"],
-                "description": "Action to perform: status (general info), models (available models), stats (usage statistics), config (configuration), recommend (get model recommendation)"
+                "description": "Action to perform: status (general info), models (available models), stats (usage statistics), config (configuration), recommend (get model recommendation)",
             },
             "prompt": {
                 "type": "string",
@@ -56,26 +53,16 @@ class RoutingStatusTool(SimpleTool):
                 "type": "object",
                 "description": "Context for model recommendation (files, errors, etc.)",
                 "properties": {
-                    "files": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "List of file paths"
-                    },
+                    "files": {"type": "array", "items": {"type": "string"}, "description": "List of file paths"},
                     "file_types": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of file extensions"
+                        "description": "List of file extensions",
                     },
-                    "tool_name": {
-                        "type": "string",
-                        "description": "Name of the tool making the request"
-                    },
-                    "error": {
-                        "type": "string",
-                        "description": "Error message if debugging"
-                    }
-                }
-            }
+                    "tool_name": {"type": "string", "description": "Name of the tool making the request"},
+                    "error": {"type": "string", "description": "Error message if debugging"},
+                },
+            },
         }
 
     def get_required_fields(self) -> list[str]:
@@ -99,6 +86,7 @@ Always format information clearly and highlight key insights about routing behav
         try:
             # Try to import routing components
             from routing.integration import get_integration_instance
+
             integration = get_integration_instance()
 
             if not integration.enabled:
@@ -118,7 +106,9 @@ Always format information clearly and highlight key insights about routing behav
                     return "Error: 'prompt' is required for recommendation action"
                 return self._get_recommendation(integration, request.prompt, request.context or {})
             else:
-                return f"Error: Unknown action '{request.action}'. Valid actions: status, models, stats, config, recommend"
+                return (
+                    f"Error: Unknown action '{request.action}'. Valid actions: status, models, stats, config, recommend"
+                )
 
         except ImportError:
             return self._format_not_available_response()
@@ -196,22 +186,17 @@ Please check your installation or contact support for assistance."""
             return "Router not available"
 
         stats = integration.router.get_model_stats()
-        models_by_level = stats.get('models_by_level', {})
+        models_by_level = stats.get("models_by_level", {})
 
         response = ["# Available Models by Level\n"]
 
-        level_icons = {
-            'free': '🆓',
-            'junior': '🥉',
-            'senior': '🥈',
-            'executive': '🥇'
-        }
+        level_icons = {"free": "🆓", "junior": "🥉", "senior": "🥈", "executive": "🥇"}
 
         for level, info in models_by_level.items():
-            icon = level_icons.get(level, '⭐')
-            total = info.get('total', 0)
-            available = info.get('available', 0)
-            avg_success = info.get('average_success_rate', 0)
+            icon = level_icons.get(level, "⭐")
+            total = info.get("total", 0)
+            available = info.get("available", 0)
+            avg_success = info.get("average_success_rate", 0)
 
             response.append(f"## {icon} {level.title()} Level")
             response.append(f"- **Total Models**: {total}")
@@ -224,8 +209,8 @@ Please check your installation or contact support for assistance."""
                 if level_models:
                     response.append("- **Models**:")
                     for model in level_models[:5]:  # Show first 5
-                        name = model['name']
-                        cost = model['cost_per_token']
+                        name = model["name"]
+                        cost = model["cost_per_token"]
                         if cost == 0:
                             cost_str = "Free"
                         else:
@@ -239,14 +224,14 @@ Please check your installation or contact support for assistance."""
             response.append("")
 
         # Top performers
-        top_performers = stats.get('top_performers', [])
+        top_performers = stats.get("top_performers", [])
         if top_performers:
             response.append("## 🏆 Top Performing Models")
             for i, model in enumerate(top_performers[:3], 1):
-                name = model['name']
-                level = model['level']
-                success_rate = model['success_rate']
-                requests = model['total_requests']
+                name = model["name"]
+                level = model["level"]
+                success_rate = model["success_rate"]
+                requests = model["total_requests"]
                 response.append(f"{i}. **{name}** ({level}) - {success_rate:.1%} success rate ({requests} requests)")
 
         return "\n".join(response)
@@ -255,10 +240,10 @@ Please check your installation or contact support for assistance."""
         """Get detailed routing statistics."""
         stats = integration.get_routing_stats()
 
-        total_decisions = stats.get('routing_decisions', 0)
-        successes = stats.get('routing_successes', 0)
-        failures = stats.get('routing_failures', 0)
-        free_selections = stats.get('free_model_selections', 0)
+        total_decisions = stats.get("routing_decisions", 0)
+        successes = stats.get("routing_successes", 0)
+        failures = stats.get("routing_failures", 0)
+        free_selections = stats.get("free_model_selections", 0)
 
         response = f"""# Routing Statistics
 
@@ -297,20 +282,20 @@ Please check your installation or contact support for assistance."""
 
         # Routing levels
         response.append("## Model Levels")
-        levels = config.get('levels', {})
+        levels = config.get("levels", {})
         for level, settings in levels.items():
-            cost_limit = settings.get('cost_limit', 'N/A')
-            priority = settings.get('priority', 'N/A')
+            cost_limit = settings.get("cost_limit", "N/A")
+            priority = settings.get("priority", "N/A")
             response.append(f"- **{level.title()}**: Cost limit ${cost_limit}, Priority {priority}")
 
         response.append("")
 
         # Complexity thresholds
         response.append("## Complexity Thresholds")
-        thresholds = config.get('complexity_thresholds', {})
+        thresholds = config.get("complexity_thresholds", {})
         for complexity, settings in thresholds.items():
-            max_level = settings.get('max_level', 'N/A')
-            confidence = settings.get('confidence_threshold', 'N/A')
+            max_level = settings.get("max_level", "N/A")
+            confidence = settings.get("confidence_threshold", "N/A")
             response.append(f"- **{complexity.title()}**: Max level {max_level}, Confidence threshold {confidence}")
 
         response.append("")
@@ -330,12 +315,12 @@ Please check your installation or contact support for assistance."""
         if "error" in recommendation:
             return f"Error getting recommendation: {recommendation['error']}"
 
-        model_name = recommendation.get('model', 'Unknown')
-        level = recommendation.get('level', 'Unknown')
-        confidence = recommendation.get('confidence', 0)
-        reasoning = recommendation.get('reasoning', 'No reasoning provided')
-        cost = recommendation.get('estimated_cost', 0)
-        fallbacks = recommendation.get('fallback_models', [])
+        model_name = recommendation.get("model", "Unknown")
+        level = recommendation.get("level", "Unknown")
+        confidence = recommendation.get("confidence", 0)
+        reasoning = recommendation.get("reasoning", "No reasoning provided")
+        cost = recommendation.get("estimated_cost", 0)
+        fallbacks = recommendation.get("fallback_models", [])
 
         response = f"""# Model Recommendation
 
@@ -362,13 +347,13 @@ Please check your installation or contact support for assistance."""
         # Context analysis
         if context:
             response += "\n## Context Analysis\n"
-            if context.get('files'):
+            if context.get("files"):
                 response += f"- **Files**: {len(context['files'])} files\n"
-            if context.get('file_types'):
+            if context.get("file_types"):
                 response += f"- **File Types**: {', '.join(set(context['file_types']))}\n"
-            if context.get('tool_name'):
+            if context.get("tool_name"):
                 response += f"- **Tool**: {context['tool_name']}\n"
-            if context.get('error'):
+            if context.get("error"):
                 response += "- **Error Context**: Present\n"
 
         return response

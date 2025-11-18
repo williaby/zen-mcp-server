@@ -16,13 +16,16 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class ModelChannel(Enum):
     STABLE = "stable"
     EXPERIMENTAL = "experimental"
 
+
 @dataclass
 class ExperimentalModel:
     """Data structure for experimental models."""
+
     id: str
     name: str
     provider: str
@@ -35,9 +38,11 @@ class ExperimentalModel:
     last_used: Optional[str] = None
     graduation_eligible: bool = False
 
+
 @dataclass
 class GraduationCandidate:
     """Data structure for models in graduation queue."""
+
     model_id: str
     added_to_queue: str
     usage_count: int
@@ -47,13 +52,14 @@ class GraduationCandidate:
     graduation_score: float
     criteria_met: Dict[str, bool]
 
+
 class PromptCraftDataManager:
     """
     Manages all data persistence for the PromptCraft system.
-    
+
     Handles:
     - Experimental models storage and retrieval
-    - Graduation queue management  
+    - Graduation queue management
     - Performance metrics tracking
     - Channel configuration management
     """
@@ -88,31 +94,28 @@ class PromptCraftDataManager:
                     "total_requests": 0,
                     "successful_requests": 0,
                     "average_response_time": 0.0,
-                    "last_updated": datetime.now().isoformat()
-                }
+                    "last_updated": datetime.now().isoformat(),
+                },
             },
             self.channel_config_path: {
                 "graduation_criteria": {
                     "minimum_age_days": 7,
                     "minimum_usage_requests": 50,
                     "minimum_success_rate": 0.95,
-                    "minimum_humaneval_score": 70.0
+                    "minimum_humaneval_score": 70.0,
                 },
                 "detection_config": {
                     "check_interval_hours": 6,
-                    "quality_filters": {
-                        "min_context_window": 4000,
-                        "exclude_providers": ["experimental", "test"]
-                    }
+                    "quality_filters": {"min_context_window": 4000, "exclude_providers": ["experimental", "test"]},
                 },
-                "last_updated": datetime.now().isoformat()
-            }
+                "last_updated": datetime.now().isoformat(),
+            },
         }
 
         for file_path, default_content in default_files.items():
             if not file_path.exists():
                 try:
-                    with open(file_path, 'w') as f:
+                    with open(file_path, "w") as f:
                         json.dump(default_content, f, indent=2)
                     logger.info(f"✅ Initialized {file_path.name}")
                 except Exception as e:
@@ -144,7 +147,7 @@ class PromptCraftDataManager:
                 models.append(model)
 
                 # Save to file
-                with open(self.experimental_models_path, 'w') as f:
+                with open(self.experimental_models_path, "w") as f:
                     json.dump([asdict(m) for m in models], f, indent=2)
 
                 logger.info(f"✅ Added experimental model: {model.id}")
@@ -177,7 +180,7 @@ class PromptCraftDataManager:
                         break
 
                 # Save updated models
-                with open(self.experimental_models_path, 'w') as f:
+                with open(self.experimental_models_path, "w") as f:
                     json.dump([asdict(m) for m in models], f, indent=2)
 
                 return True
@@ -210,7 +213,7 @@ class PromptCraftDataManager:
 
                 queue.append(candidate)
 
-                with open(self.graduation_queue_path, 'w') as f:
+                with open(self.graduation_queue_path, "w") as f:
                     json.dump([asdict(c) for c in queue], f, indent=2)
 
                 logger.info(f"✅ Added {candidate.model_id} to graduation queue")
@@ -230,7 +233,7 @@ class PromptCraftDataManager:
                 queue = [c for c in queue if c.model_id != model_id]
 
                 if len(queue) < original_length:
-                    with open(self.graduation_queue_path, 'w') as f:
+                    with open(self.graduation_queue_path, "w") as f:
                         json.dump([asdict(c) for c in queue], f, indent=2)
                     logger.info(f"✅ Removed {model_id} from graduation queue")
                     return True
@@ -263,7 +266,7 @@ class PromptCraftDataManager:
                 current_metrics.update(metrics)
                 current_metrics["last_updated"] = datetime.now().isoformat()
 
-                with open(self.performance_metrics_path, 'w') as f:
+                with open(self.performance_metrics_path, "w") as f:
                     json.dump(current_metrics, f, indent=2)
 
                 return True
@@ -278,10 +281,11 @@ class PromptCraftDataManager:
             # Load from stable models.csv
             try:
                 import pandas as pd
+
                 models_csv_path = Path("docs/models/models.csv")
                 if models_csv_path.exists():
                     df = pd.read_csv(models_csv_path)
-                    return df.to_dict('records')
+                    return df.to_dict("records")
                 else:
                     logger.debug("models.csv not found, returning empty list")
                     return []
@@ -306,7 +310,7 @@ class PromptCraftDataManager:
                 self.experimental_models_path,
                 self.graduation_queue_path,
                 self.performance_metrics_path,
-                self.channel_config_path
+                self.channel_config_path,
             ]
 
             for file_path in required_files:
@@ -337,10 +341,14 @@ class PromptCraftDataManager:
                 "experimental_models": len(experimental_models),
                 "graduation_queue": len(graduation_queue),
                 "total_experimental_usage": sum(m.usage_count for m in experimental_models),
-                "average_success_rate": sum(m.success_rate for m in experimental_models) / len(experimental_models) if experimental_models else 0.0,
+                "average_success_rate": (
+                    sum(m.success_rate for m in experimental_models) / len(experimental_models)
+                    if experimental_models
+                    else 0.0
+                ),
                 "models_ready_for_graduation": len([m for m in experimental_models if m.graduation_eligible]),
                 "api_metrics": performance_data.get("api_metrics", {}),
-                "last_updated": datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat(),
             }
 
             return stats
