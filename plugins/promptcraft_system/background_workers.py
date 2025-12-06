@@ -9,7 +9,7 @@ import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -86,7 +86,7 @@ class ModelDetectionWorker:
         except Exception as e:
             logger.error(f"❌ Detection cycle failed: {e}")
 
-    def _fetch_openrouter_models(self) -> List[Dict[str, Any]]:
+    def _fetch_openrouter_models(self) -> list[dict[str, Any]]:
         """Fetch current model list from OpenRouter API."""
         try:
             # OpenRouter models API endpoint
@@ -126,7 +126,7 @@ class ModelDetectionWorker:
             logger.error(f"❌ Failed to get known models: {e}")
             return set()
 
-    def _find_new_models(self, openrouter_models: List[Dict[str, Any]], known_models: set) -> List[Dict[str, Any]]:
+    def _find_new_models(self, openrouter_models: list[dict[str, Any]], known_models: set) -> list[dict[str, Any]]:
         """Find models that aren't in our known set."""
         new_models = []
 
@@ -138,7 +138,7 @@ class ModelDetectionWorker:
         logger.info(f"🆕 Found {len(new_models)} new models")
         return new_models
 
-    def _apply_quality_filters(self, models: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _apply_quality_filters(self, models: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Apply quality filters to new models."""
         qualified = []
 
@@ -170,7 +170,7 @@ class ModelDetectionWorker:
         logger.info(f"✅ {len(qualified)} models passed quality filters")
         return qualified
 
-    def _add_to_experimental(self, openrouter_model: Dict[str, Any]) -> bool:
+    def _add_to_experimental(self, openrouter_model: dict[str, Any]) -> bool:
         """Add a new model to experimental channel."""
         try:
             # Extract pricing
@@ -278,7 +278,7 @@ class GraduationWorker:
             logger.error(f"❌ Graduation cycle failed: {e}")
 
     def _evaluate_graduation_eligibility(
-        self, model: ExperimentalModel, criteria: Dict[str, Any]
+        self, model: ExperimentalModel, criteria: dict[str, Any]
     ) -> Optional[GraduationCandidate]:
         """Evaluate if a model is eligible for graduation."""
         try:
@@ -424,7 +424,7 @@ class WorkerManager:
         self.workers.clear()
         self.running = False
 
-    def get_worker_status(self) -> Dict[str, Any]:
+    def get_worker_status(self) -> dict[str, Any]:
         """Get status of all workers."""
         status = {"manager_running": self.running, "total_workers": len(self.workers), "workers": {}}
 

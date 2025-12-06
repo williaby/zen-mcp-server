@@ -11,7 +11,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -293,7 +293,7 @@ class PromptCraftAPIServer:
                 logger.error(f"System stats error: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
 
-    async def _analyze_prompt_complexity(self, prompt: str, task_type_hint: Optional[str] = None) -> Dict[str, Any]:
+    async def _analyze_prompt_complexity(self, prompt: str, task_type_hint: Optional[str] = None) -> dict[str, Any]:
         """Analyze prompt complexity using zen-mcp-server's complexity analyzer."""
         try:
             # Use the existing complexity analyzer
@@ -327,7 +327,7 @@ class PromptCraftAPIServer:
                 "reasoning": "Fallback analysis due to complexity analyzer error",
             }
 
-    async def _get_routing_recommendations(self, analysis: Dict[str, Any], user_tier: str) -> Dict[str, Any]:
+    async def _get_routing_recommendations(self, analysis: dict[str, Any], user_tier: str) -> dict[str, Any]:
         """Get model routing recommendations based on analysis and user tier."""
         try:
             # Map user tier to ModelLevel
@@ -383,14 +383,14 @@ class PromptCraftAPIServer:
             }
 
     async def _select_optimal_model(
-        self, analysis: Dict[str, Any], user_tier: str, channel: str, cost_optimization: bool
-    ) -> Dict[str, Any]:
+        self, analysis: dict[str, Any], user_tier: str, channel: str, cost_optimization: bool
+    ) -> dict[str, Any]:
         """Select optimal model for execution."""
         # Implementation similar to _get_routing_recommendations but focused on single best model
         recommendations = await self._get_routing_recommendations(analysis, user_tier)
         return recommendations["primary"]
 
-    async def _execute_with_model(self, prompt: str, model: Dict[str, Any], analysis: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_with_model(self, prompt: str, model: dict[str, Any], analysis: dict[str, Any]) -> dict[str, Any]:
         """Execute prompt with selected model."""
         # This would integrate with actual model execution
         # For now, return mock response
@@ -409,7 +409,7 @@ class PromptCraftAPIServer:
             "confidence": 0.85,
         }
 
-    async def _get_models_by_channel(self, channel: str, user_tier: Optional[str]) -> List[Dict[str, Any]]:
+    async def _get_models_by_channel(self, channel: str, user_tier: Optional[str]) -> list[dict[str, Any]]:
         """Get models filtered by channel and user tier."""
         from .data_manager import ModelChannel
 
@@ -425,7 +425,7 @@ class PromptCraftAPIServer:
 
         return models
 
-    async def _format_models_for_ui(self, models: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def _format_models_for_ui(self, models: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Format models for UI display with enhanced information."""
         formatted = []
 
@@ -447,10 +447,10 @@ class PromptCraftAPIServer:
 
         return formatted
 
-    def _generate_display_name(self, model: Dict[str, Any]) -> str:
+    def _generate_display_name(self, model: dict[str, Any]) -> str:
         """Generate enhanced display name for UI."""
         name = model.get("name", "Unknown")
-        tier = model.get("tier", "")
+        model.get("tier", "")
         specialization = model.get("specialization", "")
         score = model.get("humaneval_score", 0.0)
 
@@ -464,7 +464,11 @@ class PromptCraftAPIServer:
         """Start the FastAPI server."""
         try:
             config = uvicorn.Config(
-                self.app, host=host, port=port, log_level="info", access_log=False  # We have our own request middleware
+                self.app,
+                host=host,
+                port=port,
+                log_level="info",
+                access_log=False,  # We have our own request middleware
             )
 
             self.server = uvicorn.Server(config)
@@ -487,7 +491,7 @@ class PromptCraftAPIServer:
         """Check if server is running."""
         return self.running
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get API server performance metrics."""
         avg_response_time = self.total_response_time / self.request_count if self.request_count > 0 else 0.0
 

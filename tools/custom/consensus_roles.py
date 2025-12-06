@@ -7,10 +7,8 @@ enabling easy creation of domain-specific consensus tools.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 # Professional role definitions with focus areas and perspectives
-ROLE_DEFINITIONS: Dict[str, Dict[str, str]] = {
+ROLE_DEFINITIONS: dict[str, dict[str, str]] = {
     # Level 1 Roles (Foundation - Free tier)
     "code_reviewer": {
         "focus": "Code quality, standards, maintainability",
@@ -113,7 +111,7 @@ ROLE_DEFINITIONS: Dict[str, Dict[str, str]] = {
 }
 
 # Domain-specific role assignments per level (additive architecture)
-DOMAIN_ROLES: Dict[str, Dict[int, List[str]]] = {
+DOMAIN_ROLES: dict[str, dict[int, list[str]]] = {
     "code_review": {
         1: ["code_reviewer", "security_checker", "technical_validator"],
         2: [
@@ -226,7 +224,7 @@ class RoleAssigner:
         self.role_definitions = ROLE_DEFINITIONS
         self.domain_roles = DOMAIN_ROLES
 
-    def get_roles_for_level(self, level: int, domain: str = "code_review") -> List[str]:
+    def get_roles_for_level(self, level: int, domain: str = "code_review") -> list[str]:
         """
         Get professional roles for specified level and domain.
 
@@ -244,11 +242,11 @@ class RoleAssigner:
             raise ValueError(f"Invalid level: {level}. Must be 1, 2, or 3")
 
         if domain not in self.domain_roles:
-            raise ValueError(f"Invalid domain: {domain}. " f"Valid domains: {', '.join(self.domain_roles.keys())}")
+            raise ValueError(f"Invalid domain: {domain}. Valid domains: {', '.join(self.domain_roles.keys())}")
 
         return self.domain_roles[domain][level]
 
-    def get_role_definition(self, role: str) -> Dict[str, str]:
+    def get_role_definition(self, role: str) -> dict[str, str]:
         """
         Get definition for a specific role.
 
@@ -262,11 +260,11 @@ class RoleAssigner:
             ValueError: If role not found
         """
         if role not in self.role_definitions:
-            raise ValueError(f"Invalid role: {role}. " f"Valid roles: {', '.join(self.role_definitions.keys())}")
+            raise ValueError(f"Invalid role: {role}. Valid roles: {', '.join(self.role_definitions.keys())}")
 
         return self.role_definitions[role]
 
-    def get_available_domains(self) -> List[str]:
+    def get_available_domains(self) -> list[str]:
         """
         Get list of available domains.
 
@@ -275,7 +273,7 @@ class RoleAssigner:
         """
         return list(self.domain_roles.keys())
 
-    def get_available_roles(self) -> List[str]:
+    def get_available_roles(self) -> list[str]:
         """
         Get list of all defined roles.
 
@@ -284,7 +282,7 @@ class RoleAssigner:
         """
         return list(self.role_definitions.keys())
 
-    def validate_role_assignments(self) -> Dict[str, List[str]]:
+    def validate_role_assignments(self) -> dict[str, list[str]]:
         """
         Validate that all roles in domain assignments have definitions.
 
@@ -319,13 +317,13 @@ def create_role_prompt(role: str, prompt: str) -> str:
     assigner = RoleAssigner()
     role_def = assigner.get_role_definition(role)
 
-    return f"""You are acting as a {role.replace('_', ' ')}.
+    return f"""You are acting as a {role.replace("_", " ")}.
 
-**Your Focus:** {role_def['focus']}
+**Your Focus:** {role_def["focus"]}
 
-**Key Questions to Address:** {role_def['questions']}
+**Key Questions to Address:** {role_def["questions"]}
 
-**Your Perspective:** {role_def['perspective']}
+**Your Perspective:** {role_def["perspective"]}
 
 **Question/Proposal to Analyze:**
 {prompt}

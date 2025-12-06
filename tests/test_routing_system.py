@@ -93,7 +93,7 @@ class TestComplexityAnalyzer:
         complexity, confidence, task_type = self.analyzer.analyze(test_case.prompt, test_case.context)
 
         assert complexity == test_case.expected_complexity, (
-            f"Expected {test_case.expected_complexity}, got {complexity} " f"for prompt: {test_case.prompt[:50]}..."
+            f"Expected {test_case.expected_complexity}, got {complexity} for prompt: {test_case.prompt[:50]}..."
         )
         assert task_type.value == test_case.expected_task_type
 
@@ -172,7 +172,7 @@ class TestModelLevelRouter:
             if model_name in self.router.models:
                 actual_level = self.router.models[model_name].level.value
                 assert actual_level == expected_level, (
-                    f"Model {model_name} expected level {expected_level}, " f"got {actual_level}"
+                    f"Model {model_name} expected level {expected_level}, got {actual_level}"
                 )
 
     def test_free_model_prioritization(self):
@@ -181,7 +181,7 @@ class TestModelLevelRouter:
         result = self.router.select_model(prompt, prefer_free=True)
 
         assert result.model.cost_per_token == 0.0, (
-            f"Expected free model, got {result.model.name} " f"with cost {result.model.cost_per_token}"
+            f"Expected free model, got {result.model.name} with cost {result.model.cost_per_token}"
         )
 
     def test_complexity_based_routing(self):
@@ -416,7 +416,7 @@ class TestPerformanceRequirements:
         # First call (no cache)
         start_time = time.time()
         result1 = router.select_model(prompt)
-        first_call_time = time.time() - start_time
+        time.time() - start_time
 
         # Second call (should use cache)
         start_time = time.time()

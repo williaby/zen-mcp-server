@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +20,9 @@ class Perspective:
     role: str
     model: str
     analysis: str
-    key_points: List[str]
-    concerns: List[str]
-    recommendations: List[str]
+    key_points: list[str]
+    concerns: list[str]
+    recommendations: list[str]
     cost: float = 0.0  # Cost of this perspective (in USD)
 
 
@@ -34,14 +33,14 @@ class ConsensusResult:
     prompt: str
     level: int
     domain: str
-    perspectives: List[Perspective]
-    consensus_points: List[str]
-    disagreements: List[Dict[str, any]]
+    perspectives: list[Perspective]
+    consensus_points: list[str]
+    disagreements: list[dict[str, any]]
     synthesis: str
     executive_summary: str
-    models_used: List[str]
+    models_used: list[str]
     total_cost: float
-    metadata: Dict[str, any]
+    metadata: dict[str, any]
 
 
 class SynthesisEngine:
@@ -57,7 +56,7 @@ class SynthesisEngine:
 
     def __init__(self):
         """Initialize synthesis engine."""
-        self.perspectives: List[Perspective] = []
+        self.perspectives: list[Perspective] = []
 
     def add_perspective(
         self,
@@ -65,9 +64,9 @@ class SynthesisEngine:
         model: str,
         analysis: str,
         cost: float = 0.0,
-        key_points: Optional[List[str]] = None,
-        concerns: Optional[List[str]] = None,
-        recommendations: Optional[List[str]] = None,
+        key_points: list[str] | None = None,
+        concerns: list[str] | None = None,
+        recommendations: list[str] | None = None,
     ):
         """
         Add a perspective from a role-model combination.
@@ -106,7 +105,7 @@ class SynthesisEngine:
         prompt: str,
         level: int,
         domain: str,
-        models_used: List[str],
+        models_used: list[str],
         total_cost: float,
     ) -> ConsensusResult:
         """
@@ -147,12 +146,12 @@ class SynthesisEngine:
             total_cost=total_cost,
             metadata={
                 "perspective_count": len(self.perspectives),
-                "unique_roles": len(set(p.role for p in self.perspectives)),
-                "unique_models": len(set(p.model for p in self.perspectives)),
+                "unique_roles": len({p.role for p in self.perspectives}),
+                "unique_models": len({p.model for p in self.perspectives}),
             },
         )
 
-    def _extract_key_points(self, analysis: str) -> List[str]:
+    def _extract_key_points(self, analysis: str) -> list[str]:
         """
         Extract key points from analysis text.
 
@@ -184,7 +183,7 @@ class SynthesisEngine:
 
         return key_points[:5]  # Limit to top 5
 
-    def _extract_concerns(self, analysis: str) -> List[str]:
+    def _extract_concerns(self, analysis: str) -> list[str]:
         """
         Extract concerns from analysis text.
 
@@ -219,7 +218,7 @@ class SynthesisEngine:
 
         return concerns[:5]  # Limit to top 5
 
-    def _extract_recommendations(self, analysis: str) -> List[str]:
+    def _extract_recommendations(self, analysis: str) -> list[str]:
         """
         Extract recommendations from analysis text.
 
@@ -244,7 +243,7 @@ class SynthesisEngine:
 
         return recommendations[:5]  # Limit to top 5
 
-    def _identify_consensus_points(self) -> List[str]:
+    def _identify_consensus_points(self) -> list[str]:
         """
         Identify points where multiple perspectives agree.
 
@@ -296,7 +295,7 @@ class SynthesisEngine:
 
         return consensus_points[:10]  # Limit to top 10
 
-    def _identify_disagreements(self) -> List[Dict[str, any]]:
+    def _identify_disagreements(self) -> list[dict[str, any]]:
         """
         Identify points where perspectives disagree.
 
@@ -356,7 +355,7 @@ class SynthesisEngine:
 
         return disagreements[:5]  # Limit to top 5
 
-    def _generate_synthesis(self, consensus_points: List[str], disagreements: List[Dict[str, any]]) -> str:
+    def _generate_synthesis(self, consensus_points: list[str], disagreements: list[dict[str, any]]) -> str:
         """
         Generate synthesis of all perspectives.
 
@@ -373,7 +372,7 @@ class SynthesisEngine:
         synthesis_parts.append(
             f"## Consensus Analysis\n\n"
             f"Analyzed perspectives from {len(self.perspectives)} professional roles "
-            f"using {len(set(p.model for p in self.perspectives))} AI models.\n"
+            f"using {len({p.model for p in self.perspectives})} AI models.\n"
         )
 
         # Consensus points
@@ -415,7 +414,7 @@ class SynthesisEngine:
 
         return "\n".join(synthesis_parts)
 
-    def _generate_executive_summary(self, consensus_points: List[str], disagreements: List[Dict[str, any]]) -> str:
+    def _generate_executive_summary(self, consensus_points: list[str], disagreements: list[dict[str, any]]) -> str:
         """
         Generate executive summary with actionable recommendations.
 
@@ -533,7 +532,7 @@ def format_consensus_result(result: ConsensusResult, include_full_perspectives: 
             output_parts.append("\n" + "-" * 80)
 
     # Metadata
-    output_parts.append(f"\n\n**Metadata:**")
+    output_parts.append("\n\n**Metadata:**")
     output_parts.append(f"- Models consulted: {len(result.models_used)}")
     output_parts.append(f"- Unique perspectives: {result.metadata['perspective_count']}")
     output_parts.append(f"- Professional roles: {result.metadata['unique_roles']}")

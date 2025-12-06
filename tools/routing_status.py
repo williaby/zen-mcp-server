@@ -5,7 +5,7 @@ This tool allows users to view routing statistics, model availability,
 and routing configuration without requiring external CLI commands.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -22,7 +22,7 @@ class RoutingStatusRequest(ToolRequest):
     prompt: Optional[str] = Field(
         default=None, description="Prompt for model recommendation (only used with action='recommend')"
     )
-    context: Optional[Dict[str, Any]] = Field(
+    context: Optional[dict[str, Any]] = Field(
         default=None, description="Context for model recommendation (files, errors, etc.)"
     )
 
@@ -36,7 +36,7 @@ class RoutingStatusTool(SimpleTool):
     def get_description(self) -> str:
         return "View status and statistics for dynamic model routing system, get model recommendations"
 
-    def get_tool_fields(self) -> Dict[str, Any]:
+    def get_tool_fields(self) -> dict[str, Any]:
         """Return tool-specific field definitions for schema generation."""
         return {
             "action": {
@@ -73,7 +73,7 @@ class RoutingStatusTool(SimpleTool):
         return """You are a routing status assistant. Your role is to provide information about the dynamic model routing system:
 
 1. **Status Information**: Show whether routing is enabled, model counts, and system health
-2. **Model Information**: List available models by level (free, junior, senior, executive)  
+2. **Model Information**: List available models by level (free, junior, senior, executive)
 3. **Usage Statistics**: Show routing decisions, success rates, and cost savings
 4. **Configuration Details**: Display routing rules and thresholds
 5. **Model Recommendations**: Suggest optimal models for specific prompts and contexts
@@ -128,7 +128,7 @@ Dynamic model routing is not enabled. To enable:
 3. Routing will automatically begin optimizing model selection
 
 **Benefits of enabling routing**:
-- Automatic free model prioritization  
+- Automatic free model prioritization
 - Cost optimization (20-30% typical savings)
 - Task complexity-based model selection
 - Intelligent fallback handling
@@ -146,7 +146,7 @@ The dynamic model routing system is not installed or not available.
 
 This may happen if:
 - The routing module is not installed
-- Required dependencies are missing  
+- Required dependencies are missing
 - Server was started without routing support
 
 Please check your installation or contact support for assistance."""
@@ -162,19 +162,19 @@ Please check your installation or contact support for assistance."""
 **Status**: {status_icon} ENABLED
 
 ## System Information
-- **Total Models**: {stats.get('total_models', 0)}
-- **Available Models**: {stats.get('available_models', 0)}
-- **Cache Size**: {stats.get('cache_size', 0)} entries
+- **Total Models**: {stats.get("total_models", 0)}
+- **Available Models**: {stats.get("available_models", 0)}
+- **Cache Size**: {stats.get("cache_size", 0)} entries
 
-## Routing Activity  
-- **Total Decisions**: {stats.get('routing_decisions', 0)}
-- **Successful Routes**: {stats.get('routing_successes', 0)}
-- **Route Failures**: {stats.get('routing_failures', 0)}
-- **Success Rate**: {stats.get('success_rate', 0):.1%}
+## Routing Activity
+- **Total Decisions**: {stats.get("routing_decisions", 0)}
+- **Successful Routes**: {stats.get("routing_successes", 0)}
+- **Route Failures**: {stats.get("routing_failures", 0)}
+- **Success Rate**: {stats.get("success_rate", 0):.1%}
 
 ## Cost Optimization
-- **Free Model Selections**: {stats.get('free_model_selections', 0)}
-- **Estimated Savings**: ${stats.get('cost_savings', 0):.4f}
+- **Free Model Selections**: {stats.get("free_model_selections", 0)}
+- **Estimated Savings**: ${stats.get("cost_savings", 0):.4f}
 
 **Routing is actively optimizing model selection for cost and performance.**"""
 
@@ -218,7 +218,7 @@ Please check your installation or contact support for assistance."""
                         response.append(f"  - {name} ({cost_str})")
                     if len(level_models) > 5:
                         response.append(f"  - ... and {len(level_models) - 5} more")
-            except:
+            except Exception:
                 pass  # Skip model details if not available
 
             response.append("")
@@ -251,21 +251,21 @@ Please check your installation or contact support for assistance."""
 - **Total Routing Decisions**: {total_decisions:,}
 - **Successful Routes**: {successes:,}
 - **Failed Routes**: {failures:,}
-- **Success Rate**: {(successes/total_decisions*100) if total_decisions > 0 else 0:.1f}%
+- **Success Rate**: {(successes / total_decisions * 100) if total_decisions > 0 else 0:.1f}%
 
 ## Cost Optimization
-- **Free Model Selections**: {free_selections:,}  
-- **Free Model Rate**: {(free_selections/total_decisions*100) if total_decisions > 0 else 0:.1f}%
-- **Estimated Cost Savings**: ${stats.get('cost_savings', 0):.4f}
+- **Free Model Selections**: {free_selections:,}
+- **Free Model Rate**: {(free_selections / total_decisions * 100) if total_decisions > 0 else 0:.1f}%
+- **Estimated Cost Savings**: ${stats.get("cost_savings", 0):.4f}
 
 ## Performance Metrics
 - **Cache Hit Rate**: Efficient routing decisions cached
 - **Average Decision Time**: < 50ms target
-- **Model Availability**: {stats.get('available_models', 0)}/{stats.get('total_models', 0)} models online
+- **Model Availability**: {stats.get("available_models", 0)}/{stats.get("total_models", 0)} models online
 
-## Routing Effectiveness  
-{"✅" if (total_decisions > 0 and (successes/total_decisions) > 0.9) else "⚠️"} **Overall Performance**: {"Excellent" if (total_decisions > 0 and (successes/total_decisions) > 0.9) else "Needs attention"}
-{"✅" if (total_decisions > 0 and (free_selections/total_decisions) > 0.5) else "⚠️"} **Cost Efficiency**: {"Good" if (total_decisions > 0 and (free_selections/total_decisions) > 0.5) else "Could improve"}
+## Routing Effectiveness
+{"✅" if (total_decisions > 0 and (successes / total_decisions) > 0.9) else "⚠️"} **Overall Performance**: {"Excellent" if (total_decisions > 0 and (successes / total_decisions) > 0.9) else "Needs attention"}
+{"✅" if (total_decisions > 0 and (free_selections / total_decisions) > 0.5) else "⚠️"} **Cost Efficiency**: {"Good" if (total_decisions > 0 and (free_selections / total_decisions) > 0.5) else "Could improve"}
 
 *Statistics reset with each server restart*"""
 
@@ -308,7 +308,7 @@ Please check your installation or contact support for assistance."""
 
         return "\n".join(response)
 
-    def _get_recommendation(self, integration, prompt: str, context: Dict[str, Any]) -> str:
+    def _get_recommendation(self, integration, prompt: str, context: dict[str, Any]) -> str:
         """Get model recommendation for a specific prompt."""
         recommendation = integration.get_model_recommendation(prompt, context)
 
@@ -324,11 +324,11 @@ Please check your installation or contact support for assistance."""
 
         response = f"""# Model Recommendation
 
-**Prompt**: "{prompt[:100]}{'...' if len(prompt) > 100 else ''}"
+**Prompt**: "{prompt[:100]}{"..." if len(prompt) > 100 else ""}"
 
 ## Recommended Model
 - **Model**: {model_name}
-- **Level**: {level} 
+- **Level**: {level}
 - **Confidence**: {confidence:.1%}
 - **Estimated Cost**: ${cost:.6f}
 

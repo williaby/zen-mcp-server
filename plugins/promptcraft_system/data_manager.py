@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class GraduationCandidate:
     humaneval_score: Optional[float]
     days_in_experimental: int
     graduation_score: float
-    criteria_met: Dict[str, bool]
+    criteria_met: dict[str, bool]
 
 
 class PromptCraftDataManager:
@@ -122,7 +122,7 @@ class PromptCraftDataManager:
                 except Exception as e:
                     logger.error(f"❌ Failed to initialize {file_path.name}: {e}")
 
-    def get_experimental_models(self) -> List[ExperimentalModel]:
+    def get_experimental_models(self) -> list[ExperimentalModel]:
         """Get all experimental models."""
         with self._lock:
             try:
@@ -190,7 +190,7 @@ class PromptCraftDataManager:
                 logger.error(f"❌ Failed to update model usage for {model_id}: {e}")
                 return False
 
-    def get_graduation_queue(self) -> List[GraduationCandidate]:
+    def get_graduation_queue(self) -> list[GraduationCandidate]:
         """Get all models in graduation queue."""
         with self._lock:
             try:
@@ -246,7 +246,7 @@ class PromptCraftDataManager:
                 logger.error(f"❌ Failed to remove {model_id} from graduation queue: {e}")
                 return False
 
-    def get_graduation_criteria(self) -> Dict[str, Any]:
+    def get_graduation_criteria(self) -> dict[str, Any]:
         """Get current graduation criteria configuration."""
         try:
             with open(self.channel_config_path) as f:
@@ -256,7 +256,7 @@ class PromptCraftDataManager:
             logger.error(f"Error loading graduation criteria: {e}")
             return {}
 
-    def update_performance_metrics(self, metrics: Dict[str, Any]) -> bool:
+    def update_performance_metrics(self, metrics: dict[str, Any]) -> bool:
         """Update system performance metrics."""
         with self._lock:
             try:
@@ -276,7 +276,7 @@ class PromptCraftDataManager:
                 logger.error(f"❌ Failed to update performance metrics: {e}")
                 return False
 
-    def get_models_by_channel(self, channel: ModelChannel) -> List[Dict[str, Any]]:
+    def get_models_by_channel(self, channel: ModelChannel) -> list[dict[str, Any]]:
         """Get models filtered by channel (stable or experimental)."""
         if channel == ModelChannel.STABLE:
             # Load from stable models.csv
@@ -329,7 +329,7 @@ class PromptCraftDataManager:
             logger.error(f"Data manager health check failed: {e}")
             return False
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get current statistics for the PromptCraft system."""
         try:
             experimental_models = self.get_experimental_models()

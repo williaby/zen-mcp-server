@@ -6,7 +6,7 @@ model configurations, and expected routing behaviors.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -14,7 +14,7 @@ class RoutingTestCase:
     """Test case for routing behavior."""
 
     prompt: str
-    context: Dict[str, Any]
+    context: dict[str, Any]
     expected_complexity: str
     expected_task_type: str
     expected_level: str
@@ -308,12 +308,12 @@ def get_test_case_by_id(test_id: str) -> RoutingTestCase:
     return test_cases.get(test_id)
 
 
-def get_tool_scenarios(tool_name: str) -> List[Dict[str, Any]]:
+def get_tool_scenarios(tool_name: str) -> list[dict[str, Any]]:
     """Get test scenarios for a specific tool."""
     return TOOL_SCENARIOS.get(tool_name, [])
 
 
-def create_mock_context(tool_name: str = "test", files: List[str] = None, error: str = None) -> Dict[str, Any]:
+def create_mock_context(tool_name: str = "test", files: list[str] = None, error: str = None) -> dict[str, Any]:
     """Create a mock context for testing."""
     context = {"tool_name": tool_name}
 

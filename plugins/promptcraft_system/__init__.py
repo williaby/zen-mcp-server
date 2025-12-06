@@ -74,7 +74,7 @@ class PromptCraftSystemPlugin:
             logger.error(f"❌ Failed to initialize PromptCraft System Plugin: {e}")
             return False
 
-    def get_tools(self) -> Dict[str, Any]:
+    def get_tools(self) -> dict[str, Any]:
         """
         Return tools provided by this plugin.
 
@@ -114,7 +114,7 @@ class PromptCraftSystemPlugin:
             self.api_server.stop_server()
             logger.info("🛑 PromptCraft API server stopped")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get current plugin status and health information.
 

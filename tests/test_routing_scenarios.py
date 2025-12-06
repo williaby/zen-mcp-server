@@ -56,14 +56,13 @@ class TestRealWorldScenarios:
                 assert True
             else:
                 assert result.model.level.value in scenario["expected_level"], (
-                    f"Step '{scenario['step']}' got {result.model.level.value}, "
-                    f"expected {scenario['expected_level']}"
+                    f"Step '{scenario['step']}' got {result.model.level.value}, expected {scenario['expected_level']}"
                 )
 
     def test_debugging_escalation_workflow(self):
         """Test debugging workflow with escalation."""
         # Start with simple error
-        simple_result = self.router.select_model(
+        self.router.select_model(
             "Fix this syntax error: SyntaxError: invalid syntax", {"error": "SyntaxError: invalid syntax"}
         )
 
@@ -235,7 +234,9 @@ class TestToolSpecificScenarios:
 
         for scenario in scenarios:
             result = self.router.select_model(
-                scenario["prompt"], scenario["context"], prefer_free=False  # Security audits may need paid models
+                scenario["prompt"],
+                scenario["context"],
+                prefer_free=False,  # Security audits may need paid models
             )
 
             # Security tasks should get appropriate models
@@ -245,8 +246,7 @@ class TestToolSpecificScenarios:
                 actual_priority = level_priorities.index(result.model.level.value)
 
                 assert actual_priority >= min_priority, (
-                    f"Security audit got {result.model.level.value}, "
-                    f"expected at least {scenario['expected_min_level']}"
+                    f"Security audit got {result.model.level.value}, expected at least {scenario['expected_min_level']}"
                 )
 
 
@@ -287,9 +287,9 @@ class TestCostOptimizationScenarios:
         for max_cost in max_costs:
             result = self.router.select_model("Test prompt for cost constraint", max_cost=max_cost, prefer_free=False)
 
-            assert (
-                result.model.cost_per_token <= max_cost
-            ), f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
+            assert result.model.cost_per_token <= max_cost, (
+                f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
+            )
 
     def test_cost_vs_complexity_tradeoff(self):
         """Test cost vs complexity tradeoff scenarios."""
@@ -352,7 +352,7 @@ class TestPerformanceScenarios:
         # First request (uncached)
         start_time = time.time()
         result1 = self.router.select_model(prompt, context)
-        first_time = time.time() - start_time
+        time.time() - start_time
 
         # Second request (should use cache)
         start_time = time.time()
@@ -385,9 +385,9 @@ class TestPerformanceScenarios:
                 memory_increase = current_memory - initial_memory
 
                 # Memory shouldn't grow excessively
-                assert (
-                    memory_increase < 100 * 1024 * 1024
-                ), f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
+                assert memory_increase < 100 * 1024 * 1024, (
+                    f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
+                )
 
 
 class TestErrorRecoveryScenarios:
@@ -531,7 +531,7 @@ class TestEdgeCaseScenarios:
         assert all(r.model is not None for r in results)
 
         # Caching should provide consistent results for same prompts
-        same_prompts = [r for r in results[::2]]  # Even indices
+        same_prompts = list(results[::2])  # Even indices
         if len(same_prompts) > 1:
             # Similar prompts might get similar models
             pass
@@ -625,7 +625,7 @@ class TestEndToEndScenarios:
 
         # Mix of free and paid models is expected depending on task complexity
         free_count = sum(1 for _, result in results if result.model.cost_per_token == 0)
-        total_count = len(results)
+        len(results)
 
         # At least some tasks should use free models
         assert free_count > 0, "No tasks used free models"

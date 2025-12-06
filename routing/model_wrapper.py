@@ -9,7 +9,7 @@ import logging
 import time
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from .complexity_analyzer import ComplexityAnalyzer
 from .model_level_router import ModelLevelRouter, RoutingResult
@@ -23,11 +23,11 @@ class ModelCallContext:
 
     tool_name: str
     prompt: str
-    files: List[str] = None
+    files: list[str] = None
     model_requested: str = None
     temperature: float = None
     max_tokens: int = None
-    additional_context: Dict[str, Any] = None
+    additional_context: dict[str, Any] = None
 
 
 @dataclass
@@ -54,8 +54,8 @@ class ModelWrapper:
     def __init__(self, router: Optional[ModelLevelRouter] = None):
         self.router = router or ModelLevelRouter()
         self.complexity_analyzer = ComplexityAnalyzer()
-        self.call_history: List[Dict[str, Any]] = []
-        self.performance_tracking: Dict[str, Dict[str, Any]] = {}
+        self.call_history: list[dict[str, Any]] = []
+        self.performance_tracking: dict[str, dict[str, Any]] = {}
 
     def wrap_model_call(self, original_call: Callable, context: ModelCallContext) -> Callable:
         """
@@ -105,7 +105,6 @@ class ModelWrapper:
                     and routing_decision.routing_used
                     and routing_decision.original_model != routing_decision.selected_model
                 ):
-
                     logger.warning(f"Routed model failed, falling back to {routing_decision.original_model}")
 
                     try:
@@ -175,7 +174,7 @@ class ModelWrapper:
                 fallback_reason=f"Routing failed: {str(e)}",
             )
 
-    def _extract_file_types(self, files: List[str]) -> List[str]:
+    def _extract_file_types(self, files: list[str]) -> list[str]:
         """Extract file extensions from file paths."""
         extensions = []
         for file_path in files:
@@ -256,7 +255,7 @@ class ModelWrapper:
         if len(self.call_history) > 1000:
             self.call_history = self.call_history[-1000:]
 
-    def get_call_statistics(self) -> Dict[str, Any]:
+    def get_call_statistics(self) -> dict[str, Any]:
         """Get statistics about model calls."""
         if not self.call_history:
             return {"total_calls": 0}
@@ -294,7 +293,7 @@ class ModelWrapper:
             "tool_breakdown": tool_stats,
         }
 
-    def get_recent_failures(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_failures(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent failed calls for debugging."""
         failures = [call for call in self.call_history if not call["success"]]
         return failures[-limit:] if failures else []

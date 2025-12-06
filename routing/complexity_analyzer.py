@@ -9,7 +9,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class ComplexityIndicator:
     name: str
     weight: float
     score: float
-    evidence: List[str]
+    evidence: list[str]
 
 
 class ComplexityAnalyzer:
@@ -51,7 +51,7 @@ class ComplexityAnalyzer:
         self.task_type_patterns = self._load_task_type_patterns()
         self.file_type_complexity = self._load_file_type_complexity()
 
-    def _load_complexity_patterns(self) -> Dict[str, Dict[str, Any]]:
+    def _load_complexity_patterns(self) -> dict[str, dict[str, Any]]:
         """Load patterns for complexity detection."""
         return {
             "simple_keywords": {
@@ -144,7 +144,7 @@ class ComplexityAnalyzer:
             },
         }
 
-    def _load_task_type_patterns(self) -> Dict[TaskType, Dict[str, Any]]:
+    def _load_task_type_patterns(self) -> dict[TaskType, dict[str, Any]]:
         """Load patterns for task type classification."""
         return {
             TaskType.CODE_GENERATION: {
@@ -258,7 +258,7 @@ class ComplexityAnalyzer:
             },
         }
 
-    def _load_file_type_complexity(self) -> Dict[str, float]:
+    def _load_file_type_complexity(self) -> dict[str, float]:
         """Load complexity mappings for different file types."""
         return {
             # Programming languages (by typical complexity)
@@ -300,7 +300,7 @@ class ComplexityAnalyzer:
             "default": 0.1,
         }
 
-    def analyze(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> Tuple[str, float, TaskType]:
+    def analyze(self, prompt: str, context: Optional[dict[str, Any]] = None) -> tuple[str, float, TaskType]:
         """
         Analyze prompt and context to determine complexity and task type.
 
@@ -330,7 +330,7 @@ class ComplexityAnalyzer:
 
         return complexity_level, confidence, task_type
 
-    def _analyze_text_complexity(self, text: str) -> List[ComplexityIndicator]:
+    def _analyze_text_complexity(self, text: str) -> list[ComplexityIndicator]:
         """Analyze text content for complexity indicators."""
         indicators = []
         text_lower = text.lower()
@@ -401,7 +401,7 @@ class ComplexityAnalyzer:
 
         return indicators
 
-    def _analyze_context_complexity(self, context: Dict[str, Any]) -> List[ComplexityIndicator]:
+    def _analyze_context_complexity(self, context: dict[str, Any]) -> list[ComplexityIndicator]:
         """Analyze context information for complexity indicators."""
         indicators = []
 
@@ -474,7 +474,7 @@ class ComplexityAnalyzer:
 
         return indicators
 
-    def _classify_task_type(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> TaskType:
+    def _classify_task_type(self, prompt: str, context: Optional[dict[str, Any]] = None) -> TaskType:
         """Classify the task type based on prompt and context."""
         scores = {}
         prompt_lower = prompt.lower()
@@ -511,7 +511,7 @@ class ComplexityAnalyzer:
 
         return TaskType.GENERAL
 
-    def _calculate_complexity(self, indicators: List[ComplexityIndicator], task_type: TaskType) -> Tuple[str, float]:
+    def _calculate_complexity(self, indicators: list[ComplexityIndicator], task_type: TaskType) -> tuple[str, float]:
         """Calculate overall complexity level and confidence."""
         if not indicators:
             return "simple", 0.5
@@ -555,7 +555,7 @@ class ComplexityAnalyzer:
 
         return complexity, confidence
 
-    def get_analysis_details(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def get_analysis_details(self, prompt: str, context: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """Get detailed analysis breakdown for debugging/transparency."""
         indicators = []
 

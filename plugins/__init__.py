@@ -12,7 +12,7 @@ from typing import Any, Dict
 logger = logging.getLogger(__name__)
 
 
-def load_plugins() -> Dict[str, Any]:
+def load_plugins() -> dict[str, Any]:
     """
     Auto-load all plugins from plugins/ directory.
 
@@ -62,7 +62,7 @@ def load_plugins() -> Dict[str, Any]:
     return plugins
 
 
-def get_plugin_tools() -> Dict[str, Any]:
+def get_plugin_tools() -> dict[str, Any]:
     """
     Get tools provided by all loaded plugins.
 

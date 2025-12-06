@@ -233,7 +233,7 @@ def test_routing_integration():
         from routing.model_level_router import ModelLevelRouter
 
         # Test that we can import and use existing routing components
-        router = ModelLevelRouter()
+        ModelLevelRouter()
         analyzer = ComplexityAnalyzer()
 
         print("  ✅ Can import existing routing components")

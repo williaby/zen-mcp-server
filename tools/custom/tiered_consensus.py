@@ -16,7 +16,7 @@ NOTE: This is separate from the core /tools/consensus.py (upstream tool).
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -60,7 +60,7 @@ class TieredConsensusRequest(WorkflowRequest):
         default=True,
         description="Generate synthesis report (default: true)",
     )
-    max_cost: Optional[float] = Field(
+    max_cost: float | None = Field(
         default=None,
         description="Override cost limit (default: based on level)",
     )
@@ -70,7 +70,7 @@ class TieredConsensusRequest(WorkflowRequest):
         """Validate domain is supported."""
         valid_domains = ["code_review", "security", "architecture", "general"]
         if self.domain not in valid_domains:
-            raise ValueError(f"Invalid domain: {self.domain}. " f"Valid domains: {', '.join(valid_domains)}")
+            raise ValueError(f"Invalid domain: {self.domain}. Valid domains: {', '.join(valid_domains)}")
         return self
 
 
@@ -112,7 +112,7 @@ class TieredConsensusTool(WorkflowTool):
             "from multiple AI models and professional perspectives."
         )
 
-    def get_tool_fields(self) -> Dict[str, Dict[str, Any]]:
+    def get_tool_fields(self) -> dict[str, dict[str, Any]]:
         """
         Return tool-specific fields beyond standard workflow fields.
 
@@ -156,7 +156,7 @@ class TieredConsensusTool(WorkflowTool):
             },
         }
 
-    def get_required_fields(self) -> List[str]:
+    def get_required_fields(self) -> list[str]:
         """
         Return additional required fields beyond standard workflow requirements.
 
@@ -197,7 +197,7 @@ class TieredConsensusTool(WorkflowTool):
         """
         return ""
 
-    async def execute(self, arguments: dict[str, Any]) -> List[Dict[str, Any]]:
+    async def execute(self, arguments: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Execute consensus analysis workflow.
 
@@ -328,7 +328,7 @@ class TieredConsensusTool(WorkflowTool):
     async def _call_model_with_failover(
         self,
         primary_model: str,
-        fallback_candidates: List[str],
+        fallback_candidates: list[str],
         role: str,
         prompt: str,
         level: int,
@@ -396,9 +396,7 @@ class TieredConsensusTool(WorkflowTool):
                         f"(cost: ${cost:.4f}, attempt {attempt}/{max_failover_attempts})"
                     )
                 else:
-                    logger.info(
-                        f"✅ Failover successful: {fallback_model} " f"(attempt {attempt}/{max_failover_attempts})"
-                    )
+                    logger.info(f"✅ Failover successful: {fallback_model} (attempt {attempt}/{max_failover_attempts})")
 
                 return (response, cost, fallback_model, True)
 
@@ -413,15 +411,13 @@ class TieredConsensusTool(WorkflowTool):
                         f"Skipping (valid model, needs user configuration)."
                     )
                 elif "no endpoints found for" in error_str:
-                    logger.warning(
-                        f"⚠️  Model {fallback_model} not found on OpenRouter (may be deprecated). " f"Skipping."
-                    )
+                    logger.warning(f"⚠️  Model {fallback_model} not found on OpenRouter (may be deprecated). Skipping.")
                 else:
                     logger.warning(f"Failover attempt {attempt} failed for {fallback_model}: {e}")
                 continue
 
         # All failover attempts exhausted - use simulation as last resort
-        logger.error(f"❌ All models failed (tried {len(tried_models)}). " f"Using simulation as last resort.")
+        logger.error(f"❌ All models failed (tried {len(tried_models)}). Using simulation as last resort.")
         simulation_response = self._simulate_model_response(primary_model, role, prompt)
         return (simulation_response, 0.0, primary_model, False)
 
@@ -452,7 +448,7 @@ class TieredConsensusTool(WorkflowTool):
         # Resolve model to provider
         provider = ModelProviderRegistry.get_provider_for_model(model_name)
         if not provider:
-            raise ValueError(f"No provider found for model: {model_name}. " "Check API keys and model availability.")
+            raise ValueError(f"No provider found for model: {model_name}. Check API keys and model availability.")
 
         # Build system prompt for this role
         role_clean = role.replace("_", " ").title()
@@ -591,7 +587,7 @@ I've analyzed this proposal from the {role_clean.lower()} perspective.
 This requires careful consideration of {role} factors before making a final decision.
 """
 
-    def _create_text_content(self, text: str) -> List[Dict[str, Any]]:
+    def _create_text_content(self, text: str) -> list[dict[str, Any]]:
         """
         Create MCP text content response.
 
@@ -605,7 +601,7 @@ This requires careful consideration of {role} factors before making a final deci
 
     # WorkflowMixin abstract methods (not used in our simplified workflow)
 
-    def get_required_actions(self, step_number: int, confidence: str, findings: str, total_steps: int) -> List[str]:
+    def get_required_actions(self, step_number: int, confidence: str, findings: str, total_steps: int) -> list[str]:
         """
         Get required actions for current step (not used in our workflow).
 

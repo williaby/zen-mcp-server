@@ -7,7 +7,7 @@ better context extraction and prompt analysis for intelligent model routing.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -16,20 +16,20 @@ class ToolHook(ABC):
     """Abstract base class for tool-specific hooks."""
 
     @abstractmethod
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         """Get list of tool names this hook handles."""
         pass
 
     @abstractmethod
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt from tool context."""
         pass
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         """Extract tool-specific complexity indicators."""
         return {}
 
-    def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, context: dict[str, Any]) -> dict[str, Any]:
         """Suggest model preferences based on tool-specific knowledge."""
         return {}
 
@@ -37,10 +37,10 @@ class ToolHook(ABC):
 class ChatHook(ToolHook):
     """Hook for chat/general conversation tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["chat", "ChatTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for chat tools."""
         prompt_parts = ["General chat/conversation task"]
 
@@ -54,7 +54,7 @@ class ChatHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Chat with code files suggests higher complexity
@@ -69,10 +69,10 @@ class ChatHook(ToolHook):
 class CodeReviewHook(ToolHook):
     """Hook for code review tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["codereview", "CodeReviewTool", "quickreview"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for code review tools."""
         prompt_parts = ["Code review and analysis task"]
 
@@ -86,7 +86,7 @@ class CodeReviewHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Multiple files indicate higher complexity
@@ -104,7 +104,7 @@ class CodeReviewHook(ToolHook):
 
         return indicators
 
-    def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, context: dict[str, Any]) -> dict[str, Any]:
         preferences = {}
 
         # Code review benefits from models with good reasoning
@@ -120,10 +120,10 @@ class CodeReviewHook(ToolHook):
 class DebugHook(ToolHook):
     """Hook for debugging tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["debug", "DebugIssueTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for debugging tools."""
         prompt_parts = ["Code debugging and issue resolution task"]
 
@@ -136,7 +136,7 @@ class DebugHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Error context increases complexity
@@ -148,7 +148,7 @@ class DebugHook(ToolHook):
 
         return indicators
 
-    def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, context: dict[str, Any]) -> dict[str, Any]:
         preferences = {}
 
         # Debugging benefits from analytical models
@@ -161,10 +161,10 @@ class DebugHook(ToolHook):
 class AnalyzeHook(ToolHook):
     """Hook for analysis tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["analyze", "AnalyzeTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for analysis tools."""
         prompt_parts = ["Code analysis and understanding task"]
 
@@ -178,7 +178,7 @@ class AnalyzeHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Large analysis tasks
@@ -194,10 +194,10 @@ class AnalyzeHook(ToolHook):
 class ConsensusHook(ToolHook):
     """Hook for consensus tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["consensus", "ConsensusTool", "layered_consensus"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for consensus tools."""
         prompt_parts = ["Multi-model consensus and decision-making task"]
 
@@ -206,7 +206,7 @@ class ConsensusHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Consensus tasks are inherently complex
@@ -215,7 +215,7 @@ class ConsensusHook(ToolHook):
 
         return indicators
 
-    def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, context: dict[str, Any]) -> dict[str, Any]:
         preferences = {}
 
         # Consensus benefits from diverse model types
@@ -228,24 +228,24 @@ class ConsensusHook(ToolHook):
 class PlannerHook(ToolHook):
     """Hook for planning tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["planner", "PlannerTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for planning tools."""
         return "Project planning and task organization"
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         return {"planning_task": True}
 
 
 class SecauditHook(ToolHook):
     """Hook for security audit tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["secaudit", "SecauditTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for security audit tools."""
         prompt_parts = ["Security audit and vulnerability analysis"]
 
@@ -255,20 +255,20 @@ class SecauditHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         return {"security_analysis": True, "expert_level": True}
 
-    def suggest_model_preferences(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, context: dict[str, Any]) -> dict[str, Any]:
         return {"require_security_knowledge": True, "prefer_senior_models": True}
 
 
 class RefactorHook(ToolHook):
     """Hook for refactoring tools."""
 
-    def get_tool_names(self) -> List[str]:
+    def get_tool_names(self) -> list[str]:
         return ["refactor", "RefactorTool"]
 
-    def build_analysis_prompt(self, context: Dict[str, Any]) -> str:
+    def build_analysis_prompt(self, context: dict[str, Any]) -> str:
         """Build analysis prompt for refactoring tools."""
         prompt_parts = ["Code refactoring and restructuring task"]
 
@@ -278,7 +278,7 @@ class RefactorHook(ToolHook):
 
         return "; ".join(prompt_parts)
 
-    def extract_complexity_indicators(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, context: dict[str, Any]) -> dict[str, Any]:
         indicators = {}
 
         # Refactoring complexity depends on scope
@@ -295,7 +295,7 @@ class ToolHooks:
     """Main hooks manager for routing integration."""
 
     def __init__(self):
-        self.hooks: Dict[str, ToolHook] = {}
+        self.hooks: dict[str, ToolHook] = {}
         self._register_default_hooks()
 
     def _register_default_hooks(self):
@@ -315,7 +315,7 @@ class ToolHooks:
             for tool_name in hook.get_tool_names():
                 self.hooks[tool_name.lower()] = hook
 
-    def build_analysis_prompt(self, tool_name: str, context: Dict[str, Any]) -> Optional[str]:
+    def build_analysis_prompt(self, tool_name: str, context: dict[str, Any]) -> Optional[str]:
         """Build analysis prompt using appropriate hook."""
         hook = self.hooks.get(tool_name.lower())
         if hook:
@@ -324,14 +324,14 @@ class ToolHooks:
         # Generic fallback
         return f"Tool: {tool_name}"
 
-    def extract_complexity_indicators(self, tool_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_complexity_indicators(self, tool_name: str, context: dict[str, Any]) -> dict[str, Any]:
         """Extract complexity indicators using appropriate hook."""
         hook = self.hooks.get(tool_name.lower())
         if hook:
             return hook.extract_complexity_indicators(context)
         return {}
 
-    def suggest_model_preferences(self, tool_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_model_preferences(self, tool_name: str, context: dict[str, Any]) -> dict[str, Any]:
         """Get model preferences using appropriate hook."""
         hook = self.hooks.get(tool_name.lower())
         if hook:
@@ -342,6 +342,6 @@ class ToolHooks:
         """Register a custom hook for a tool."""
         self.hooks[tool_name.lower()] = hook
 
-    def get_available_hooks(self) -> List[str]:
+    def get_available_hooks(self) -> list[str]:
         """Get list of available hook names."""
         return list(self.hooks.keys())

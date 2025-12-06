@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 from tools.custom.band_selector import BandSelector
 
@@ -24,8 +23,8 @@ class ModelAvailability:
     model: str
     is_available: bool
     last_checked: float
-    error_code: Optional[int] = None
-    error_message: Optional[str] = None
+    error_code: int | None = None
+    error_message: str | None = None
 
 
 class AvailabilityCache:
@@ -43,9 +42,9 @@ class AvailabilityCache:
             ttl_seconds: Time-to-live for cached availability (default: 5 minutes)
         """
         self.ttl_seconds = ttl_seconds
-        self._cache: Dict[str, ModelAvailability] = {}
+        self._cache: dict[str, ModelAvailability] = {}
 
-    def is_available(self, model: str) -> Optional[bool]:
+    def is_available(self, model: str) -> bool | None:
         """
         Check if model is available from cache.
 
@@ -69,7 +68,7 @@ class AvailabilityCache:
         return cached.is_available
 
     def set_available(
-        self, model: str, is_available: bool, error_code: Optional[int] = None, error_message: Optional[str] = None
+        self, model: str, is_available: bool, error_code: int | None = None, error_message: str | None = None
     ):
         """
         Update model availability in cache.
@@ -92,7 +91,7 @@ class AvailabilityCache:
         """Clear all cached availability data."""
         self._cache.clear()
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """
         Get cache statistics.
 
@@ -121,7 +120,7 @@ class TierManager:
     - Paid model deprecation alerts
     """
 
-    def __init__(self, band_selector: Optional[BandSelector] = None):
+    def __init__(self, band_selector: BandSelector | None = None):
         """
         Initialize tier manager.
 
@@ -131,7 +130,7 @@ class TierManager:
         self.band_selector = band_selector or BandSelector()
         self.availability_cache = AvailabilityCache(ttl_seconds=300)  # 5-minute TTL
 
-    def get_tier_models(self, level: int, max_attempts: int = 10) -> List[str]:
+    def get_tier_models(self, level: int, max_attempts: int = 10) -> list[str]:
         """
         Get models for specified tier with additive architecture.
 
@@ -169,7 +168,7 @@ class TierManager:
             premium_models = self._get_premium_models(target=2)
             return tier1_models + economy_models + premium_models
 
-    def _get_available_free_models(self, target: int, max_attempts: int) -> List[str]:
+    def _get_available_free_models(self, target: int, max_attempts: int) -> list[str]:
         """
         Get available free models with failover for transient availability.
 
@@ -213,12 +212,12 @@ class TierManager:
 
         if len(available) < target:
             logger.warning(
-                f"Only found {len(available)} available free models " f"(target: {target}, attempts: {attempts})"
+                f"Only found {len(available)} available free models (target: {target}, attempts: {attempts})"
             )
 
         return available
 
-    def get_failover_candidates(self, level: int, target: int = 3) -> Tuple[List[str], List[str]]:
+    def get_failover_candidates(self, level: int, target: int = 3) -> tuple[list[str], list[str]]:
         """
         Get primary models and failover candidates for smart retry.
 
@@ -260,7 +259,7 @@ class TierManager:
             fallback = [m for m in premium_fallbacks if m not in primary]
             return (primary, fallback)
 
-    def _get_economy_models(self, target: int) -> List[str]:
+    def _get_economy_models(self, target: int) -> list[str]:
         """
         Get economy tier models (should be stable, no failover).
 
@@ -284,7 +283,7 @@ class TierManager:
 
         return models
 
-    def _get_premium_models(self, target: int) -> List[str]:
+    def _get_premium_models(self, target: int) -> list[str]:
         """
         Get premium tier models (should be stable, alert if fail).
 
@@ -387,7 +386,7 @@ class TierManager:
         status = model_data.iloc[0]["status"]
         return status != "free"
 
-    def _alert_paid_model_failure(self, model: str, tier: str = "unknown", error_code: Optional[int] = None):
+    def _alert_paid_model_failure(self, model: str, tier: str = "unknown", error_code: int | None = None):
         """
         Alert about paid model failure requiring manual intervention.
 
@@ -410,7 +409,7 @@ class TierManager:
 
         # TODO: Could also send to monitoring service, Slack, PagerDuty, etc.
 
-    def get_tier_costs(self, level: int) -> Dict[str, float]:
+    def get_tier_costs(self, level: int) -> dict[str, float]:
         """
         Get estimated costs for specified tier.
 
@@ -446,7 +445,7 @@ class TierManager:
             "output_cost_per_million": round(total_output_cost, 2),
         }
 
-    def get_tier_summary(self, level: int) -> Dict[str, any]:
+    def get_tier_summary(self, level: int) -> dict[str, any]:
         """
         Get comprehensive summary for specified tier.
 

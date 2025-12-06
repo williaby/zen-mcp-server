@@ -7,13 +7,11 @@ and other tasks requiring optimal model matching based on requirements.
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from mcp.types import TextContent
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from tools.shared.base_models import ToolRequest
 from tools.simple.base import SimpleTool
@@ -56,7 +54,7 @@ class DynamicModelSelectorTool(SimpleTool):
     def get_description(self) -> str:
         return "Intelligently selects optimal AI models based on task requirements, complexity, and budget preferences."
 
-    def get_tool_fields(self) -> Dict[str, Any]:
+    def get_tool_fields(self) -> dict[str, Any]:
         """Return tool-specific field definitions for schema generation."""
         return {
             "requirements": {
@@ -97,7 +95,7 @@ class DynamicModelSelectorTool(SimpleTool):
         return """You are a dynamic model selection assistant. Your role is to analyze task requirements and recommend the most suitable AI models based on:
 
 1. Task complexity and requirements
-2. Budget constraints and preferences  
+2. Budget constraints and preferences
 3. Model capabilities and strengths
 4. Performance vs cost optimization
 
@@ -112,7 +110,7 @@ Provide clear reasoning for your model selections and explain trade-offs."""
         # Try to use the new model selector if available
         if HAS_MODEL_SELECTOR:
             try:
-                selector = create_model_selector()
+                create_model_selector()
                 # Use the new selector for recommendations
                 prompt = f"""Analyze the following requirements and provide model recommendations:
 
@@ -186,27 +184,27 @@ class DynamicModelSelector:
         self.bands_config = {}
         self.schema = None
 
-    def select_consensus_models(self, org_level: str) -> Tuple[List[str], float]:
+    def select_consensus_models(self, org_level: str) -> Tuple[list[str], float]:
         """Select consensus models - delegates to new architecture."""
         return self._orchestrator.select_consensus_models(org_level)
 
-    def select_layered_consensus_models(self, org_level: str) -> Tuple[Dict[str, List[str]], float]:
+    def select_layered_consensus_models(self, org_level: str) -> Tuple[dict[str, list[str]], float]:
         """Select layered consensus models - delegates to new architecture."""
         return self._orchestrator.select_layered_consensus_models(org_level)
 
-    def create_layered_role_assignments(self, layered_models: Dict[str, List[str]]) -> List[Dict]:
+    def create_layered_role_assignments(self, layered_models: dict[str, list[str]]) -> list[dict]:
         """Create role assignments - delegates to new architecture."""
         return self._orchestrator.create_layered_role_assignments(layered_models)
 
-    def get_best_model_for_role(self, role: str, org_level: str) -> Optional[str]:
+    def get_best_model_for_role(self, role: str, org_level: str) -> str | None:
         """Get best model for role - delegates to new architecture."""
         return self._orchestrator.get_best_model_for_role(role, org_level)
 
-    def get_large_context_models(self, min_context: int = 500000) -> List[str]:
+    def get_large_context_models(self, min_context: int = 500000) -> list[str]:
         """Get large context models - delegates to new architecture."""
         return self._orchestrator.get_large_context_models(min_context)
 
-    def get_model_info(self, model_name: str) -> Optional[Dict]:
+    def get_model_info(self, model_name: str) -> dict | None:
         """Get model info - delegates to new architecture."""
         model_data = self._orchestrator.get_model_info(model_name)
         if model_data:
@@ -231,11 +229,11 @@ class DynamicModelSelector:
             }
         return None
 
-    def get_models_by_tier(self, tier: str) -> List[str]:
+    def get_models_by_tier(self, tier: str) -> list[str]:
         """Get models by tier - delegates to new architecture."""
         return self._orchestrator.get_models_by_tier(tier)
 
-    def get_models_by_specialization(self, specialization: str, tier: Optional[str] = None) -> List[str]:
+    def get_models_by_specialization(self, specialization: str, tier: str | None = None) -> list[str]:
         """Get models by specialization - delegates to new architecture."""
         return self._orchestrator.get_models_by_specialization(specialization, tier)
 
@@ -247,32 +245,32 @@ class DynamicModelSelector:
         """Get cost tier band - delegates to new architecture."""
         return self._orchestrator.get_cost_tier_band(input_cost)
 
-    def select_models_by_context_band(self, band: str, max_count: int = 5) -> List[str]:
+    def select_models_by_context_band(self, band: str, max_count: int = 5) -> list[str]:
         """Select models by context band - delegates to new architecture."""
         return self._orchestrator.select_models_by_context_band(band, max_count)
 
-    def select_models_by_cost_tier(self, tier: str, max_count: int = 5) -> List[str]:
+    def select_models_by_cost_tier(self, tier: str, max_count: int = 5) -> list[str]:
         """Select models by cost tier - delegates to new architecture."""
         return self._orchestrator.select_models_by_cost_tier(tier, max_count)
 
-    def estimate_cost(self, models: List[str], org_level: str) -> float:
+    def estimate_cost(self, models: list[str], org_level: str) -> float:
         """Estimate cost - delegates to new architecture."""
         return self._orchestrator.estimate_cost(models, org_level)
 
-    def compare_model_costs(self, models: List[str]) -> List[Dict]:
+    def compare_model_costs(self, models: list[str]) -> list[dict]:
         """Compare model costs - delegates to new architecture."""
         return self._orchestrator.compare_model_costs(models)
 
-    def get_cost_efficiency_ranking(self) -> List[Dict]:
+    def get_cost_efficiency_ranking(self) -> list[dict]:
         """Get cost efficiency ranking - delegates to new architecture."""
         return self._orchestrator.get_cost_efficiency_ranking()
 
-    def validate_data(self) -> Dict:
+    def validate_data(self) -> dict:
         """Validate data - delegates to new architecture."""
         result = self._orchestrator.validate_data()
         return {"is_valid": result.is_valid, "errors": result.errors, "warnings": result.warnings, "info": result.info}
 
-    def reload_data(self, force: bool = False) -> Dict:
+    def reload_data(self, force: bool = False) -> dict:
         """Reload data - delegates to new architecture."""
         result = self._orchestrator.reload_data(force)
         return {"is_valid": result.is_valid, "errors": result.errors, "warnings": result.warnings, "info": result.info}
@@ -289,8 +287,7 @@ def get_model_selector() -> DynamicModelSelector:
         DynamicModelSelector instance (compatibility wrapper)
     """
     logger.warning(
-        "get_model_selector() is deprecated. Use 'from model_selector import create_default_selector' "
-        "for new projects."
+        "get_model_selector() is deprecated. Use 'from model_selector import create_default_selector' for new projects."
     )
     return DynamicModelSelector()
 

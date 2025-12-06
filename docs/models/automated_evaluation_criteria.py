@@ -217,7 +217,6 @@ class ModelEvaluator:
 
             # Standard replacement logic for non-protected scenarios
             if existing_tier == new_tier or self._adjacent_tiers(new_tier, existing_tier):
-
                 # Same capability overlap
                 if any(cap in existing_capabilities for cap in new_capabilities):
                     # Don't replace protected models unless special conditions met

@@ -11,7 +11,7 @@ import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from .complexity_analyzer import ComplexityAnalyzer, TaskType
 
@@ -34,14 +34,14 @@ class ModelInfo:
     name: str
     level: ModelLevel
     cost_per_token: float = 0.0
-    specializations: List[TaskType] = field(default_factory=list)
+    specializations: list[TaskType] = field(default_factory=list)
     max_tokens: int = 4096
     context_window: int = 4096
     is_available: bool = True
     last_error: Optional[str] = None
     error_count: int = 0
     success_rate: float = 1.0
-    aliases: List[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -51,7 +51,7 @@ class RoutingResult:
     model: ModelInfo
     confidence: float
     reasoning: str
-    fallback_models: List[ModelInfo]
+    fallback_models: list[ModelInfo]
     estimated_cost: float = 0.0
 
 
@@ -71,8 +71,8 @@ class ModelLevelRouter:
         self.config_path = config_path or self._get_default_config_path()
         self.models_config_path = models_config_path or self._get_default_models_config_path()
         self.complexity_analyzer = ComplexityAnalyzer()
-        self.models: Dict[str, ModelInfo] = {}
-        self.level_models: Dict[ModelLevel, List[ModelInfo]] = {level: [] for level in ModelLevel}
+        self.models: dict[str, ModelInfo] = {}
+        self.level_models: dict[ModelLevel, list[ModelInfo]] = {level: [] for level in ModelLevel}
         self.cache = {}
         self.cache_ttl = 300  # 5 minutes
 
@@ -113,7 +113,7 @@ class ModelLevelRouter:
             self.routing_config = self._get_default_routing_config()
             self.models_config = {}
 
-    def _get_default_routing_config(self) -> Dict[str, Any]:
+    def _get_default_routing_config(self) -> dict[str, Any]:
         """Get default routing configuration."""
         return {
             "levels": {
@@ -173,7 +173,7 @@ class ModelLevelRouter:
 
         logger.info(f"Initialized {len(self.models)} models across {len(ModelLevel)} levels")
 
-    def _determine_model_level(self, model_name: str, model_config: Dict[str, Any]) -> ModelLevel:
+    def _determine_model_level(self, model_name: str, model_config: dict[str, Any]) -> ModelLevel:
         """Determine the level of a model based on its configuration."""
         # Check if explicitly marked as free
         if (
@@ -217,7 +217,7 @@ class ModelLevelRouter:
         else:
             return ModelLevel.FREE
 
-    def _estimate_cost_per_token(self, model_name: str, model_config: Dict[str, Any]) -> float:
+    def _estimate_cost_per_token(self, model_name: str, model_config: dict[str, Any]) -> float:
         """Estimate cost per token based on model type."""
         # Free models (local, marked as free)
         if model_name.endswith(":free") or "free" in model_name.lower() or model_config.get("is_custom", False):
@@ -237,7 +237,7 @@ class ModelLevelRouter:
         else:
             return 0.001  # Default estimate
 
-    def _extract_specializations(self, model_config: Dict[str, Any]) -> List[TaskType]:
+    def _extract_specializations(self, model_config: dict[str, Any]) -> list[TaskType]:
         """Extract task type specializations from model config."""
         specializations = []
 
@@ -271,14 +271,14 @@ class ModelLevelRouter:
 
         return specializations or [TaskType.GENERAL]
 
-    def _model_sort_key(self, model: ModelInfo) -> Tuple[int, float, float]:
+    def _model_sort_key(self, model: ModelInfo) -> tuple[int, float, float]:
         """Sorting key for model preference (lower is better)."""
         # Priority: cost (free first), success rate (higher better), error count (lower better)
         cost_priority = 0 if model.cost_per_token == 0 else 1
         success_penalty = 1.0 - model.success_rate
         return (cost_priority, success_penalty, model.error_count)
 
-    def analyze_task_complexity(self, prompt: str, context: Dict[str, Any] = None) -> Tuple[str, float, TaskType]:
+    def analyze_task_complexity(self, prompt: str, context: dict[str, Any] = None) -> tuple[str, float, TaskType]:
         """
         Analyze task complexity and type.
 
@@ -292,7 +292,7 @@ class ModelLevelRouter:
         return self.complexity_analyzer.analyze(prompt, context)
 
     def select_model(
-        self, prompt: str, context: Dict[str, Any] = None, prefer_free: bool = True, max_cost: float = None
+        self, prompt: str, context: dict[str, Any] = None, prefer_free: bool = True, max_cost: float = None
     ) -> RoutingResult:
         """
         Select the best model for a given prompt and context.
@@ -352,7 +352,7 @@ class ModelLevelRouter:
 
         return result
 
-    def _get_cache_key(self, prompt: str, context: Dict[str, Any], prefer_free: bool, max_cost: float) -> str:
+    def _get_cache_key(self, prompt: str, context: dict[str, Any], prefer_free: bool, max_cost: float) -> str:
         """Generate cache key for model selection."""
         context_str = str(sorted(context.items())) if context else ""
         return f"{hash(prompt)}_{hash(context_str)}_{prefer_free}_{max_cost}"
@@ -378,7 +378,7 @@ class ModelLevelRouter:
 
     def _get_candidate_models(
         self, required_level: ModelLevel, task_type: TaskType, max_cost: float = None, prefer_free: bool = True
-    ) -> List[ModelInfo]:
+    ) -> list[ModelInfo]:
         """Get candidate models for selection."""
         candidates = []
 
@@ -429,7 +429,7 @@ class ModelLevelRouter:
 
         return candidates
 
-    def _get_fallback_models(self, max_cost: float = None) -> List[ModelInfo]:
+    def _get_fallback_models(self, max_cost: float = None) -> list[ModelInfo]:
         """Get fallback models when no suitable models found."""
         fallbacks = []
 
@@ -496,7 +496,7 @@ class ModelLevelRouter:
         model.total_requests = total_requests
         model.successful_requests = successful_requests
 
-    def get_model_stats(self) -> Dict[str, Any]:
+    def get_model_stats(self) -> dict[str, Any]:
         """Get routing and model performance statistics."""
         stats = {
             "total_models": len(self.models),
@@ -535,7 +535,7 @@ class ModelLevelRouter:
 
         return stats
 
-    def get_models_by_level(self, level: str) -> List[Dict[str, Any]]:
+    def get_models_by_level(self, level: str) -> list[dict[str, Any]]:
         """Get models for a specific level."""
         try:
             model_level = ModelLevel(level)

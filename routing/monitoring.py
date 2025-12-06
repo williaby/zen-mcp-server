@@ -13,7 +13,7 @@ from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class RoutingEvent:
     error_message: Optional[str] = None
     response_time: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
@@ -99,11 +99,11 @@ class RoutingMonitor:
 
         # Event storage
         self.events: deque[RoutingEvent] = deque(maxlen=max_events)
-        self.model_performance: Dict[str, ModelPerformance] = {}
+        self.model_performance: dict[str, ModelPerformance] = {}
 
         # Aggregated metrics
-        self.hourly_stats: Dict[str, Dict[str, Any]] = defaultdict(dict)
-        self.daily_stats: Dict[str, Dict[str, Any]] = defaultdict(dict)
+        self.hourly_stats: dict[str, dict[str, Any]] = defaultdict(dict)
+        self.daily_stats: dict[str, dict[str, Any]] = defaultdict(dict)
 
         # Threading for background tasks
         self._lock = threading.RLock()
@@ -173,7 +173,7 @@ class RoutingMonitor:
                 perf.error_count += 1
                 perf.last_error = event.error_message
 
-    def get_current_metrics(self) -> Dict[str, Any]:
+    def get_current_metrics(self) -> dict[str, Any]:
         """Get current routing metrics."""
         with self._lock:
             now = time.time()
@@ -230,7 +230,7 @@ class RoutingMonitor:
                 },
             }
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get system health status based on metrics."""
         metrics = self.get_current_metrics()
         health_checks = {}
@@ -276,7 +276,7 @@ class RoutingMonitor:
             "summary": "System healthy" if overall_healthy else "Issues detected",
         }
 
-    def get_cost_analysis(self) -> Dict[str, Any]:
+    def get_cost_analysis(self) -> dict[str, Any]:
         """Get detailed cost analysis."""
         with self._lock:
             now = time.time()
@@ -326,7 +326,7 @@ class RoutingMonitor:
                 "optimization_opportunities": self._identify_cost_optimizations(),
             }
 
-    def _identify_cost_optimizations(self) -> List[str]:
+    def _identify_cost_optimizations(self) -> list[str]:
         """Identify potential cost optimization opportunities."""
         opportunities = []
 
@@ -385,7 +385,7 @@ class RoutingMonitor:
             if day_events:
                 self.daily_stats[current_day] = self._calculate_period_stats(day_events)
 
-    def _calculate_period_stats(self, events: List[RoutingEvent]) -> Dict[str, Any]:
+    def _calculate_period_stats(self, events: list[RoutingEvent]) -> dict[str, Any]:
         """Calculate statistics for a period of events."""
         if not events:
             return {}
@@ -483,7 +483,7 @@ class RoutingMonitor:
 
     def export_metrics(
         self, format: str = "json", start_time: Optional[float] = None, end_time: Optional[float] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Export metrics data for analysis."""
         with self._lock:
             # Filter events by time range

@@ -9,7 +9,7 @@ provide intelligent routing while maintaining full backwards compatibility.
 import logging
 import os
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from .hooks import ToolHooks
 from .model_level_router import ModelLevelRouter, RoutingResult
@@ -97,7 +97,7 @@ class ModelRoutingIntegration:
 
         return wrapped_get_model_provider
 
-    def _extract_tool_context(self, tool_instance, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_tool_context(self, tool_instance, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Extract context information from tool instance and request."""
         context = {}
 
@@ -121,7 +121,7 @@ class ModelRoutingIntegration:
         return context
 
     def _get_routing_recommendation(
-        self, original_model: str, tool_instance, context: Dict[str, Any]
+        self, original_model: str, tool_instance, context: dict[str, Any]
     ) -> Optional[RoutingResult]:
         """Get routing recommendation for model selection."""
         if not self.router:
@@ -141,7 +141,9 @@ class ModelRoutingIntegration:
 
             # Get routing decision
             routing_result = self.router.select_model(
-                prompt=prompt, context=context, prefer_free=True  # Default to preferring free models
+                prompt=prompt,
+                context=context,
+                prefer_free=True,  # Default to preferring free models
             )
 
             self.metrics["routing_decisions"] += 1
@@ -156,7 +158,7 @@ class ModelRoutingIntegration:
             logger.error(f"Failed to get routing recommendation: {e}")
             return None
 
-    def _build_analysis_prompt(self, tool_instance, context: Dict[str, Any]) -> str:
+    def _build_analysis_prompt(self, tool_instance, context: dict[str, Any]) -> str:
         """Build a prompt for complexity analysis from tool context."""
         tool_name = context.get("tool_name", "unknown")
 
@@ -259,7 +261,7 @@ class ModelRoutingIntegration:
         base_tool_class.get_model_provider = new_get_model_provider
         logger.info("Integrated dynamic model routing with BaseTool")
 
-    def get_routing_stats(self) -> Dict[str, Any]:
+    def get_routing_stats(self) -> dict[str, Any]:
         """Get routing statistics."""
         stats = dict(self.metrics)
         stats["enabled"] = self.enabled
@@ -281,7 +283,7 @@ class ModelRoutingIntegration:
         if self.router and self.enabled:
             self.router.update_model_performance(model_name, success, error)
 
-    def get_model_recommendation(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def get_model_recommendation(self, prompt: str, context: dict[str, Any] = None) -> dict[str, Any]:
         """Get model recommendation for external use."""
         if not self.enabled or not self.router:
             return {"error": "Routing not enabled"}
@@ -335,7 +337,7 @@ def integrate_with_server():
         logger.info("Dynamic model routing disabled (ZEN_SMART_ROUTING not set to true)")
 
 
-def route_model_request(prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+def route_model_request(prompt: str, context: dict[str, Any] = None) -> dict[str, Any]:
     """
     Convenience function for external model routing requests.
 

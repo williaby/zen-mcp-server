@@ -7,7 +7,7 @@ without requiring modifications to server.py. Safe for upstream pulls.
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class DynamicRoutingPlugin:
             logger.error(f"Failed to initialize routing status tool: {e}")
             # Not critical - continue without the status tool
 
-    def get_tools(self) -> Dict[str, Any]:
+    def get_tools(self) -> dict[str, Any]:
         """
         Get tools provided by this plugin.
 
@@ -89,7 +89,7 @@ class DynamicRoutingPlugin:
 
         return tools
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get plugin status information.
 

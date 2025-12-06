@@ -21,10 +21,10 @@ from tools.shared.base_tool import BaseTool
 logger = logging.getLogger(__name__)
 
 # Registry of custom tools (populated by auto-discovery)
-CUSTOM_TOOLS: Dict[str, Type[BaseTool]] = {}
+CUSTOM_TOOLS: dict[str, type[BaseTool]] = {}
 
 
-def discover_custom_tools() -> Dict[str, BaseTool]:
+def discover_custom_tools() -> dict[str, BaseTool]:
     """
     Automatically discover and instantiate custom tools in this directory.
 
@@ -60,7 +60,6 @@ def discover_custom_tools() -> Dict[str, BaseTool]:
                         and attr != BaseTool
                         and hasattr(attr, "get_name")
                     ):
-
                         try:
                             # Instantiate the tool
                             tool_instance = attr()
@@ -79,7 +78,7 @@ def discover_custom_tools() -> Dict[str, BaseTool]:
     return custom_tool_instances
 
 
-def get_custom_tools() -> Dict[str, BaseTool]:
+def get_custom_tools() -> dict[str, BaseTool]:
     """
     Get all discovered custom tools.
 

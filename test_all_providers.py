@@ -9,7 +9,6 @@ This script tests each configured provider with a simple prompt to ensure:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import sys
 from pathlib import Path
@@ -17,27 +16,30 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from utils.env import get_env, reload_env
-from providers.registry import ModelProviderRegistry
-from providers.shared import ProviderType
 from providers.openai import OpenAIModelProvider
 from providers.openrouter import OpenRouterProvider
+from providers.registry import ModelProviderRegistry
+from providers.shared import ProviderType
+from utils.env import get_env, reload_env
 
 # Optional providers
 try:
     from providers.gemini import GeminiModelProvider
+
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
 
 try:
     from providers.xai import XAIModelProvider
+
     XAI_AVAILABLE = True
 except ImportError:
     XAI_AVAILABLE = False
 
 try:
     from providers.dial import DIALModelProvider
+
     DIAL_AVAILABLE = True
 except ImportError:
     DIAL_AVAILABLE = False
@@ -57,23 +59,19 @@ TEST_PROMPT = "What is 2+2? Reply with just the number and a brief explanation."
 PROVIDERS_TO_TEST = [
     # Direct OpenAI API test
     ("openai", "o4-mini"),  # Direct OpenAI API
-
     # Premium tier (executive level) - Top performing models
     ("openrouter", "openai/gpt-5.1"),  # Lead architect - next generation
     ("openrouter", "anthropic/claude-opus-4.5"),  # System architect - agentic workflows
     ("openrouter", "openai/gpt-5.1-codex"),  # Lead architect - coding specialist
     ("openrouter", "google/gemini-3-pro-preview"),  # Lead architect - multimodal
-
     # High performance tier (senior level) - Production workhorses
     ("openrouter", "anthropic/claude-sonnet-4.5"),  # Senior dev - agentic reasoning
     ("openrouter", "openai/gpt-5-mini"),  # Senior dev - efficient general
     ("openrouter", "deepseek/deepseek-r1-0528"),  # Security analyst - reasoning
-
     # Open source tier (senior level) - Fast and cost-effective
     ("openrouter", "google/gemini-2.5-flash"),  # Senior dev - speed optimized
     ("openrouter", "qwen/qwen3-coder"),  # Senior dev - coding specialist
     ("openrouter", "mistralai/mistral-large-2411"),  # Senior dev - European
-
     # Free champion tier (junior level) - High quality free models
     ("openrouter", "meta-llama/llama-3.1-405b-instruct:free"),  # Technical validator
     ("openrouter", "qwen/qwen-2.5-coder-32b-instruct:free"),  # Code reviewer
