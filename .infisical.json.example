@@ -1,0 +1,11 @@
+{
+  "workspaceId": "your-workspace-id-from-infisical-project-settings",
+  "siteUrl": "https://infisical.williamshome.family",
+  "defaultEnvironment": "dev",
+  "gitBranchToEnvironmentMapping": {
+    "main": "prod",
+    "staging": "staging",
+    "dev": "dev",
+    "develop": "dev"
+  }
+}

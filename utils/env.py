@@ -18,6 +18,7 @@ _ENV_PATH = _PROJECT_ROOT / ".env"
 
 _DOTENV_VALUES: dict[str, str | None] = {}
 _FORCE_ENV_OVERRIDE = False
+_INFISICAL_LOADED = False
 
 
 def _read_dotenv_values() -> dict[str, str | None]:
@@ -32,22 +33,50 @@ def _compute_force_override(values: Mapping[str, str | None]) -> bool:
     return raw == "true"
 
 
-def reload_env(dotenv_mapping: Mapping[str, str | None] | None = None) -> None:
+def reload_env(dotenv_mapping: Mapping[str, str | None] | None = None, use_infisical: bool = True) -> None:
     """Reload .env values and recompute override semantics.
 
     Args:
         dotenv_mapping: Optional mapping used instead of reading the .env file.
             Intended for tests; when provided, load_dotenv is not invoked.
+        use_infisical: If True, attempt to load secrets from Infisical before .env file
     """
 
-    global _DOTENV_VALUES, _FORCE_ENV_OVERRIDE
+    global _DOTENV_VALUES, _FORCE_ENV_OVERRIDE, _INFISICAL_LOADED
 
     if dotenv_mapping is not None:
         _DOTENV_VALUES = dict(dotenv_mapping)
         _FORCE_ENV_OVERRIDE = _compute_force_override(_DOTENV_VALUES)
         return
 
-    _DOTENV_VALUES = _read_dotenv_values()
+    # Try to load from Infisical first (if enabled and available)
+    if use_infisical and not _INFISICAL_LOADED:
+        try:
+            from utils.infisical import inject_secrets_into_env, load_secrets_from_infisical
+
+            secrets = load_secrets_from_infisical()
+            if secrets:
+                # Inject secrets into environment (don't override existing vars)
+                inject_secrets_into_env(secrets, override=False)
+                _INFISICAL_LOADED = True
+                # Also store in _DOTENV_VALUES for consistent access
+                _DOTENV_VALUES.update(secrets)
+        except ImportError:
+            # Infisical not installed, fall back to .env
+            pass
+        except Exception as e:
+            # Log error but continue with .env fallback
+            import logging
+
+            logging.getLogger(__name__).warning(f"Failed to load secrets from Infisical: {e}")
+
+    # Load from .env file (as fallback or supplement)
+    dotenv_values_from_file = _read_dotenv_values()
+    # Merge with Infisical values (Infisical takes precedence)
+    for key, value in dotenv_values_from_file.items():
+        if key not in _DOTENV_VALUES:
+            _DOTENV_VALUES[key] = value
+
     _FORCE_ENV_OVERRIDE = _compute_force_override(_DOTENV_VALUES)
 
     if load_dotenv is not None and _ENV_PATH.exists():
