@@ -184,11 +184,11 @@ class DynamicModelSelector:
         self.bands_config = {}
         self.schema = None
 
-    def select_consensus_models(self, org_level: str) -> Tuple[list[str], float]:
+    def select_consensus_models(self, org_level: str) -> tuple[list[str], float]:
         """Select consensus models - delegates to new architecture."""
         return self._orchestrator.select_consensus_models(org_level)
 
-    def select_layered_consensus_models(self, org_level: str) -> Tuple[dict[str, list[str]], float]:
+    def select_layered_consensus_models(self, org_level: str) -> tuple[dict[str, list[str]], float]:
         """Select layered consensus models - delegates to new architecture."""
         return self._orchestrator.select_layered_consensus_models(org_level)
 

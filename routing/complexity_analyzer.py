@@ -293,7 +293,6 @@ class ComplexityAnalyzer:
             # DevOps and infrastructure
             ".dockerfile": 0.3,  # Docker complexity
             ".tf": 0.4,  # Terraform - infrastructure
-            ".yml": 0.2,  # CI/CD configs
             ".sh": 0.2,  # Shell scripts
             ".ps1": 0.3,  # PowerShell - Windows complexity
             # Default for unknown extensions

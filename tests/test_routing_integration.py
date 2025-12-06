@@ -481,7 +481,7 @@ class TestErrorHandling:
             for i in range(1000):
                 try:
                     integration.get_model_recommendation(f"Test prompt {i}")
-                except:
+                except Exception:
                     pass  # Ignore errors in test environment
 
             # Cache should be bounded (implementation detail)
