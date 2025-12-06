@@ -85,10 +85,11 @@
 - `config/default.yaml`
 
 ### Data - Promptcraft System
-- `data/promptcraft/channel_config.json`
-- `data/promptcraft/experimental_models.json`
-- `data/promptcraft/graduation_queue.json`
-- `data/promptcraft/performance_metrics.json`
+**Note:** Data now stored in `~/.zen-mcp/data/promptcraft/` to avoid polluting repositories
+- `~/.zen-mcp/data/promptcraft/channel_config.json`
+- `~/.zen-mcp/data/promptcraft/experimental_models.json`
+- `~/.zen-mcp/data/promptcraft/graduation_queue.json`
+- `~/.zen-mcp/data/promptcraft/performance_metrics.json`
 
 ### Scripts
 - `enable_dynamic_routing.sh`
@@ -227,7 +228,7 @@ MCP client integration and experimental model management system.
 **Core Files:**
 - `plugins/promptcraft_system/` (3 files)
 - `tools/custom/promptcraft_mcp_client/` (5 files)
-- `data/promptcraft/` (4 files)
+- `~/.zen-mcp/data/promptcraft/` (4 files, stored in home directory)
 - Related documentation (5 files)
 
 ### 3. Custom Tools (15 active files)

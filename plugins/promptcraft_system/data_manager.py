@@ -66,7 +66,8 @@ class PromptCraftDataManager:
 
     def __init__(self, data_dir: Optional[Path] = None):
         if data_dir is None:
-            self.data_dir = Path("data/promptcraft")
+            # Use absolute path in home directory to avoid polluting repos
+            self.data_dir = Path.home() / ".zen-mcp" / "data" / "promptcraft"
         else:
             self.data_dir = Path(data_dir) if isinstance(data_dir, str) else data_dir
         self.data_dir.mkdir(parents=True, exist_ok=True)
