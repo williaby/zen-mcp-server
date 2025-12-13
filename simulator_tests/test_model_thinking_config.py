@@ -30,7 +30,7 @@ class TestModelThinkingConfig(BaseSimulatorTest):
                 "chat",
                 {
                     "prompt": "What is 2 + 2? Please think carefully and explain.",
-                    "model": "pro",  # Should resolve to gemini-2.5-pro
+                    "model": "pro",  # Should resolve to gemini-3-pro-preview
                     "thinking_mode": "high",  # Should use thinking_config
                 },
             )

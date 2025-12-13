@@ -366,7 +366,7 @@ class BandSelector:
             models = [
                 "anthropic/claude-opus-4.1",
                 "openai/gpt-5",
-                "google/gemini-2.5-pro",
+                "google/gemini-3-pro-preview",
                 "anthropic/claude-sonnet-4",
                 "openai/gpt-5-chat",
                 "mistralai/mistral-large-2411",

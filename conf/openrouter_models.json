@@ -97,9 +97,13 @@
       "model_name": "google/gemini-3-pro-preview",
       "aliases": [
         "pro",
-        "gemini-pro",
         "gemini",
+        "gemini-pro",
         "gemini3",
+        "gemini 3",
+        "gemini 3 pro",
+        "gemini-3",
+        "gemini-3-pro",
         "pro-openrouter"
       ],
       "context_window": 1048576,
@@ -139,7 +143,10 @@
     {
       "model_name": "google/gemini-2.5-pro",
       "aliases": [
+        "gemini 2.5 pro",
+        "gemini-2.5-pro",
         "gemini-2.5",
+        "gemini2.5",
         "pro-2.5-openrouter"
       ],
       "context_window": 1048576,

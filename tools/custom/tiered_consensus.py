@@ -540,7 +540,7 @@ Provide your analysis in a structured format with:
             return token_count * 0.0000002  # $0.20 per 1M tokens
 
         # Premium models
-        premium_models = ["gpt-5", "claude", "gemini-2.5-pro", "opus"]
+        premium_models = ["gpt-5", "claude", "gemini-3-pro", "gemini-2.5-pro", "opus"]
         if any(name in model_name.lower() for name in premium_models):
             # Estimate ~$0.50-2.00 per call for premium models
             token_count = (len(prompt) + len(response)) // 4

@@ -202,6 +202,7 @@ class ModelLevelRouter:
                 "claude-sonnet",
                 "claude-3",
                 "gemini-pro",
+                "gemini-3-pro",
                 "gemini-2.5-pro",
                 "o3-mini",
                 "mistral-large",
