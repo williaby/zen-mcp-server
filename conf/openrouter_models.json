@@ -16,7 +16,7 @@
       "max_image_size_mb": "Maximum total size in MB for all images combined (capped at 40MB max for custom models)",
       "supports_temperature": "Whether the model accepts temperature parameter in API calls (set to false for O3/O4 reasoning models)",
       "temperature_constraint": "Type of temperature constraint: 'fixed' (fixed value), 'range' (continuous range), 'discrete' (specific values), or omit for default range",
-      "use_openai_response_api": "Set to true when the model must use the /responses endpoint (reasoning models like GPT-5 Pro). Leave false/omit for standard chat completions.",
+      "use_openai_response_api": "Set to true when the model must use the /responses endpoint (reasoning models like GPT-5.2 Pro). Leave false/omit for standard chat completions.",
       "default_reasoning_effort": "Default reasoning effort level for models that support it (e.g., 'low', 'medium', 'high'). Omit if not applicable.",
       "description": "Human-readable description of the model",
       "intelligence_score": "1-20 human rating used as the primary signal for auto-mode model ordering",
@@ -24,6 +24,23 @@
     }
   },
   "models": [
+    {
+      "model_name": "anthropic/claude-opus-4.5",
+      "aliases": [
+        "opus",
+        "opus4.5",
+        "claude-opus"
+      ],
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": true,
+      "max_image_size_mb": 5.0,
+      "description": "Claude Opus 4.5 - Anthropic's frontier reasoning model for complex software engineering and agentic workflows",
+      "intelligence_score": 18
+    },
     {
       "model_name": "anthropic/claude-sonnet-4.5",
       "aliases": [
@@ -38,26 +55,37 @@
       "supports_images": true,
       "max_image_size_mb": 5.0,
       "description": "Claude Sonnet 4.5 - High-performance model with exceptional reasoning and efficiency",
-      "intelligence_score": 12,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 8.0,
-          "long_context": 8.0,
-          "conversation": 6.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 3.0
-      },
-      "benchmarks": {
-        "humaneval_score": 48.0,
-        "mmlu_score": 54.0,
-        "estimated": true
-      }
+      "intelligence_score": 12
+    },
+    {
+      "model_name": "anthropic/claude-opus-4.1",
+      "aliases": [
+        "opus4.1"
+      ],
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": true,
+      "max_image_size_mb": 5.0,
+      "description": "Claude Opus 4.1 - Last generation flagship model with strong coding and reasoning",
+      "intelligence_score": 14
+    },
+    {
+      "model_name": "anthropic/claude-sonnet-4.1",
+      "aliases": [
+        "sonnet4.1"
+      ],
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": true,
+      "max_image_size_mb": 5.0,
+      "description": "Claude Sonnet 4.1 - Last generation high-performance model with exceptional reasoning and efficiency",
+      "intelligence_score": 10
     },
     {
       "model_name": "anthropic/claude-3.5-haiku",
@@ -72,38 +100,15 @@
       "supports_images": true,
       "max_image_size_mb": 5.0,
       "description": "Claude 3 Haiku - Fast and efficient with vision",
-      "intelligence_score": 8,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 6.0,
-          "long_context": 6.0,
-          "conversation": 4.0
-        },
-        "cost_tier": "medium",
-        "input_cost_per_m": 0.8
-      },
-      "benchmarks": {
-        "humaneval_score": 32.0,
-        "mmlu_score": 36.0,
-        "estimated": true
-      }
+      "intelligence_score": 8
     },
     {
       "model_name": "google/gemini-3-pro-preview",
       "aliases": [
         "pro",
-        "gemini",
         "gemini-pro",
+        "gemini",
         "gemini3",
-        "gemini 3",
-        "gemini 3 pro",
-        "gemini-3",
-        "gemini-3-pro",
         "pro-openrouter"
       ],
       "context_window": 1048576,
@@ -115,38 +120,12 @@
       "max_image_size_mb": 20.0,
       "allow_code_generation": true,
       "description": "Google's Gemini 3.0 Pro via OpenRouter with vision",
-      "intelligence_score": 18,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 1.05
-      },
-      "benchmarks": {
-        "humaneval_score": 82.0,
-        "mmlu_score": 81.0,
-        "estimated": true
-      }
+      "intelligence_score": 18
     },
     {
       "model_name": "google/gemini-2.5-pro",
       "aliases": [
-        "gemini 2.5 pro",
-        "gemini-2.5-pro",
         "gemini-2.5",
-        "gemini2.5",
         "pro-2.5-openrouter"
       ],
       "context_window": 1048576,
@@ -158,30 +137,7 @@
       "max_image_size_mb": 20.0,
       "allow_code_generation": true,
       "description": "Google's Gemini 2.5 Pro via OpenRouter with vision",
-      "intelligence_score": 18,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 1.05
-      },
-      "benchmarks": {
-        "humaneval_score": 82.0,
-        "mmlu_score": 81.0,
-        "estimated": true
-      }
+      "intelligence_score": 18
     },
     {
       "model_name": "google/gemini-2.5-flash",
@@ -197,30 +153,7 @@
       "supports_images": true,
       "max_image_size_mb": 15.0,
       "description": "Google's Gemini 2.5 Flash via OpenRouter with vision",
-      "intelligence_score": 10,
-      "metadata": {
-        "suitable_tasks": [
-          "fast",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "fast": 7.0,
-          "vision": 7.0,
-          "reasoning": 7.0,
-          "long_context": 8.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.075
-      },
-      "benchmarks": {
-        "humaneval_score": 40.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
+      "intelligence_score": 10
     },
     {
       "model_name": "mistralai/mistral-large-2411",
@@ -236,24 +169,26 @@
       "supports_images": false,
       "max_image_size_mb": 0.0,
       "description": "Mistral's largest model (text-only)",
-      "intelligence_score": 11,
-      "metadata": {
-        "suitable_tasks": [
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "long_context": 6.5,
-          "conversation": 5.5
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.2
-      },
-      "benchmarks": {
-        "humaneval_score": 44.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
+      "intelligence_score": 11
+    },
+    {
+      "model_name": "meta-llama/llama-3-70b",
+      "aliases": [
+        "llama",
+        "llama3",
+        "llama3-70b",
+        "llama-70b",
+        "llama3-openrouter"
+      ],
+      "context_window": 8192,
+      "max_output_tokens": 8192,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": false,
+      "max_image_size_mb": 0.0,
+      "description": "Meta's Llama 3 70B model (text-only)",
+      "intelligence_score": 9
     },
     {
       "model_name": "deepseek/deepseek-r1-0528",
@@ -271,24 +206,24 @@
       "supports_images": false,
       "max_image_size_mb": 0.0,
       "description": "DeepSeek R1 with thinking mode - advanced reasoning capabilities (text-only)",
-      "intelligence_score": 15,
-      "metadata": {
-        "suitable_tasks": [
-          "reasoning",
-          "conversation"
-        ],
-        "task_scores": {
-          "reasoning": 9.5,
-          "conversation": 7.5
-        },
-        "cost_tier": "medium",
-        "input_cost_per_m": 0.55
-      },
-      "benchmarks": {
-        "humaneval_score": 60.0,
-        "mmlu_score": 67.5,
-        "estimated": true
-      }
+      "intelligence_score": 15
+    },
+    {
+      "model_name": "perplexity/llama-3-sonar-large-32k-online",
+      "aliases": [
+        "perplexity",
+        "sonar",
+        "perplexity-online"
+      ],
+      "context_window": 32768,
+      "max_output_tokens": 32768,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": false,
+      "max_image_size_mb": 0.0,
+      "description": "Perplexity's online model with web search (text-only)",
+      "intelligence_score": 9
     },
     {
       "model_name": "openai/o3",
@@ -305,28 +240,7 @@
       "supports_temperature": false,
       "temperature_constraint": "fixed",
       "description": "OpenAI's o3 model - well-rounded and powerful across domains with vision",
-      "intelligence_score": 14,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 9.0,
-          "reasoning": 7.0,
-          "long_context": 9.0,
-          "conversation": 7.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 60.0
-      },
-      "benchmarks": {
-        "humaneval_score": 56.0,
-        "mmlu_score": 63.0,
-        "estimated": true
-      }
+      "intelligence_score": 14
     },
     {
       "model_name": "openai/o3-mini",
@@ -344,26 +258,7 @@
       "supports_temperature": false,
       "temperature_constraint": "fixed",
       "description": "OpenAI's o3-mini model - balanced performance and speed with vision",
-      "intelligence_score": 12,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 8.0,
-          "long_context": 8.0,
-          "conversation": 6.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 1.1
-      },
-      "benchmarks": {
-        "humaneval_score": 48.0,
-        "mmlu_score": 54.0,
-        "estimated": true
-      }
+      "intelligence_score": 12
     },
     {
       "model_name": "openai/o3-mini-high",
@@ -381,26 +276,7 @@
       "supports_temperature": false,
       "temperature_constraint": "fixed",
       "description": "OpenAI's o3-mini with high reasoning effort - optimized for complex problems with vision",
-      "intelligence_score": 13,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 8.5,
-          "long_context": 8.5,
-          "conversation": 6.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 1.1
-      },
-      "benchmarks": {
-        "humaneval_score": 52.0,
-        "mmlu_score": 58.5,
-        "estimated": true
-      }
+      "intelligence_score": 13
     },
     {
       "model_name": "openai/o3-pro",
@@ -417,28 +293,7 @@
       "supports_temperature": false,
       "temperature_constraint": "fixed",
       "description": "OpenAI's o3-pro model - professional-grade reasoning and analysis with vision",
-      "intelligence_score": 15,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 9.5,
-          "reasoning": 7.5,
-          "long_context": 9.5,
-          "conversation": 7.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 120.0
-      },
-      "benchmarks": {
-        "humaneval_score": 60.0,
-        "mmlu_score": 67.5,
-        "estimated": true
-      }
+      "intelligence_score": 15
     },
     {
       "model_name": "openai/o4-mini",
@@ -456,26 +311,7 @@
       "supports_temperature": false,
       "temperature_constraint": "fixed",
       "description": "OpenAI's o4-mini model - optimized for shorter contexts with rapid reasoning and vision",
-      "intelligence_score": 11,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 7.5,
-          "long_context": 7.5,
-          "conversation": 5.5
-        },
-        "cost_tier": "medium",
-        "input_cost_per_m": 0.55
-      },
-      "benchmarks": {
-        "humaneval_score": 44.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
+      "intelligence_score": 11
     },
     {
       "model_name": "openai/gpt-5",
@@ -492,32 +328,13 @@
       "supports_temperature": true,
       "temperature_constraint": "range",
       "description": "GPT-5 (400K context, 128K output) - Advanced model with reasoning support",
-      "intelligence_score": 16,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 8.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 2.5
-      },
-      "benchmarks": {
-        "humaneval_score": 64.0,
-        "mmlu_score": 72.0,
-        "estimated": true
-      }
+      "intelligence_score": 16
     },
     {
-      "model_name": "openai/gpt-5-pro",
+      "model_name": "openai/gpt-5.2-pro",
       "aliases": [
+        "gpt5.2-pro",
+        "gpt5.2pro",
         "gpt5pro"
       ],
       "context_window": 400000,
@@ -532,31 +349,8 @@
       "use_openai_response_api": true,
       "default_reasoning_effort": "high",
       "allow_code_generation": true,
-      "description": "GPT-5 Pro - Advanced reasoning model with highest quality responses (text+image input, text output only)",
-      "intelligence_score": 18,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 10.0
-      },
-      "benchmarks": {
-        "humaneval_score": 82.0,
-        "mmlu_score": 81.0,
-        "estimated": true
-      }
+      "description": "GPT-5.2 Pro - Advanced reasoning model with highest quality responses (text+image input, text output only)",
+      "intelligence_score": 18
     },
     {
       "model_name": "openai/gpt-5-codex",
@@ -572,28 +366,7 @@
       "supports_images": false,
       "max_image_size_mb": 0.0,
       "description": "GPT-5-Codex is a specialized version of GPT-5 optimized for software engineering and coding workflows",
-      "intelligence_score": 17,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 8.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 5.0
-      },
-      "benchmarks": {
-        "humaneval_score": 83.0,
-        "mmlu_score": 76.5,
-        "estimated": true
-      }
+      "intelligence_score": 17
     },
     {
       "model_name": "openai/gpt-5-mini",
@@ -610,24 +383,7 @@
       "supports_temperature": true,
       "temperature_constraint": "fixed",
       "description": "GPT-5-mini (400K context, 128K output) - Efficient variant with reasoning support",
-      "intelligence_score": 10,
-      "metadata": {
-        "suitable_tasks": [
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "long_context": 7.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "medium",
-        "input_cost_per_m": 0.5
-      },
-      "benchmarks": {
-        "humaneval_score": 40.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
+      "intelligence_score": 10
     },
     {
       "model_name": "openai/gpt-5-nano",
@@ -644,117 +400,14 @@
       "supports_temperature": true,
       "temperature_constraint": "fixed",
       "description": "GPT-5 nano (400K context, 128K output) - Fastest, cheapest version of GPT-5 for summarization and classification tasks",
-      "intelligence_score": 8,
-      "metadata": {
-        "suitable_tasks": [
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "long_context": 6.0,
-          "conversation": 4.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.2
-      },
-      "benchmarks": {
-        "humaneval_score": 32.0,
-        "mmlu_score": 36.0,
-        "estimated": true
-      }
+      "intelligence_score": 8
     },
     {
       "model_name": "openai/gpt-5.2",
       "aliases": [
         "gpt5.2",
         "gpt-5.2",
-        "5.2"
-      ],
-      "context_window": 400000,
-      "max_output_tokens": 128000,
-      "supports_extended_thinking": true,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": true,
-      "max_image_size_mb": 20.0,
-      "supports_temperature": true,
-      "temperature_constraint": "fixed",
-      "default_reasoning_effort": "medium",
-      "allow_code_generation": true,
-      "description": "GPT-5.2 (400K context, 128K output) - Latest flagship with adaptive reasoning, stronger agentic and long context performance",
-      "intelligence_score": 19,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 1.75
-      },
-      "benchmarks": {
-        "humaneval_score": 88.0,
-        "mmlu_score": 86.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "openai/gpt-5.2-pro",
-      "aliases": [
-        "gpt5.2pro",
-        "gpt-5.2-pro",
-        "5.2-pro"
-      ],
-      "context_window": 400000,
-      "max_output_tokens": 128000,
-      "supports_extended_thinking": true,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": true,
-      "max_image_size_mb": 20.0,
-      "supports_temperature": false,
-      "temperature_constraint": "fixed",
-      "use_openai_response_api": true,
-      "default_reasoning_effort": "high",
-      "allow_code_generation": true,
-      "description": "GPT-5.2 Pro - Most advanced reasoning model with reduced hallucination, optimized for complex tasks",
-      "intelligence_score": 20,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.5
-        },
-        "cost_tier": "premium",
-        "input_cost_per_m": 21.0
-      },
-      "benchmarks": {
-        "humaneval_score": 92.0,
-        "mmlu_score": 90.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "openai/gpt-5.1",
-      "aliases": [
+        "5.2",
         "gpt5.1",
         "gpt-5.1",
         "5.1"
@@ -770,31 +423,8 @@
       "temperature_constraint": "fixed",
       "default_reasoning_effort": "medium",
       "allow_code_generation": true,
-      "description": "GPT-5.1 (400K context, 128K output) - Flagship reasoning model with configurable thinking effort and vision support",
-      "intelligence_score": 18,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.0
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 2.5
-      },
-      "benchmarks": {
-        "humaneval_score": 82.0,
-        "mmlu_score": 81.0,
-        "estimated": true
-      }
+      "description": "GPT-5.2 (400K context, 128K output) - Flagship reasoning model with configurable thinking effort and vision support",
+      "intelligence_score": 18
     },
     {
       "model_name": "openai/gpt-5.1-codex",
@@ -818,30 +448,7 @@
       "default_reasoning_effort": "high",
       "allow_code_generation": true,
       "description": "GPT-5.1 Codex (400K context, 128K output) - Agentic coding specialization available through the Responses API",
-      "intelligence_score": 19,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 9.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 5.0
-      },
-      "benchmarks": {
-        "humaneval_score": 100.0,
-        "mmlu_score": 85.5,
-        "estimated": true
-      }
+      "intelligence_score": 19
     },
     {
       "model_name": "openai/gpt-5.1-codex-mini",
@@ -862,30 +469,7 @@
       "temperature_constraint": "fixed",
       "allow_code_generation": true,
       "description": "GPT-5.1 Codex mini (400K context, 128K output) - Cost-efficient Codex variant with streaming support",
-      "intelligence_score": 16,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 10.0,
-          "vision": 10.0,
-          "reasoning": 10.0,
-          "long_context": 10.0,
-          "conversation": 8.0
-        },
-        "cost_tier": "medium",
-        "input_cost_per_m": 1.0
-      },
-      "benchmarks": {
-        "humaneval_score": 89.0,
-        "mmlu_score": 72.0,
-        "estimated": true
-      }
+      "intelligence_score": 16
     },
     {
       "model_name": "x-ai/grok-4",
@@ -904,749 +488,25 @@
       "supports_temperature": true,
       "temperature_constraint": "range",
       "description": "xAI's Grok 4 via OpenRouter with vision and advanced reasoning",
-      "intelligence_score": 15,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 9.5,
-          "reasoning": 9.5,
-          "long_context": 9.5,
-          "conversation": 7.5
-        },
-        "cost_tier": "high",
-        "input_cost_per_m": 5.0
-      },
-      "benchmarks": {
-        "humaneval_score": 60.0,
-        "mmlu_score": 67.5,
-        "estimated": true
-      }
+      "intelligence_score": 15
     },
     {
-      "model_name": "qwen/qwen3-vl-235b-a22b-instruct",
+      "model_name": "x-ai/grok-4.1-fast",
       "aliases": [
-        "qwen-vl",
-        "qwen-vision",
-        "qwen-ocr"
+        "grok-4.1-fast-openrouter",
+        "grok-4.1-openrouter"
       ],
-      "context_window": 262144,
-      "max_output_tokens": 65536,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": true,
-      "max_image_size_mb": 20.0,
-      "description": "Qwen VL 235B - Vision-language model optimized for OCR, chart extraction, and document analysis",
-      "intelligence_score": 13,
-      "metadata": {
-        "suitable_tasks": [
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "vision": 9.5,
-          "long_context": 8.5,
-          "conversation": 6.5
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.2
-      },
-      "benchmarks": {
-        "humaneval_score": 52.0,
-        "mmlu_score": 58.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "x-ai/grok-code-fast-1",
-      "aliases": [
-        "grok-code",
-        "grok-fast",
-        "grok-code-fast"
-      ],
-      "context_window": 131072,
-      "max_output_tokens": 32768,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": true,
-      "max_image_size_mb": 20.0,
-      "description": "xAI's Grok Code Fast - Industry's most-used coding model (48.7% usage) optimized for software development",
-      "intelligence_score": 14,
-      "metadata": {
-        "suitable_tasks": [
-          "coding",
-          "vision",
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "coding": 7.0,
-          "vision": 9.0,
-          "reasoning": 7.0,
-          "long_context": 8.0,
-          "conversation": 7.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.2
-      },
-      "benchmarks": {
-        "humaneval_score": 56.0,
-        "mmlu_score": 63.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "qwen/qwen3-coder",
-      "aliases": [
-        "qwen-coder",
-        "qwen-code"
-      ],
-      "context_window": 131072,
-      "max_output_tokens": 65536,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Qwen Coder - Cost-efficient coding specialist optimized for software development",
-      "intelligence_score": 11,
-      "metadata": {
-        "suitable_tasks": [
-          "fast",
-          "coding",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "fast": 7.5,
-          "coding": 6.5,
-          "long_context": 6.5,
-          "conversation": 5.5
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.1
-      },
-      "benchmarks": {
-        "humaneval_score": 54.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "z-ai/glm-4.6",
-      "aliases": [
-        "glm",
-        "glm-4.6",
-        "z-ai"
-      ],
-      "context_window": 131072,
-      "max_output_tokens": 65536,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Z-AI GLM 4.6 - Alternative provider with solid performance and cost efficiency",
-      "intelligence_score": 10,
-      "metadata": {
-        "suitable_tasks": [
-          "fast",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "fast": 7.0,
-          "long_context": 6.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.1
-      },
-      "benchmarks": {
-        "humaneval_score": 40.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "perplexity/sonar",
-      "aliases": [
-        "sonar-online",
-        "perplexity-sonar"
-      ],
-      "context_window": 32768,
-      "max_output_tokens": 32768,
-      "supports_extended_thinking": false,
-      "supports_json_mode": false,
-      "supports_function_calling": false,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Perplexity Sonar - Online search model with web access (FREE)",
-      "intelligence_score": 9,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.5,
-          "fast": 7.5,
-          "conversation": 4.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 36.0,
-        "mmlu_score": 40.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "google/gemini-2.5-flash-lite",
-      "aliases": [
-        "flash-lite",
-        "gemini-lite"
-      ],
-      "context_window": 1048576,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": true,
-      "max_image_size_mb": 5.0,
-      "description": "Google Gemini 2.5 Flash Lite - Efficient variant (FREE)",
-      "intelligence_score": 9,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.5,
-          "fast": 7.5,
-          "vision": 6.5,
-          "long_context": 7.5,
-          "conversation": 4.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 36.0,
-        "mmlu_score": 40.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "openai/gpt-4.1-nano",
-      "aliases": [
-        "gpt-nano",
-        "gpt4.1-nano"
-      ],
-      "context_window": 128000,
-      "max_output_tokens": 16000,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "OpenAI GPT-4.1 Nano - Ultra-efficient model (FREE)",
-      "intelligence_score": 8,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.0,
-          "fast": 7.0,
-          "long_context": 5.0,
-          "conversation": 4.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 32.0,
-        "mmlu_score": 36.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "openai/gpt-3.5-turbo",
-      "aliases": [
-        "gpt3.5",
-        "turbo"
-      ],
-      "context_window": 16384,
-      "max_output_tokens": 4096,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "OpenAI GPT-3.5 Turbo - Classic efficient model (FREE)",
-      "intelligence_score": 8,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.0,
-          "fast": 7.0,
-          "conversation": 4.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 32.0,
-        "mmlu_score": 36.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "kwaipilot/kat-coder-pro:free",
-      "aliases": [
-        "kat-coder"
-      ],
-      "context_window": 32768,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": false,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "KwaiPilot Kat Coder Pro - Coding specialist (FREE)",
-      "intelligence_score": 10,
-      "allow_code_generation": true,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "coding",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 8.0,
-          "fast": 8.0,
-          "coding": 8.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 60.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "mistralai/devstral-2512:free",
-      "aliases": [
-        "devstral"
-      ],
-      "context_window": 32768,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Mistral Devstral - Development-focused model (FREE)",
-      "intelligence_score": 10,
-      "allow_code_generation": true,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "coding",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 8.0,
-          "fast": 8.0,
-          "coding": 7.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 50.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "z-ai/glm-4.5-air:free",
-      "aliases": [
-        "glm-air"
-      ],
-      "context_window": 128000,
-      "max_output_tokens": 4096,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Z-AI GLM 4.5 Air - Lightweight efficient model (FREE)",
-      "intelligence_score": 9,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.5,
-          "fast": 7.5,
-          "long_context": 5.5,
-          "conversation": 4.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 36.0,
-        "mmlu_score": 40.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "allenai/olmo-3-32b-think:free",
-      "aliases": [
-        "olmo-think"
-      ],
-      "context_window": 32768,
-      "max_output_tokens": 8192,
+      "context_window": 2000000,
+      "max_output_tokens": 2000000,
       "supports_extended_thinking": true,
-      "supports_json_mode": false,
-      "supports_function_calling": false,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "AI2 OLMo 3 32B Think - Reasoning model (FREE)",
-      "intelligence_score": 11,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "reasoning",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 8.5,
-          "fast": 8.5,
-          "reasoning": 7.5,
-          "conversation": 5.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 44.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "qwen/qwen3-coder:free",
-      "aliases": [
-        "qwen-coder-free"
-      ],
-      "context_window": 131072,
-      "max_output_tokens": 65536,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Qwen Coder - Cost-efficient coding specialist (FREE)",
-      "intelligence_score": 11,
-      "allow_code_generation": true,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "coding",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 8.5,
-          "fast": 8.5,
-          "coding": 8.5,
-          "long_context": 6.5,
-          "conversation": 5.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 64.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "openai/gpt-oss-20b:free",
-      "aliases": [
-        "gpt-oss"
-      ],
-      "context_window": 8192,
-      "max_output_tokens": 2048,
-      "supports_extended_thinking": false,
-      "supports_json_mode": false,
-      "supports_function_calling": false,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "GPT OSS 20B - Open source variant (FREE)",
-      "intelligence_score": 8,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.0,
-          "fast": 7.0,
-          "conversation": 4.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 32.0,
-        "mmlu_score": 36.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "google/gemma-3-27b-it:free",
-      "aliases": [
-        "gemma-free"
-      ],
-      "context_window": 8192,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": false,
-      "supports_images": false,
-      "max_image_size_mb": 0.0,
-      "description": "Google Gemma 3 27B - Instruction-tuned model (FREE)",
-      "intelligence_score": 9,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 7.5,
-          "fast": 7.5,
-          "conversation": 4.5
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 36.0,
-        "mmlu_score": 40.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "meta-llama/llama-4-maverick",
-      "aliases": [
-        "llama4",
-        "llama-4"
-      ],
-      "context_window": 1000000,
-      "max_output_tokens": 256000,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "description": "Meta's Llama 4 Maverick - Advanced open-source model",
-      "intelligence_score": 14,
-      "metadata": {
-        "suitable_tasks": [
-          "reasoning",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "reasoning": 7.0,
-          "long_context": 10.0,
-          "conversation": 7.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.18
-      },
-      "benchmarks": {
-        "humaneval_score": 56.0,
-        "mmlu_score": 63.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "google/gemini-2.0-flash-001",
-      "aliases": [
-        "gemini-2.0-flash",
-        "gemini2-flash"
-      ],
-      "context_window": 1000000,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
       "supports_json_mode": true,
       "supports_function_calling": true,
       "supports_images": true,
       "max_image_size_mb": 20.0,
-      "description": "Google Gemini 2.0 Flash - Fast and free",
-      "intelligence_score": 12,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "vision",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 9.0,
-          "fast": 9.0,
-          "vision": 8.0,
-          "long_context": 9.0,
-          "conversation": 6.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 48.0,
-        "mmlu_score": 54.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "meta-llama/llama-3.3-70b-instruct:free",
-      "aliases": [
-        "llama3.3-free",
-        "llama-free"
-      ],
-      "context_window": 128000,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "description": "Meta Llama 3.3 70B - Free tier",
-      "intelligence_score": 12,
-      "metadata": {
-        "suitable_tasks": [
-          "free",
-          "fast",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "free": 9.0,
-          "fast": 9.0,
-          "long_context": 7.0,
-          "conversation": 6.0
-        },
-        "cost_tier": "free",
-        "input_cost_per_m": 0.0
-      },
-      "benchmarks": {
-        "humaneval_score": 48.0,
-        "mmlu_score": 54.0,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "deepseek/deepseek-chat-v3.1",
-      "aliases": [
-        "deepseek-chat",
-        "deepseek-v3.1"
-      ],
-      "context_window": 64000,
-      "max_output_tokens": 8192,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "description": "DeepSeek Chat v3.1 - Fast and cost-effective",
-      "intelligence_score": 11,
-      "metadata": {
-        "suitable_tasks": [
-          "conversation"
-        ],
-        "task_scores": {
-          "conversation": 5.5
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.14
-      },
-      "benchmarks": {
-        "humaneval_score": 44.0,
-        "mmlu_score": 49.5,
-        "estimated": true
-      }
-    },
-    {
-      "model_name": "microsoft/phi-4",
-      "aliases": [
-        "phi4",
-        "phi-4"
-      ],
-      "context_window": 128000,
-      "max_output_tokens": 16384,
-      "supports_extended_thinking": false,
-      "supports_json_mode": true,
-      "supports_function_calling": true,
-      "supports_images": false,
-      "description": "Microsoft Phi-4 - Compact and efficient",
-      "intelligence_score": 10,
-      "metadata": {
-        "suitable_tasks": [
-          "fast",
-          "long_context",
-          "conversation"
-        ],
-        "task_scores": {
-          "fast": 7.0,
-          "long_context": 6.0,
-          "conversation": 5.0
-        },
-        "cost_tier": "low",
-        "input_cost_per_m": 0.1
-      },
-      "benchmarks": {
-        "humaneval_score": 40.0,
-        "mmlu_score": 45.0,
-        "estimated": true
-      }
+      "supports_temperature": true,
+      "temperature_constraint": "range",
+      "description": "xAI's Grok 4.1 Fast Reasoning via OpenRouter (2M context) with vision and advanced reasoning",
+      "intelligence_score": 15
     }
   ]
 }
