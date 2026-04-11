@@ -431,16 +431,19 @@ class TierManager:
                 total_input_cost += model_data.iloc[0]["input_cost"]
                 total_output_cost += model_data.iloc[0]["output_cost"]
 
-        # Rough estimate: 1K input tokens, 2K output tokens per model
-        input_tokens = 1000
-        output_tokens = 2000
+        # Estimate: 50K input tokens, 100K output tokens total across all models per call
+        input_tokens = 50_000
+        output_tokens = 100_000
 
         estimated_cost = (total_input_cost * input_tokens + total_output_cost * output_tokens) / 1_000_000
+
+        cost_tier_map = {1: "free", 2: "economy", 3: "premium"}
 
         return {
             "level": level,
             "model_count": len(models),
             "estimated_cost_per_call": round(estimated_cost, 4),
+            "cost_tier": cost_tier_map.get(level, "unknown"),
             "input_cost_per_million": round(total_input_cost, 2),
             "output_cost_per_million": round(total_output_cost, 2),
         }

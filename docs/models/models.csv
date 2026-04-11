@@ -1,6 +1,6 @@
 rank,model,provider,tier,status,context,input_cost,output_cost,org_level,specialization,role,strength,humaneval_score,swe_bench_score,openrouter_url,last_updated
 1,openai/gpt-5.1,openai,premium,paid,400K,1.25,10.0,executive,general,lead_architect,next_generation,90.0,80.0,https://openrouter.ai/openai/gpt-5.1,2025-11-15
-2,anthropic/claude-opus-4.5,anthropic,premium,paid,200K,5.0,25.0,executive,agentic,system_architect,agentic_workflows,89.0,82.0,https://openrouter.ai/anthropic/claude-opus-4.5,2025-11-24
+2,anthropic/claude-opus-4.6,anthropic,premium,paid,200K,5.0,25.0,executive,agentic,system_architect,agentic_workflows,89.0,82.0,https://openrouter.ai/anthropic/claude-opus-4.6,2026-04-11
 3,openai/gpt-5.1-chat,openai,premium,paid,128K,1.25,10.0,executive,conversation,lead_architect,conversational,89.0,79.0,https://openrouter.ai/openai/gpt-5.1-chat,2025-11-15
 3.5,openai/gpt-5.1-codex,openai,premium,paid,400K,1.25,10.0,executive,coding,lead_architect,coding,92.0,85.0,https://openrouter.ai/openai/gpt-5.1-codex,2025-11-15
 3.6,google/gemini-3-pro-preview,google,premium,paid,1048K,2.0,12.0,executive,reasoning,lead_architect,multimodal,88.0,82.0,https://openrouter.ai/google/gemini-3-pro-preview,2025-11-21

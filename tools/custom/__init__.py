@@ -12,9 +12,9 @@ Architecture:
 - Registry system handles dynamic loading
 """
 
+import inspect
 import logging
 import os
-from typing import Dict, Type
 
 from tools.shared.base_tool import BaseTool
 
@@ -53,11 +53,13 @@ def discover_custom_tools() -> dict[str, BaseTool]:
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
 
-                    # Check if it's a tool class (inherits from BaseTool)
+                    # Check if it's a concrete tool class defined in this module
                     if (
                         isinstance(attr, type)
                         and issubclass(attr, BaseTool)
                         and attr != BaseTool
+                        and not inspect.isabstract(attr)
+                        and attr.__module__ == f"tools.custom.{module_name}"
                         and hasattr(attr, "get_name")
                     ):
                         try:

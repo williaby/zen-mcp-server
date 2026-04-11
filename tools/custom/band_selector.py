@@ -6,12 +6,11 @@ Provides future-proof, data-driven model selection that automatically adapts
 when band criteria change.
 """
 
-import csv
 import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -60,7 +59,7 @@ class BandSelector:
         try:
             # Load bands configuration
             if os.path.exists(self.bands_config_path):
-                with open(self.bands_config_path, "r") as f:
+                with open(self.bands_config_path) as f:
                     self.bands_config = json.load(f)
                 logger.debug(f"Loaded bands config from {self.bands_config_path}")
             else:
@@ -84,7 +83,7 @@ class BandSelector:
             self.bands_config = self._get_fallback_bands_config()
             self.models_df = self._get_fallback_models_df()
 
-    def get_models_by_org_level(self, org_level: str, limit: int = 10, role: str = None) -> List[str]:
+    def get_models_by_org_level(self, org_level: str, limit: int = 10, role: str = None) -> list[str]:
         """Get models filtered by organizational level using band criteria."""
         try:
             # Get org level criteria from bands config
@@ -116,7 +115,7 @@ class BandSelector:
             logger.error(f"Error in get_models_by_org_level: {e}")
             return self._get_fallback_models(org_level, limit)
 
-    def get_models_by_cost_tier(self, tier: str, limit: int = 5) -> List[str]:
+    def get_models_by_cost_tier(self, tier: str, limit: int = 5) -> list[str]:
         """Get models by cost tier band."""
         try:
             cost_bands = self.bands_config.get("cost_tier_bands", {})
@@ -131,15 +130,15 @@ class BandSelector:
             logger.error(f"Error in get_models_by_cost_tier: {e}")
             return self._get_fallback_models("startup", limit)
 
-    def get_models_by_role(self, role: str, org_level: str = "senior", limit: int = 3) -> List[str]:
+    def get_models_by_role(self, role: str, org_level: str = "senior", limit: int = 3) -> list[str]:
         """Get models optimized for specific professional role."""
         try:
             # Get role assignment bands
-            role_bands = self.bands_config.get("role_assignment_bands", {})
+            self.bands_config.get("role_assignment_bands", {})
 
             # Map role to band category
             role_mapping = self._get_role_to_band_mapping()
-            band_category = role_mapping.get(role, "validation_roles")
+            role_mapping.get(role, "validation_roles")
 
             # Get org level models first
             org_models = self.get_models_by_org_level(org_level, limit=20)
@@ -155,7 +154,7 @@ class BandSelector:
             logger.error(f"Error in get_models_by_role: {e}")
             return self._get_fallback_models(org_level, limit)
 
-    def _apply_org_level_criteria(self, df: pd.DataFrame, criteria: Dict) -> pd.DataFrame:
+    def _apply_org_level_criteria(self, df: pd.DataFrame, criteria: dict) -> pd.DataFrame:
         """Apply organizational level criteria from bands config."""
         filtered_df = df.copy()
 
@@ -163,7 +162,7 @@ class BandSelector:
         cost_criteria = criteria.get("cost_criteria", {})
         if "max_input_cost" in cost_criteria:
             filtered_df = filtered_df[filtered_df["input_cost"] <= cost_criteria["max_input_cost"]]
-        if cost_criteria.get("unlimited") != True and "max_input_cost" in cost_criteria:
+        if not cost_criteria.get("unlimited") and "max_input_cost" in cost_criteria:
             # If not unlimited, apply max cost
             pass
 
@@ -203,7 +202,7 @@ class BandSelector:
 
         return filtered_df
 
-    def _apply_cost_criteria(self, df: pd.DataFrame, criteria: Dict) -> pd.DataFrame:
+    def _apply_cost_criteria(self, df: pd.DataFrame, criteria: dict) -> pd.DataFrame:
         """Apply cost tier criteria."""
         filtered_df = df.copy()
 
@@ -249,7 +248,7 @@ class BandSelector:
         """Sort models by performance metrics."""
         return df.sort_values(["humaneval_score", "swe_bench_score", "context"], ascending=[False, False, False])
 
-    def _get_role_to_band_mapping(self) -> Dict[str, str]:
+    def _get_role_to_band_mapping(self) -> dict[str, str]:
         """Get role to band category mapping."""
         return {
             "code_reviewer": "technical_roles",
@@ -262,7 +261,7 @@ class BandSelector:
             "technical_director": "architecture_roles",
         }
 
-    def _get_fallback_bands_config(self) -> Dict:
+    def _get_fallback_bands_config(self) -> dict:
         """Fallback bands configuration."""
         return {
             "org_level_assignment_bands": {
@@ -334,7 +333,7 @@ class BandSelector:
                 "specialization": "reasoning",
             },
             {
-                "model": "anthropic/claude-opus-4.1",
+                "model": "anthropic/claude-opus-4.6",
                 "provider": "anthropic",
                 "input_cost": 15.0,
                 "output_cost": 75.0,
@@ -346,7 +345,7 @@ class BandSelector:
         ]
         return pd.DataFrame(fallback_data)
 
-    def _get_fallback_models(self, org_level: str, limit: int) -> List[str]:
+    def _get_fallback_models(self, org_level: str, limit: int) -> list[str]:
         """Get fallback model names."""
         if org_level == "startup":
             models = [
@@ -364,7 +363,7 @@ class BandSelector:
             ]
         else:  # enterprise
             models = [
-                "anthropic/claude-opus-4.1",
+                "anthropic/claude-opus-4.6",
                 "openai/gpt-5",
                 "google/gemini-3-pro-preview",
                 "anthropic/claude-sonnet-4",
@@ -382,7 +381,7 @@ class BandSelector:
             import csv
 
             data = []
-            with open(self.models_csv_path, "r") as f:
+            with open(self.models_csv_path) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     # Convert numeric fields
