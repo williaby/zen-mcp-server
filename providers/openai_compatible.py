@@ -18,6 +18,8 @@ from .shared import (
     ProviderType,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class OpenAICompatibleProvider(ModelProvider):
     """Shared implementation for OpenAI API lookalikes.
@@ -187,9 +189,12 @@ class OpenAICompatibleProvider(ModelProvider):
 
         timeout = httpx.Timeout(connect=connect_timeout, read=read_timeout, write=write_timeout, pool=pool_timeout)
 
-        logging.debug(
-            f"Configured timeouts - Connect: {connect_timeout}s, Read: {read_timeout}s, "
-            f"Write: {write_timeout}s, Pool: {pool_timeout}s"
+        logger.debug(
+            "Configured timeouts - Connect: %ss, Read: %ss, Write: %ss, Pool: %ss",
+            connect_timeout,
+            read_timeout,
+            write_timeout,
+            pool_timeout,
         )
 
         return timeout
@@ -303,7 +308,7 @@ class OpenAICompatibleProvider(ModelProvider):
                     if self.DEFAULT_HEADERS:
                         client_kwargs["default_headers"] = self.DEFAULT_HEADERS.copy()
 
-                    logging.debug(
+                    logger.debug(
                         "OpenAI client initialized with custom httpx client and timeout: %s",
                         timeout_config,
                     )
@@ -368,14 +373,14 @@ class OpenAICompatibleProvider(ModelProvider):
         Raises:
             ValueError: If output_text is missing, None, or not a string
         """
-        logging.debug(f"Response object type: {type(response)}")
-        logging.debug(f"Response attributes: {dir(response)}")
+        logger.debug("Response object type: %s", type(response))
+        logger.debug("Response attributes: %s", dir(response))
 
         if not hasattr(response, "output_text"):
             raise ValueError(f"o3-pro response missing output_text field. Response type: {type(response).__name__}")
 
         content = response.output_text
-        logging.debug(f"Extracted output_text: '{content}' (type: {type(content)})")
+        logger.debug("Extracted output_text: '%s' (type: %s)", content, type(content))
 
         if content is None:
             raise ValueError("o3-pro returned None for output_text")
@@ -430,7 +435,7 @@ class OpenAICompatibleProvider(ModelProvider):
         if self.get_provider_type() != ProviderType.OPENROUTER:
             completion_params["store"] = True
         else:
-            logging.debug(f"Omitting 'store' parameter for OpenRouter provider (model: {model_name})")
+            logger.debug("Omitting 'store' parameter for OpenRouter provider (model: %s)", model_name)
 
         # Add max tokens if specified (using max_completion_tokens for responses endpoint)
         if max_output_tokens:
@@ -528,15 +533,18 @@ class OpenAICompatibleProvider(ModelProvider):
         try:
             capabilities = self.get_capabilities(model_name)
         except Exception as exc:
-            logging.debug(f"Falling back to generic capabilities for {model_name}: {exc}")
+            logger.debug("Falling back to generic capabilities for %s: %s", model_name, exc)
             capabilities = None
 
         # Get effective temperature for this model from capabilities when available
         if capabilities:
             effective_temperature = capabilities.get_effective_temperature(temperature)
             if effective_temperature is not None and effective_temperature != temperature:
-                logging.debug(
-                    f"Adjusting temperature from {temperature} to {effective_temperature} for model {model_name}"
+                logger.debug(
+                    "Adjusting temperature from %s to %s for model %s",
+                    temperature,
+                    effective_temperature,
+                    model_name,
                 )
         else:
             effective_temperature = temperature
@@ -688,8 +696,9 @@ class OpenAICompatibleProvider(ModelProvider):
 
             # Check if we're using generic capabilities
             if hasattr(capabilities, "_is_generic"):
-                logging.debug(
-                    f"Using generic parameter validation for {model_name}. Actual model constraints may differ."
+                logger.debug(
+                    "Using generic parameter validation for %s. Actual model constraints may differ.",
+                    model_name,
                 )
 
             # Validate temperature using parent class method
@@ -735,7 +744,7 @@ class OpenAICompatibleProvider(ModelProvider):
             return len(encoding.encode(text))
 
         except (ImportError, Exception) as exc:
-            logging.debug("tiktoken unavailable for %s: %s", resolved_model, exc)
+            logger.debug("tiktoken unavailable for %s: %s", resolved_model, exc)
 
         return super().count_tokens(text, model_name)
 
@@ -800,15 +809,15 @@ class OpenAICompatibleProvider(ModelProvider):
             # Determine if 429 is retryable based on structured error codes
             if error_type == "tokens":
                 # Token-related 429s are typically non-retryable (request too large)
-                logging.debug(f"Non-retryable 429: token-related error (type={error_type}, code={error_code})")
+                logger.debug("Non-retryable 429: token-related error (type=%s, code=%s)", error_type, error_code)
                 return False
             elif error_code in ["invalid_request_error", "context_length_exceeded"]:
                 # These are permanent failures
-                logging.debug(f"Non-retryable 429: permanent failure (type={error_type}, code={error_code})")
+                logger.debug("Non-retryable 429: permanent failure (type=%s, code=%s)", error_type, error_code)
                 return False
             else:
                 # Other 429s (like requests per minute) are retryable
-                logging.debug(f"Retryable 429: rate limiting (type={error_type}, code={error_code})")
+                logger.debug("Retryable 429: rate limiting (type=%s, code=%s)", error_type, error_code)
                 return True
 
         # For non-429 errors, check if they're retryable
@@ -846,7 +855,7 @@ class OpenAICompatibleProvider(ModelProvider):
                 import base64
 
                 image_data = base64.b64encode(image_bytes).decode()
-                logging.debug(f"Processing image '{image_path}' as MIME type '{mime_type}'")
+                logger.debug("Processing image '%s' as MIME type '%s'", image_path, mime_type)
 
                 # Create data URL for OpenAI API
                 data_url = f"data:{mime_type};base64,{image_data}"
