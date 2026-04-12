@@ -16,9 +16,9 @@ from utils.env import get_env
 # Semantic versioning: MAJOR.MINOR.PATCH
 __version__ = "9.8.2"
 # Last update date in ISO format
-__updated__ = "2025-12-15"
+__updated__ = "2026-04-11"
 # Primary maintainer
-__author__ = "Fahad Gilani"
+__author__ = "Byron Williams"
 
 # Model configuration
 # DEFAULT_MODEL: The default model used for all AI operations
