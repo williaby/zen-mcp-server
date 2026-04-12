@@ -8,6 +8,7 @@ bridge tool, subprocess management, and fallback mechanisms.
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from pydantic import ValidationError
 
 try:
     # Import bridge tool
@@ -433,7 +434,7 @@ class TestZenMCPStdioClientIntegration:
         assert valid_request.user_tier == "full"
 
         # Invalid user tier should raise validation error
-        with pytest.raises(Exception):  # Pydantic validation error
+        with pytest.raises(ValidationError):
             RouteAnalysisRequest(
                 prompt="Test prompt",
                 user_tier="invalid_tier",

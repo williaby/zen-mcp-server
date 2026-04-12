@@ -4,6 +4,14 @@ import base64
 import logging
 from typing import TYPE_CHECKING, ClassVar, Optional
 
+from utils.env import get_env
+from utils.image_utils import validate_image
+
+from .base import ModelProvider
+from .registries.gemini import GeminiModelRegistry
+from .registry_provider_mixin import RegistryBackedProviderMixin
+from .shared import ModelCapabilities, ModelResponse, ProviderType
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -19,16 +27,6 @@ except ImportError:
     genai = None  # type: ignore
     types = None  # type: ignore
     logger.warning("Google Gemini SDK not available. Install with: pip install google-genai")
-
-from utils.env import get_env
-from utils.image_utils import validate_image
-
-from .base import ModelProvider
-from .registries.gemini import GeminiModelRegistry
-from .registry_provider_mixin import RegistryBackedProviderMixin
-from .shared import ModelCapabilities, ModelResponse, ProviderType
-
-logger = logging.getLogger(__name__)
 
 
 class GeminiModelProvider(RegistryBackedProviderMixin, ModelProvider):

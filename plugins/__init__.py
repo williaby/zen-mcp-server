@@ -7,7 +7,7 @@ Safe for upstream pulls - all customizations stay in plugins/ directory.
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
