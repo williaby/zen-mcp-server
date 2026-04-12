@@ -200,21 +200,40 @@ class BandSelector:
         return filtered_df
 
     def _apply_cost_criteria(self, df: pd.DataFrame, criteria: dict) -> pd.DataFrame:
-        """Apply cost tier criteria."""
-        filtered_df = df.copy()
+        """Apply cost tier criteria.
 
-        if "max_cost" in criteria:
-            max_cost = criteria["max_cost"]
-            if max_cost == 0.0:
-                # Free models
-                filtered_df = filtered_df[(filtered_df["input_cost"] == 0.0) & (filtered_df["output_cost"] == 0.0)]
-            else:
-                filtered_df = filtered_df[filtered_df["input_cost"] <= max_cost]
+        Uses explicit index selection (iterrows + df.loc) instead of boolean
+        array indexing to avoid the pandas 2.3/numpy 2.2 _NoValueType bug on
+        Python 3.10 that causes TypeError in df[bool_mask] for all column dtypes.
+        """
+        max_cost = criteria.get("max_cost")
+        min_cost = criteria.get("min_cost")
 
-        if "min_cost" in criteria:
-            filtered_df = filtered_df[filtered_df["input_cost"] >= criteria["min_cost"]]
+        if max_cost is None and min_cost is None:
+            return df.copy()
 
-        return filtered_df
+        keep_indices = []
+        for idx, row in df.iterrows():
+            try:
+                cost = float(row["input_cost"])
+                out_cost = float(row["output_cost"])
+            except (ValueError, TypeError, KeyError):
+                continue
+
+            if max_cost is not None:
+                if max_cost == 0.0:
+                    # Free tier: both input and output cost must be exactly zero
+                    if cost != 0.0 or out_cost != 0.0:
+                        continue
+                elif cost > max_cost:
+                    continue
+
+            if min_cost is not None and cost < min_cost:
+                continue
+
+            keep_indices.append(idx)
+
+        return df.loc[keep_indices].copy() if keep_indices else df.iloc[0:0].copy()
 
     def _apply_role_specialization(self, df: pd.DataFrame, role: str) -> pd.DataFrame:
         """Apply role-based specialization filtering."""
