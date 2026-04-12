@@ -78,8 +78,8 @@ class PromptCraftDataManager:
         self.performance_metrics_path = self.data_dir / "performance_metrics.json"
         self.channel_config_path = self.data_dir / "channel_config.json"
 
-        # Thread lock for concurrent access
-        self._lock = threading.Lock()
+        # Thread lock for concurrent access (RLock allows re-entry from same thread)
+        self._lock = threading.RLock()
 
         # Initialize files if they don't exist
         self._initialize_data_files()

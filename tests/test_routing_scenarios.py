@@ -445,21 +445,28 @@ class TestErrorRecoveryScenarios:
 
     def test_partial_model_failure_handling(self):
         """Test handling when some models fail repeatedly."""
-        # Simulate failed model
-        if self.router.models:
-            test_model = list(self.router.models.values())[0]
+        if not self.router.models:
+            pytest.skip("No models configured")
 
-            # Report multiple failures
-            for _ in range(6):  # Should disable after 5 failures
-                self.router.update_model_performance(test_model.name, False, "Test failure")
+        test_model = list(self.router.models.values())[0]
+        remaining_models = [m for m in self.router.models.values() if m.name != test_model.name]
 
-            # Model should be disabled
-            assert not test_model.is_available
+        # Report multiple failures to disable the first model
+        for _ in range(6):  # Should disable after 5 failures
+            self.router.update_model_performance(test_model.name, False, "Test failure")
 
-            # Router should still work with other models
+        # Model should be disabled
+        assert not test_model.is_available
+
+        if remaining_models:
+            # When other models exist, routing should continue with them
             result = self.router.select_model("Test after model failure")
             assert result.model is not None
             assert result.model.name != test_model.name
+        else:
+            # When only one model existed and it is disabled, expect explicit failure
+            with pytest.raises(RuntimeError, match="No suitable models available"):
+                self.router.select_model("Test after model failure")
 
 
 class TestEdgeCaseScenarios:

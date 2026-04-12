@@ -201,8 +201,8 @@ class TestTierManager:
         assert costs["input_cost_per_million"] == 6.0  # 1+2+3
         assert costs["output_cost_per_million"] == 30.0  # 5+10+15
 
-        # Estimated cost: (6*1000 + 30*2000) / 1M = 0.066
-        assert 0.06 < costs["estimated_cost_per_call"] < 0.07
+        # Estimated cost: (6*50_000 + 30*100_000) / 1M = 3.3
+        assert 3.2 < costs["estimated_cost_per_call"] < 3.4
 
     def test_get_level_description(self):
         """Test level descriptions."""
@@ -214,10 +214,10 @@ class TestTierManager:
         assert "$0" in desc1
 
         assert "Professional" in desc2
-        assert "$0.50" in desc2
+        assert "$0.01" in desc2
 
         assert "Executive" in desc3
-        assert "$5" in desc3
+        assert "$0.10" in desc3
 
     @patch("tools.custom.consensus_models.BandSelector")
     def test_tier_summary(self, mock_band_selector):

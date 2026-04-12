@@ -319,7 +319,11 @@ class ToolHooks:
         """Build analysis prompt using appropriate hook."""
         hook = self.hooks.get(tool_name.lower())
         if hook:
-            return hook.build_analysis_prompt(context)
+            prompt = hook.build_analysis_prompt(context)
+            # Ensure tool name is traceable in the prompt
+            if tool_name.lower() not in prompt.lower():
+                return f"{tool_name}: {prompt}"
+            return prompt
 
         # Generic fallback
         return f"Tool: {tool_name}"

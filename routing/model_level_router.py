@@ -194,6 +194,11 @@ class ModelLevelRouter:
         if any(keyword in model_lower for keyword in ["gpt-4", "gpt-5", "claude-opus", "claude-4", "o3-pro", "o4"]):
             return ModelLevel.EXECUTIVE
 
+        # Junior level (entry-level paid models) - checked before senior to avoid
+        # "claude-3" in senior patterns matching "claude-3-haiku" before haiku check
+        elif any(keyword in model_lower for keyword in ["claude-haiku", "gemini-flash", "mistral", "llama-3-70b"]):
+            return ModelLevel.JUNIOR
+
         # Senior level (capable models)
         elif any(
             keyword in model_lower
@@ -209,10 +214,6 @@ class ModelLevelRouter:
             ]
         ):
             return ModelLevel.SENIOR
-
-        # Junior level (entry-level paid models)
-        elif any(keyword in model_lower for keyword in ["claude-haiku", "gemini-flash", "mistral", "llama-3-70b"]):
-            return ModelLevel.JUNIOR
 
         # Default to FREE for everything else (especially local models)
         else:
@@ -290,7 +291,11 @@ class ModelLevelRouter:
         Returns:
             tuple: (complexity_level, confidence, task_type)
         """
-        return self.complexity_analyzer.analyze(prompt, context)
+        try:
+            return self.complexity_analyzer.analyze(prompt, context)
+        except Exception as e:
+            logger.warning(f"Complexity analysis failed, using conservative defaults: {e}")
+            return "moderate", 0.5, TaskType.GENERAL
 
     def select_model(
         self, prompt: str, context: dict[str, Any] = None, prefer_free: bool = True, max_cost: float = None
@@ -343,7 +348,7 @@ class ModelLevelRouter:
         result = RoutingResult(
             model=selected_model,
             confidence=confidence,
-            reasoning=self._generate_reasoning(selected_model, complexity, task_type, prefer_free),
+            reasoning=self._generate_reasoning(selected_model, complexity, task_type, prefer_free, context),
             fallback_models=fallback_models,
             estimated_cost=estimated_cost,
         )
@@ -447,9 +452,20 @@ class ModelLevelRouter:
         # Simple heuristic: ~4 characters per token for English text
         return max(len(prompt) // 4, 10)
 
-    def _generate_reasoning(self, model: ModelInfo, complexity: str, task_type: TaskType, prefer_free: bool) -> str:
+    def _generate_reasoning(
+        self,
+        model: ModelInfo,
+        complexity: str,
+        task_type: TaskType,
+        prefer_free: bool,
+        context: Optional[dict[str, Any]] = None,
+    ) -> str:
         """Generate human-readable reasoning for model selection."""
         reasons = []
+
+        tool_name = (context or {}).get("tool_name")
+        if tool_name:
+            reasons.append(f"tool: {tool_name}")
 
         if model.cost_per_token == 0:
             reasons.append("selected free model to minimize costs")
