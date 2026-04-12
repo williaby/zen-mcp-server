@@ -475,9 +475,13 @@ def configure_providers():
         if not openai_key:
             logger.debug("OpenAI API key not found in environment")
         elif openai_key.startswith("sk-"):
-            logger.debug("OpenAI API key appears to be invalid or placeholder")
+            logger.warning(
+                "OpenAI API key starts with 'sk-' but appears invalid or too short "
+                "(length=%d). Check for truncation. OpenAI provider will not be registered.",
+                len(openai_key),
+            )
         else:
-            logger.debug("OpenAI API key is placeholder value")
+            logger.warning("OpenAI API key does not match expected format. " "OpenAI provider will not be registered.")
 
     # Check for Azure OpenAI configuration
     azure_key = get_env("AZURE_OPENAI_API_KEY")
