@@ -236,7 +236,7 @@ class ModelLevelRouter:
         elif any(keyword in model_lower for keyword in ["claude-haiku", "gpt-3.5"]):
             return 0.0005  # Entry level
         else:
-            return 0.001  # Default estimate
+            return 0.0  # Unrecognized models default to free, consistent with _determine_model_level
 
     def _extract_specializations(self, model_config: dict[str, Any]) -> list[TaskType]:
         """Extract task type specializations from model config."""

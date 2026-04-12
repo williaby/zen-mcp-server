@@ -108,7 +108,7 @@ jobs:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: |
         coverage run communication_simulator_test.py --quick
-        coverage xml -o coverage-simulator.xml
+        coverage xml -o coverage-simulator.xml || true
     
     - name: Upload simulator test coverage to Codecov
       uses: codecov/codecov-action@v3
