@@ -216,4 +216,4 @@ def disable_force_env_override(monkeypatch):
     try:
         yield
     finally:
-        env_config.reload_env()
+        env_config.reload_env(use_infisical=False)
