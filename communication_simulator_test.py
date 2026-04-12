@@ -154,9 +154,9 @@ class CommunicationSimulator:
         if os.path.exists(pal_venv_python):
             return pal_venv_python
 
-        # Fallback to system python if venv doesn't exist
-        self.logger.warning("Virtual environment not found, using system python")
-        return "python"
+        # Fallback to the current interpreter if venv doesn't exist
+        self.logger.warning("Virtual environment not found, using current interpreter")
+        return sys.executable
 
     def _create_test_runner(self, test_class):
         """Create a test runner function for a test class"""
