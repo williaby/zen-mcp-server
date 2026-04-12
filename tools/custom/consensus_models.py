@@ -377,7 +377,8 @@ class TierManager:
             True if paid model, False if free
         """
         # Check models.csv for model status
-        model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
+        models_df = self.band_selector.models_df
+        model_data = models_df[models_df["model"] == model]
 
         if model_data.empty:
             logger.warning(f"Model {model} not found in registry")
@@ -425,7 +426,8 @@ class TierManager:
         total_output_cost = 0.0
 
         for model in models:
-            model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
+            models_df = self.band_selector.models_df
+            model_data = models_df[models_df["model"] == model]
 
             if not model_data.empty:
                 total_input_cost += model_data.iloc[0]["input_cost"]
