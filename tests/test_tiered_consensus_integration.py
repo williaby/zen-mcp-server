@@ -15,7 +15,9 @@ NOTE: Currently uses simulated model responses.
 import pytest
 from pydantic import ValidationError
 
-from tools.custom.tiered_consensus import TieredConsensusRequest, TieredConsensusTool
+pytest.importorskip("pandas", reason="tiered_consensus requires pandas/numpy — skip when unavailable")
+
+from tools.custom.tiered_consensus import TieredConsensusRequest, TieredConsensusTool  # noqa: E402
 
 
 class TestTieredConsensusWorkflow:

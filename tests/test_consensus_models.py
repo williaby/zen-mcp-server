@@ -8,7 +8,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from tools.custom.consensus_models import (
+pytest.importorskip("pandas", reason="consensus_models requires pandas/numpy — skip when unavailable")
+
+from tools.custom.consensus_models import (  # noqa: E402
     AvailabilityCache,
     TierManager,
     get_level_description,
