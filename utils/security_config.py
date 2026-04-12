@@ -5,7 +5,10 @@ This module contains security-related constants and configurations
 for file access control.
 """
 
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Dangerous system paths - block these AND all their subdirectories
 # These are system directories where user code should never reside
@@ -125,11 +128,9 @@ def is_dangerous_path(path: Path) -> bool:
             variants = {p}
             # Only resolve paths that are absolute on the current platform.
             # This avoids turning Windows-style strings into nonsense absolute paths on POSIX.
+            # Let resolution errors propagate to the outer except, which safely returns True.
             if p.is_absolute():
-                try:
-                    variants.add(p.resolve())
-                except Exception:
-                    pass
+                variants.add(p.resolve())
             return variants
 
         # Check 1: Root directory (filesystem root)
@@ -159,5 +160,10 @@ def is_dangerous_path(path: Path) -> bool:
 
         return False
 
-    except Exception:
-        return True  # If we can't resolve, consider it dangerous
+    except Exception as exc:
+        logger.warning(
+            "Path resolution raised an unexpected error; treating as dangerous (path=%s, error=%s)",
+            path,
+            exc,
+        )
+        return True
