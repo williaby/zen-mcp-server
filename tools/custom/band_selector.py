@@ -202,9 +202,12 @@ class BandSelector:
     def _apply_cost_criteria(self, df: pd.DataFrame, criteria: dict) -> pd.DataFrame:
         """Apply cost tier criteria.
 
-        Uses explicit index selection (iterrows + df.loc) instead of boolean
-        array indexing to avoid the pandas 2.3/numpy 2.2 _NoValueType bug on
-        Python 3.10 that causes TypeError in df[bool_mask] for all column dtypes.
+        Builds a fresh DataFrame from matching rows instead of using any form
+        of boolean array indexing or fancy label/positional indexing. All of
+        those code paths internally call RangeIndex.take, which triggers a
+        TypeError on Python 3.10 + pandas 2.3 + numpy 2.2 because numpy
+        passes a _NoValueType sentinel into the indexer array. Constructing
+        pd.DataFrame(list_of_dicts) avoids every take() call.
         """
         max_cost = criteria.get("max_cost")
         min_cost = criteria.get("min_cost")
@@ -212,8 +215,8 @@ class BandSelector:
         if max_cost is None and min_cost is None:
             return df.copy()
 
-        keep_indices = []
-        for idx, row in df.iterrows():
+        keep_rows: list[dict] = []
+        for _, row in df.iterrows():
             try:
                 cost = float(row["input_cost"])
                 out_cost = float(row["output_cost"])
@@ -231,9 +234,9 @@ class BandSelector:
             if min_cost is not None and cost < min_cost:
                 continue
 
-            keep_indices.append(idx)
+            keep_rows.append(dict(row))
 
-        return df.loc[keep_indices].copy() if keep_indices else df.iloc[0:0].copy()
+        return pd.DataFrame(keep_rows) if keep_rows else pd.DataFrame(columns=list(df.columns))
 
     def _apply_role_specialization(self, df: pd.DataFrame, role: str) -> pd.DataFrame:
         """Apply role-based specialization filtering."""
@@ -261,14 +264,24 @@ class BandSelector:
         return role_df
 
     def _sort_by_performance(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Sort models by performance metrics (numeric columns only).
+        """Sort models by humaneval_score DESC, swe_bench_score DESC.
 
-        Note: "context" is excluded because it is stored as a string (e.g. "131K")
-        in models.csv. Sorting on a string column triggers a TypeError with
-        pandas 2.3/numpy 2.2 on Python 3.10 that causes the broad except handler
-        in callers to silently fall back to free-tier models.
+        Uses Python-native list sort + pd.DataFrame(list_of_dicts) instead of
+        sort_values() because sort_values internally calls DataFrame.take(), which
+        calls RangeIndex.take(), which triggers the same Python 3.10 + pandas 2.3
+        + numpy 2.2 _NoValueType TypeError as boolean array indexing.
+
+        The "context" column is also omitted from the sort key for the same reason
+        (it is an object-dtype string column like "131K" in models.csv).
         """
-        return df.sort_values(["humaneval_score", "swe_bench_score"], ascending=[False, False])
+        rows = [dict(row) for _, row in df.iterrows()]
+        rows.sort(
+            key=lambda r: (
+                -float(r.get("humaneval_score") or 0),
+                -float(r.get("swe_bench_score") or 0),
+            )
+        )
+        return pd.DataFrame(rows) if rows else pd.DataFrame(columns=list(df.columns))
 
     def _get_role_to_band_mapping(self) -> dict[str, str]:
         """Get role to band category mapping."""
