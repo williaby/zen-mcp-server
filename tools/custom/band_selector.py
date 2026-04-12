@@ -112,7 +112,7 @@ class BandSelector:
             return filtered_df.head(limit)["model"].tolist()
 
         except Exception as e:
-            logger.error(f"Error in get_models_by_org_level: {e}")
+            logger.error(f"Error in get_models_by_org_level (org_level={org_level}, limit={limit}, role={role}): {e}")
             return self._get_fallback_models(org_level, limit)
 
     def get_models_by_cost_tier(self, tier: str, limit: int = 5) -> list[str]:
@@ -127,7 +127,7 @@ class BandSelector:
             return filtered_df.head(limit)["model"].tolist()
 
         except Exception as e:
-            logger.error(f"Error in get_models_by_cost_tier: {e}")
+            logger.error(f"Error in get_models_by_cost_tier (tier={tier}, limit={limit}): {e}")
             return self._get_fallback_models("startup", limit)
 
     def get_models_by_role(self, role: str, org_level: str = "senior", limit: int = 3) -> list[str]:
@@ -151,20 +151,17 @@ class BandSelector:
             return role_df.head(limit)["model"].tolist()
 
         except Exception as e:
-            logger.error(f"Error in get_models_by_role: {e}")
+            logger.error(f"Error in get_models_by_role (role={role}, org_level={org_level}, limit={limit}): {e}")
             return self._get_fallback_models(org_level, limit)
 
     def _apply_org_level_criteria(self, df: pd.DataFrame, criteria: dict) -> pd.DataFrame:
         """Apply organizational level criteria from bands config."""
         filtered_df = df.copy()
 
-        # Apply cost criteria
+        # Apply cost criteria (skip if unlimited=True is set for this org level)
         cost_criteria = criteria.get("cost_criteria", {})
-        if "max_input_cost" in cost_criteria:
-            filtered_df = filtered_df[filtered_df["input_cost"] <= cost_criteria["max_input_cost"]]
         if not cost_criteria.get("unlimited") and "max_input_cost" in cost_criteria:
-            # If not unlimited, apply max cost
-            pass
+            filtered_df = filtered_df[filtered_df["input_cost"] <= cost_criteria["max_input_cost"]]
 
         # Apply performance criteria
         perf_criteria = criteria.get("performance_criteria", {})
