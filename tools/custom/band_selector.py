@@ -242,8 +242,14 @@ class BandSelector:
         return role_df
 
     def _sort_by_performance(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Sort models by performance metrics."""
-        return df.sort_values(["humaneval_score", "swe_bench_score", "context"], ascending=[False, False, False])
+        """Sort models by performance metrics (numeric columns only).
+
+        Note: "context" is excluded because it is stored as a string (e.g. "131K")
+        in models.csv. Sorting on a string column triggers a TypeError with
+        pandas 2.3/numpy 2.2 on Python 3.10 that causes the broad except handler
+        in callers to silently fall back to free-tier models.
+        """
+        return df.sort_values(["humaneval_score", "swe_bench_score"], ascending=[False, False])
 
     def _get_role_to_band_mapping(self) -> dict[str, str]:
         """Get role to band category mapping."""
