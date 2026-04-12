@@ -20,9 +20,14 @@ from pathlib import Path
 
 import pytest
 
-from providers.gemini import GeminiModelProvider
+from providers.gemini import GEMINI_AVAILABLE, GeminiModelProvider
 from providers.registry import ModelProviderRegistry, ProviderType
 from tools.chat import ChatTool
+
+pytestmark = pytest.mark.skipif(
+    not GEMINI_AVAILABLE,
+    reason="Google Gemini SDK unavailable on this Python version",
+)
 
 REPLAYS_ROOT = Path(__file__).parent / "gemini_cassettes"
 CASSETTE_DIR = REPLAYS_ROOT / "chat_codegen"

@@ -10,10 +10,16 @@ from pathlib import Path
 
 import pytest
 
+from providers.gemini import GEMINI_AVAILABLE
 from providers.registry import ModelProviderRegistry
 from providers.shared import ProviderType
 from tests.transport_helpers import inject_transport
 from tools.chat import ChatTool
+
+pytestmark = pytest.mark.skipif(
+    not GEMINI_AVAILABLE,
+    reason="Google Gemini SDK unavailable on this Python version",
+)
 
 CASSETTE_DIR = Path(__file__).parent / "openai_cassettes"
 CASSETTE_DIR.mkdir(exist_ok=True)

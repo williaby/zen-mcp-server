@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from providers import ModelProviderRegistry, ModelResponse
-from providers.gemini import GeminiModelProvider
+from providers.gemini import GEMINI_AVAILABLE, GeminiModelProvider
 from providers.openai import OpenAIModelProvider
 from providers.shared import ProviderType
 
@@ -120,6 +120,7 @@ class TestGeminiProvider:
         capabilities = provider.get_capabilities("flash")
         assert capabilities.model_name == "gemini-2.5-flash"
 
+    @pytest.mark.skipif(not GEMINI_AVAILABLE, reason="Google Gemini SDK unavailable on this Python version")
     @patch("google.genai.Client")
     def test_generate_content(self, mock_client_class):
         """Test content generation"""
