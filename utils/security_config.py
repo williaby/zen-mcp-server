@@ -5,23 +5,34 @@ This module contains security-related constants and configurations
 for file access control.
 """
 
+import logging
 from pathlib import Path
 
-# Dangerous paths that should never be scanned
-# These would give overly broad access and pose security risks
-DANGEROUS_PATHS = {
+logger = logging.getLogger(__name__)
+
+# Dangerous system paths - block these AND all their subdirectories
+# These are system directories where user code should never reside
+DANGEROUS_SYSTEM_PATHS = {
     "/",
     "/etc",
     "/usr",
     "/bin",
     "/var",
     "/root",
-    "/home",
-    "C:\\",
     "C:\\Windows",
     "C:\\Program Files",
+}
+
+# User home container paths - block ONLY the exact path, not subdirectories
+# Subdirectory access (e.g., /home/user/project) is controlled by is_home_directory_root()
+# This allows users to work in their home subdirectories while blocking overly broad access
+DANGEROUS_HOME_CONTAINERS = {
+    "/home",
     "C:\\Users",
 }
+
+# Combined set for backward compatibility
+DANGEROUS_PATHS = DANGEROUS_SYSTEM_PATHS | DANGEROUS_HOME_CONTAINERS
 
 # Directories to exclude from recursive file search
 # These typically contain generated code, dependencies, or build artifacts
@@ -89,16 +100,70 @@ EXCLUDED_DIRS = {
 
 def is_dangerous_path(path: Path) -> bool:
     """
-    Check if a path is in the dangerous paths list.
+    Check if a path is in or under a dangerous directory.
+
+    This function handles two categories of dangerous paths differently:
+
+    1. System paths (DANGEROUS_SYSTEM_PATHS): Block the path AND all subdirectories.
+       Example: /etc is dangerous, so /etc/passwd is also blocked.
+
+    2. Home containers (DANGEROUS_HOME_CONTAINERS): Block ONLY the exact path.
+       Example: /home is blocked, but /home/user/project is allowed.
+       Subdirectory access control is delegated to is_home_directory_root().
 
     Args:
         path: Path to check
 
     Returns:
         True if the path is dangerous and should not be accessed
+
+    Security:
+        Fixes path traversal vulnerability (CWE-22) while preserving
+        user access to home subdirectories.
     """
     try:
         resolved = path.resolve()
-        return str(resolved) in DANGEROUS_PATHS or resolved.parent == resolved
-    except Exception:
-        return True  # If we can't resolve, consider it dangerous
+
+        def _dangerous_variants(p: Path) -> set[Path]:
+            variants = {p}
+            # Only resolve paths that are absolute on the current platform.
+            # This avoids turning Windows-style strings into nonsense absolute paths on POSIX.
+            # Let resolution errors propagate to the outer except, which safely returns True.
+            if p.is_absolute():
+                variants.add(p.resolve())
+            return variants
+
+        # Check 1: Root directory (filesystem root)
+        if resolved.parent == resolved:
+            return True
+
+        # Check 2: System paths - block exact match AND all subdirectories
+        for dangerous in DANGEROUS_SYSTEM_PATHS:
+            # Skip root "/" - already handled above
+            if dangerous == "/":
+                continue
+
+            for dangerous_path in _dangerous_variants(Path(dangerous)):
+                # is_relative_to() correctly handles both exact matches and subdirectories.
+                # Resolving the dangerous base path also handles platform symlinks
+                # (e.g., macOS /etc -> /private/etc, /var -> /private/var).
+                if resolved == dangerous_path or resolved.is_relative_to(dangerous_path):
+                    return True
+
+        # Check 3: Home containers - block ONLY exact match
+        # Subdirectories like /home/user/project should pass through here
+        # and be handled by is_home_directory_root() in resolve_and_validate_path()
+        for container in DANGEROUS_HOME_CONTAINERS:
+            for container_path in _dangerous_variants(Path(container)):
+                if resolved == container_path:
+                    return True
+
+        return False
+
+    except Exception as exc:
+        logger.warning(
+            "Path resolution raised an unexpected error; treating as dangerous (path=%s, error=%s)",
+            path,
+            exc,
+        )
+        return True

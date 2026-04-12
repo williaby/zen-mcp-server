@@ -18,7 +18,7 @@ import logging
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class PromptCraftSystemPlugin:
         self.data_manager = None
         self.initialized = False
 
-    def initialize(self) -> bool:
+    def initialize(self, data_dir: Optional[Path] = None) -> bool:
         """
         Initialize the PromptCraft system plugin.
 
@@ -55,7 +55,7 @@ class PromptCraftSystemPlugin:
             # Initialize data management
             from .data_manager import PromptCraftDataManager
 
-            self.data_manager = PromptCraftDataManager()
+            self.data_manager = PromptCraftDataManager(data_dir)
 
             # Initialize API server
             from .api_server import PromptCraftAPIServer

@@ -62,7 +62,7 @@ def test_error_listing_respects_env_restrictions(monkeypatch, reset_registry):
 
     monkeypatch.setenv("DEFAULT_MODEL", "auto")
     monkeypatch.setenv("GEMINI_API_KEY", "test-gemini")
-    monkeypatch.setenv("OPENAI_API_KEY", "test-openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-openai-testing-00000000000000000000")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-openrouter")
     monkeypatch.delenv("XAI_API_KEY", raising=False)
     # Ensure Azure provider stays disabled regardless of developer workstation env
@@ -83,8 +83,8 @@ def test_error_listing_respects_env_restrictions(monkeypatch, reset_registry):
         pass
 
     monkeypatch.setenv("GOOGLE_ALLOWED_MODELS", "gemini-2.5-pro")
-    monkeypatch.setenv("OPENAI_ALLOWED_MODELS", "gpt-5.1")
-    monkeypatch.setenv("OPENROUTER_ALLOWED_MODELS", "gpt5nano")
+    monkeypatch.setenv("OPENAI_ALLOWED_MODELS", "gpt-5.2")
+    monkeypatch.setenv("OPENROUTER_ALLOWED_MODELS", "gpt5.4-nano")
     monkeypatch.setenv("XAI_ALLOWED_MODELS", "")
 
     import config
@@ -101,11 +101,11 @@ def test_error_listing_respects_env_restrictions(monkeypatch, reset_registry):
     for key, value in (
         ("DEFAULT_MODEL", "auto"),
         ("GEMINI_API_KEY", "test-gemini"),
-        ("OPENAI_API_KEY", "test-openai"),
+        ("OPENAI_API_KEY", "sk-proj-openai-testing-00000000000000000000"),
         ("OPENROUTER_API_KEY", "test-openrouter"),
         ("GOOGLE_ALLOWED_MODELS", "gemini-2.5-pro"),
-        ("OPENAI_ALLOWED_MODELS", "gpt-5.1"),
-        ("OPENROUTER_ALLOWED_MODELS", "gpt5nano"),
+        ("OPENAI_ALLOWED_MODELS", "gpt-5.2"),
+        ("OPENROUTER_ALLOWED_MODELS", "gpt5.4-nano"),
         ("XAI_ALLOWED_MODELS", ""),
     ):
         monkeypatch.setenv(key, value)
@@ -139,7 +139,7 @@ def test_error_listing_respects_env_restrictions(monkeypatch, reset_registry):
     assert payload["status"] == "error"
 
     available_models = _extract_available_models(payload["content"])
-    assert set(available_models) == {"gemini-2.5-pro", "gpt-5.1", "gpt5nano", "openai/gpt-5-nano"}
+    assert set(available_models) == {"gemini-2.5-pro", "gpt-5.2", "gpt5.4-nano", "openai/gpt-5.4-nano"}
 
 
 @pytest.mark.no_mock_provider
@@ -148,7 +148,7 @@ def test_error_listing_without_restrictions_shows_full_catalog(monkeypatch, rese
 
     monkeypatch.setenv("DEFAULT_MODEL", "auto")
     monkeypatch.setenv("GEMINI_API_KEY", "test-gemini")
-    monkeypatch.setenv("OPENAI_API_KEY", "test-openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-openai-testing-00000000000000000000")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-openrouter")
     monkeypatch.setenv("XAI_API_KEY", "test-xai")
     monkeypatch.setenv("PAL_MCP_FORCE_ENV_OVERRIDE", "false")
@@ -189,7 +189,7 @@ def test_error_listing_without_restrictions_shows_full_catalog(monkeypatch, rese
     for key, value in (
         ("DEFAULT_MODEL", "auto"),
         ("GEMINI_API_KEY", "test-gemini"),
-        ("OPENAI_API_KEY", "test-openai"),
+        ("OPENAI_API_KEY", "sk-proj-openai-testing-00000000000000000000"),
         ("OPENROUTER_API_KEY", "test-openrouter"),
     ):
         monkeypatch.setenv(key, value)
@@ -225,6 +225,6 @@ def test_error_listing_without_restrictions_shows_full_catalog(monkeypatch, rese
 
     available_models = _extract_available_models(payload["content"])
     assert "gemini-2.5-pro" in available_models
-    assert any(model in available_models for model in {"gpt-5.1", "gpt-5"})
+    assert any(model in available_models for model in {"gpt-5.2", "gpt-5"})
     assert "grok-4" in available_models
     assert len(available_models) >= 5

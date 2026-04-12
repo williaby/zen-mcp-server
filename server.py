@@ -440,15 +440,48 @@ def configure_providers():
     # Check for OpenAI API key
     openai_key = get_env("OPENAI_API_KEY")
     logger.debug(f"OpenAI key check: key={'[PRESENT]' if openai_key else '[MISSING]'}")
-    if openai_key and openai_key != "your_openai_api_key_here":
+
+    # Validate OpenAI API key format and check for common placeholder patterns
+    def is_valid_openai_key(key: str | None) -> bool:
+        if not key:
+            return False
+        # Check for placeholder patterns
+        placeholder_patterns = [
+            "your_openai_api_key_here",
+            "your-openai-api-key",
+            "sk-xxx",
+            "sk-test",
+            "dummy",
+            "placeholder",
+            "fake",
+            "invalid",
+        ]
+        key_lower = key.lower()
+        if any(pattern in key_lower for pattern in placeholder_patterns):
+            return False
+        # Valid OpenAI keys start with 'sk-' and are typically 51+ characters
+        # Some org keys start with 'sk-proj-' or similar
+        if not key.startswith("sk-"):
+            return False
+        if len(key) < 40:  # Real keys are much longer
+            return False
+        return True
+
+    if is_valid_openai_key(openai_key):
         valid_providers.append("OpenAI")
         has_native_apis = True
         logger.info("OpenAI API key found")
     else:
         if not openai_key:
             logger.debug("OpenAI API key not found in environment")
+        elif openai_key.startswith("sk-"):
+            logger.warning(
+                "OpenAI API key starts with 'sk-' but appears invalid or too short "
+                "(length=%d). Check for truncation. OpenAI provider will not be registered.",
+                len(openai_key),
+            )
         else:
-            logger.debug("OpenAI API key is placeholder value")
+            logger.warning("OpenAI API key does not match expected format. " "OpenAI provider will not be registered.")
 
     # Check for Azure OpenAI configuration
     azure_key = get_env("AZURE_OPENAI_API_KEY")
@@ -524,7 +557,7 @@ def configure_providers():
             ModelProviderRegistry.register_provider(ProviderType.GOOGLE, GeminiModelProvider)
             registered_providers.append(ProviderType.GOOGLE.value)
             logger.debug(f"Registered provider: {ProviderType.GOOGLE.value}")
-        if openai_key and openai_key != "your_openai_api_key_here":
+        if is_valid_openai_key(openai_key):
             ModelProviderRegistry.register_provider(ProviderType.OPENAI, OpenAIModelProvider)
             registered_providers.append(ProviderType.OPENAI.value)
             logger.debug(f"Registered provider: {ProviderType.OPENAI.value}")

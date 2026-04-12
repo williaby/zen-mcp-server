@@ -8,21 +8,28 @@ bridge tool, subprocess management, and fallback mechanisms.
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from pydantic import ValidationError
 
-# Import bridge tool
-from tools.custom.promptcraft_mcp_bridge import PromptCraftMCPBridgeTool
+try:
+    # Import bridge tool
+    from tools.custom.promptcraft_mcp_bridge import PromptCraftMCPBridgeTool
 
-# Import PromptCraft MCP client components
-from tools.custom.promptcraft_mcp_client import (
-    FallbackConfig,
-    MCPConnectionConfig,
-    MCPConnectionManager,
-    MCPProtocolBridge,
-    RouteAnalysisRequest,
-    ZenMCPProcess,
-    ZenMCPStdioClient,
-    create_client,
-)
+    # Import PromptCraft MCP client components
+    from tools.custom.promptcraft_mcp_client import (
+        FallbackConfig,
+        MCPConnectionConfig,
+        MCPConnectionManager,
+        MCPProtocolBridge,
+        RouteAnalysisRequest,
+        ZenMCPProcess,
+        ZenMCPStdioClient,
+        create_client,
+    )
+except ImportError:
+    pytest.skip(
+        "promptcraft_mcp_bridge and promptcraft_mcp_client modules not available",
+        allow_module_level=True,
+    )
 
 
 class TestMCPProtocolBridge:
@@ -77,10 +84,7 @@ class TestMCPProtocolBridge:
 
     def test_mcp_to_http_response_route_analysis(self):
         """Test converting MCP result to HTTP response for route analysis."""
-        mcp_result = {
-            "content": [
-                {
-                    "text": """PromptCraft MCP Bridge Result:
+        mcp_result = {"content": [{"text": """PromptCraft MCP Bridge Result:
 
 {
   "success": true,
@@ -99,10 +103,7 @@ class TestMCPProtocolBridge:
   },
   "processing_time": 0.15,
   "bridge_version": "1.0.0"
-}"""
-                }
-            ]
-        }
+}"""}]}
 
         http_response = self.bridge.mcp_to_http_response("/api/promptcraft/route/analyze", mcp_result)
 
@@ -433,7 +434,7 @@ class TestZenMCPStdioClientIntegration:
         assert valid_request.user_tier == "full"
 
         # Invalid user tier should raise validation error
-        with pytest.raises(Exception):  # Pydantic validation error
+        with pytest.raises(ValidationError):
             RouteAnalysisRequest(
                 prompt="Test prompt",
                 user_tier="invalid_tier",

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     
     steps:
     - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
     
     - name: Run unit tests with coverage
       run: |
-        coverage run -m pytest tests/ -v -m "not integration" --tb=short
+        coverage run -m pytest tests/ -v -m "not integration" --timeout=60 --tb=short
         coverage xml -o coverage-unit.xml
     
     - name: Upload unit test coverage to Codecov
@@ -69,10 +69,10 @@ jobs:
     
     - name: Run integration tests with coverage
       env:
-        CUSTOM_API_URL: "http://localhost:11434"
+        CUSTOM_API_URL: "http://localhost:11434/v1"
       run: |
-        coverage run -m pytest tests/ -v -m "integration" --tb=short
-        coverage xml -o coverage-integration.xml
+        coverage run -m pytest tests/ -v -m "integration" --timeout=300 --tb=short
+        coverage xml -o coverage-integration.xml || true
     
     - name: Upload integration test coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -108,7 +108,7 @@ jobs:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: |
         coverage run communication_simulator_test.py --quick
-        coverage xml -o coverage-simulator.xml
+        coverage xml -o coverage-simulator.xml || true
     
     - name: Upload simulator test coverage to Codecov
       uses: codecov/codecov-action@v3

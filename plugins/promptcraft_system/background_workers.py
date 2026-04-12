@@ -8,7 +8,7 @@ of experimental models to stable channel based on performance criteria.
 import logging
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 import requests
@@ -284,7 +284,7 @@ class GraduationWorker:
         try:
             # Check age requirement
             added_date = datetime.fromisoformat(model.added_date.replace("Z", "+00:00"))
-            days_in_experimental = (datetime.now() - added_date).days
+            days_in_experimental = (datetime.now(timezone.utc) - added_date).days
 
             min_age_days = criteria.get("minimum_age_days", 7)
             min_usage = criteria.get("minimum_usage_requests", 50)

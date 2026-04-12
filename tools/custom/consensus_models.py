@@ -376,15 +376,16 @@ class TierManager:
         Returns:
             True if paid model, False if free
         """
-        # Check models.csv for model status
-        model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
-
-        if model_data.empty:
-            logger.warning(f"Model {model} not found in registry")
-            return False
-
-        status = model_data.iloc[0]["status"]
-        return status != "free"
+        # Use iterrows to avoid pandas 2.3/numpy 2.2 boolean indexing bug on Python 3.10
+        # (df[df["string_col"] == value] fails with _NoValueType on that platform combination)
+        models_df = self.band_selector.models_df
+        has_status = "status" in models_df.columns
+        for _, row in models_df.iterrows():
+            if str(row["model"]) == model:
+                status = str(row["status"]) if has_status else "free"
+                return status != "free"
+        logger.warning(f"Model {model} not found in registry")
+        return False
 
     def _alert_paid_model_failure(self, model: str, tier: str = "unknown", error_code: int | None = None):
         """
@@ -424,23 +425,34 @@ class TierManager:
         total_input_cost = 0.0
         total_output_cost = 0.0
 
+        # Build cost lookup dict via iterrows to avoid pandas 2.3/numpy 2.2
+        # boolean indexing bug on Python 3.10 with object-dtype (string) columns.
+        models_df = self.band_selector.models_df
+        cost_lookup: dict[str, tuple[float, float]] = {}
+        for _, row in models_df.iterrows():
+            try:
+                cost_lookup[str(row["model"])] = (float(row["input_cost"]), float(row["output_cost"]))
+            except (KeyError, ValueError, TypeError):
+                pass
+
         for model in models:
-            model_data = self.band_selector.models_df[self.band_selector.models_df["model"] == model]
+            if model in cost_lookup:
+                total_input_cost += cost_lookup[model][0]
+                total_output_cost += cost_lookup[model][1]
 
-            if not model_data.empty:
-                total_input_cost += model_data.iloc[0]["input_cost"]
-                total_output_cost += model_data.iloc[0]["output_cost"]
-
-        # Rough estimate: 1K input tokens, 2K output tokens per model
-        input_tokens = 1000
-        output_tokens = 2000
+        # Estimate: 50K input tokens, 100K output tokens total across all models per call
+        input_tokens = 50_000
+        output_tokens = 100_000
 
         estimated_cost = (total_input_cost * input_tokens + total_output_cost * output_tokens) / 1_000_000
+
+        cost_tier_map = {1: "free", 2: "economy", 3: "premium"}
 
         return {
             "level": level,
             "model_count": len(models),
             "estimated_cost_per_call": round(estimated_cost, 4),
+            "cost_tier": cost_tier_map.get(level, "unknown"),
             "input_cost_per_million": round(total_input_cost, 2),
             "output_cost_per_million": round(total_output_cost, 2),
         }

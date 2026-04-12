@@ -16,6 +16,12 @@ from .model_level_router import ModelLevelRouter, RoutingResult
 
 logger = logging.getLogger(__name__)
 
+# Module-level import so tests can patch "routing.integration.BaseTool"
+try:
+    from tools.shared.base_tool import BaseTool
+except ImportError:
+    BaseTool = None
+
 
 class ModelRoutingIntegration:
     """
@@ -324,14 +330,12 @@ def integrate_with_server():
     integration = get_integration_instance()
 
     if integration.enabled:
-        # Import BaseTool and integrate
-        try:
-            from tools.shared.base_tool import BaseTool
-
+        # Use module-level BaseTool (imported at top of module, may be None if unavailable)
+        if BaseTool is not None:
             integration.integrate_with_base_tool(BaseTool)
             logger.info("Dynamic model routing integration complete")
-        except ImportError as e:
-            logger.error(f"Failed to integrate with BaseTool: {e}")
+        else:
+            logger.error("Failed to integrate with BaseTool: module not available")
 
     else:
         logger.info("Dynamic model routing disabled (ZEN_SMART_ROUTING not set to true)")

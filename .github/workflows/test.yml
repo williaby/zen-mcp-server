@@ -29,7 +29,7 @@ jobs:
         run: |
           # Run only unit tests (exclude simulation tests and integration tests)
           # Integration tests require local-llama which isn't available in CI
-          python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration" --cov=. --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration" --timeout=60 --cov=tools --cov=utils --cov=providers --cov=routing --cov=systemprompts --cov=server.py --cov=config.py --cov-report=xml --cov-report=term-missing
         env:
           # Ensure no API key is accidentally used in CI
           GEMINI_API_KEY: ""

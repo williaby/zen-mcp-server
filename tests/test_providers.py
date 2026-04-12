@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from providers import ModelProviderRegistry, ModelResponse
-from providers.gemini import GeminiModelProvider
+from providers.gemini import GEMINI_AVAILABLE, GeminiModelProvider
 from providers.openai import OpenAIModelProvider
 from providers.shared import ProviderType
 
@@ -120,6 +120,7 @@ class TestGeminiProvider:
         capabilities = provider.get_capabilities("flash")
         assert capabilities.model_name == "gemini-2.5-flash"
 
+    @pytest.mark.skipif(not GEMINI_AVAILABLE, reason="Google Gemini SDK unavailable on this Python version")
     @patch("google.genai.Client")
     def test_generate_content(self, mock_client_class):
         """Test content generation"""
@@ -209,7 +210,7 @@ class TestOpenAIProvider:
         assert provider.validate_model_name("o4-mini")
         assert provider.validate_model_name("o4mini")
         assert provider.validate_model_name("o4-mini")
-        assert provider.validate_model_name("gpt-5.1")
+        assert provider.validate_model_name("gpt-5.2")
         assert provider.validate_model_name("gpt-5.1-codex")
         assert provider.validate_model_name("gpt-5.1-codex-mini")
         assert not provider.validate_model_name("gpt-4o")
@@ -223,11 +224,11 @@ class TestOpenAIProvider:
         for alias in aliases:
             assert not provider.get_capabilities(alias).supports_extended_thinking
 
-    def test_gpt51_family_capabilities(self):
-        """Ensure GPT-5.1 family exposes correct capability flags."""
+    def test_gpt52_family_capabilities(self):
+        """Ensure GPT-5.2 base model exposes correct capability flags."""
         provider = OpenAIModelProvider(api_key="test-key")
 
-        base = provider.get_capabilities("gpt-5.1")
+        base = provider.get_capabilities("gpt-5.2")
         assert base.supports_streaming
         assert base.allow_code_generation
 

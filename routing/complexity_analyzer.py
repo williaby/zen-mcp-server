@@ -525,7 +525,7 @@ class ComplexityAnalyzer:
         # Task type adjustments
         task_type_adjustments = {
             TaskType.CODE_GENERATION: 0.1,
-            TaskType.DEBUGGING: 0.2,
+            TaskType.DEBUGGING: 0.1,  # Reduced from 0.2 to avoid inflating simple debug tasks
             TaskType.ANALYSIS: 0.15,
             TaskType.PLANNING: 0.2,
             TaskType.CODE_REVIEW: 0.1,
@@ -536,11 +536,13 @@ class ComplexityAnalyzer:
         adjusted_score = weighted_score + task_type_adjustments.get(task_type, 0.0)
 
         # Determine complexity level
-        if adjusted_score < 0:
+        # Thresholds calibrated so simple debugging/codegen tasks stay "simple"
+        # while multi-file expert tasks reach "expert"
+        if adjusted_score < 0.14:
             complexity = "simple"
-        elif adjusted_score < 0.3:
+        elif adjusted_score < 0.25:
             complexity = "moderate"
-        elif adjusted_score < 0.6:
+        elif adjusted_score < 0.35:
             complexity = "complex"
         else:
             complexity = "expert"

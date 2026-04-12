@@ -1,6 +1,13 @@
 [run]
-source = gemini_server
-omit = 
+source =
+    tools
+    utils
+    providers
+    routing
+    systemprompts
+    server
+    config
+omit =
     */tests/*
     */venv/*
     */__pycache__/*

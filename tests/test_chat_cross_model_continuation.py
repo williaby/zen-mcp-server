@@ -10,10 +10,16 @@ from pathlib import Path
 
 import pytest
 
+from providers.gemini import GEMINI_AVAILABLE
 from providers.registry import ModelProviderRegistry
 from providers.shared import ProviderType
 from tests.transport_helpers import inject_transport
 from tools.chat import ChatTool
+
+pytestmark = pytest.mark.skipif(
+    not GEMINI_AVAILABLE,
+    reason="Google Gemini SDK unavailable on this Python version",
+)
 
 CASSETTE_DIR = Path(__file__).parent / "openai_cassettes"
 CASSETTE_DIR.mkdir(exist_ok=True)
@@ -124,31 +130,39 @@ async def test_chat_cross_model_continuation(monkeypatch, tmp_path):
             "working_directory_absolute_path": working_directory,
         }
 
-        step1_result = await chat_tool.execute(step1_args)
-        assert step1_result and step1_result[0].type == "text"
+        try:
+            step1_result = await chat_tool.execute(step1_args)
+            assert step1_result and step1_result[0].type == "text"
 
-        step1_data = json.loads(step1_result[0].text)
-        assert step1_data["status"] in {"success", "continuation_available"}
-        assert step1_data.get("metadata", {}).get("provider_used") == "google"
-        continuation_offer = step1_data.get("continuation_offer")
-        assert continuation_offer is not None
-        continuation_id = continuation_offer["continuation_id"]
-        assert continuation_id
+            step1_data = json.loads(step1_result[0].text)
+            assert step1_data["status"] in {"success", "continuation_available"}
+            assert step1_data.get("metadata", {}).get("provider_used") == "google"
+            continuation_offer = step1_data.get("continuation_offer")
+            assert continuation_offer is not None
+            continuation_id = continuation_offer["continuation_id"]
+            assert continuation_id
 
-        chosen_number = _extract_number(step1_data["content"])
-        assert chosen_number.isdigit()
-        assert 1 <= int(chosen_number) <= 10
+            chosen_number = _extract_number(step1_data["content"])
+            assert chosen_number.isdigit()
+            assert 1 <= int(chosen_number) <= 10
 
-        # Ensure replay is flushed for Gemini recordings
-        gemini_provider = ModelProviderRegistry.get_provider_for_model("gemini-2.5-flash")
-        if gemini_provider is not None:
+            # Ensure replay is flushed for Gemini recordings
+            gemini_provider = ModelProviderRegistry.get_provider_for_model("gemini-2.5-flash")
+            if gemini_provider is not None:
+                try:
+                    client = gemini_provider.client
+                    if hasattr(client, "close"):
+                        client.close()
+                finally:
+                    if hasattr(gemini_provider, "_client"):
+                        gemini_provider._client = None
+        finally:
             try:
-                client = gemini_provider.client
-                if hasattr(client, "close"):
-                    client.close()
-            finally:
-                if hasattr(gemini_provider, "_client"):
-                    gemini_provider._client = None
+                from utils import model_restrictions
+
+                model_restrictions._restriction_service = None  # type: ignore[attr-defined]
+            except Exception:
+                pass
 
     assert GEMINI_REPLAY_PATH.exists()
 
@@ -189,15 +203,23 @@ async def test_chat_cross_model_continuation(monkeypatch, tmp_path):
             "working_directory_absolute_path": working_directory,
         }
 
-        step2_result = await chat_tool.execute(step2_args)
-        assert step2_result and step2_result[0].type == "text"
+        try:
+            step2_result = await chat_tool.execute(step2_args)
+            assert step2_result and step2_result[0].type == "text"
 
-        step2_data = json.loads(step2_result[0].text)
-        assert step2_data["status"] in {"success", "continuation_available"}
-        assert step2_data.get("metadata", {}).get("provider_used") == "openai"
+            step2_data = json.loads(step2_result[0].text)
+            assert step2_data["status"] in {"success", "continuation_available"}
+            assert step2_data.get("metadata", {}).get("provider_used") == "openai"
 
-        recalled_number = _extract_number(step2_data["content"])
-        assert recalled_number == chosen_number
+            recalled_number = _extract_number(step2_data["content"])
+            assert recalled_number == chosen_number
+        finally:
+            try:
+                from utils import model_restrictions
+
+                model_restrictions._restriction_service = None  # type: ignore[attr-defined]
+            except Exception:
+                pass
 
     assert OPENAI_CASSETTE_PATH.exists()
 

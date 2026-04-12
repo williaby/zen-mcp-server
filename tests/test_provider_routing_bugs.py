@@ -94,7 +94,7 @@ class TestProviderRoutingBugs:
             )
 
             # Test common aliases that should all route to OpenRouter
-            test_models = ["flash", "pro", "o3", "o3-mini", "o4-mini"]
+            test_models = ["flash", "pro", "opus", "sonnet", "grok"]
             for model_name in test_models:
                 provider = tool.get_model_provider(model_name)
                 assert provider is not None, f"Should find provider for '{model_name}'"
@@ -201,15 +201,15 @@ class TestProviderRoutingBugs:
             # Test priority order: Native APIs should be preferred over OpenRouter
             # Google models should use Google provider
             flash_provider = tool.get_model_provider("flash")
-            assert flash_provider.get_provider_type() == ProviderType.GOOGLE, (
-                "When both Google and OpenRouter API keys are available, 'flash' should prefer Google provider"
-            )
+            assert (
+                flash_provider.get_provider_type() == ProviderType.GOOGLE
+            ), "When both Google and OpenRouter API keys are available, 'flash' should prefer Google provider"
 
             # OpenAI models should use OpenAI provider
             o3_provider = tool.get_model_provider("o3")
-            assert o3_provider.get_provider_type() == ProviderType.OPENAI, (
-                "When both OpenAI and OpenRouter API keys are available, 'o3' should prefer OpenAI provider"
-            )
+            assert (
+                o3_provider.get_provider_type() == ProviderType.OPENAI
+            ), "When both OpenAI and OpenRouter API keys are available, 'o3' should prefer OpenAI provider"
 
         finally:
             # Restore original environment
@@ -269,7 +269,7 @@ class TestOpenRouterAliasRestrictions:
             os.environ.pop("OPENAI_API_KEY", None)
             os.environ.pop("XAI_API_KEY", None)
             os.environ["OPENROUTER_API_KEY"] = "test-key"
-            os.environ["OPENROUTER_ALLOWED_MODELS"] = "o3-mini,pro,gpt4.1,flash,o4-mini,o3"  # User's exact config
+            os.environ["OPENROUTER_ALLOWED_MODELS"] = "pro,flash,opus,sonnet,grok,gpt4.1"  # 5 valid + 1 invalid alias
 
             # Register OpenRouter provider
             from providers.openrouter import OpenRouterProvider
@@ -281,19 +281,19 @@ class TestOpenRouterAliasRestrictions:
 
             # ASSERTION: Should have models available, not 0
             assert len(available_models) > 0, (
-                f"Expected models available with alias restrictions 'o3-mini,pro,gpt4.1,flash,o4-mini,o3', "
+                f"Expected models available with alias restrictions 'pro,flash,opus,sonnet,grok,gpt4.1', "
                 f"but got {len(available_models)} models. Available: {list(available_models.keys())}"
             )
 
             # Expected aliases that should resolve to models:
-            # o3-mini -> openai/o3-mini
-            # pro -> google/gemini-2.5-pro
-            # flash -> google/gemini-2.5-flash
-            # o4-mini -> openai/o4-mini
-            # o3 -> openai/o3
+            # pro -> google/gemini-3.1-pro-preview
+            # flash -> google/gemini-3-flash-preview
+            # opus -> anthropic/claude-opus-4.6
+            # sonnet -> anthropic/claude-sonnet-4.6
+            # grok -> x-ai/grok-4.20
             # gpt4.1 -> should not exist (expected to be filtered out)
 
-            expected_models = {"o3-mini", "pro", "flash", "o4-mini", "o3"}
+            expected_models = {"pro", "flash", "opus", "sonnet", "grok"}
 
             available_model_names = set(available_models.keys())
 
@@ -305,9 +305,9 @@ class TestOpenRouterAliasRestrictions:
 
             # Check that expected models are present
             missing_models = expected_models - available_model_names
-            assert len(missing_models) == 0, (
-                f"Missing expected models from alias restrictions: {missing_models}. Available: {available_model_names}"
-            )
+            assert (
+                len(missing_models) == 0
+            ), f"Missing expected models from alias restrictions: {missing_models}. Available: {available_model_names}"
 
         finally:
             # Restore original environment
@@ -337,7 +337,7 @@ class TestOpenRouterAliasRestrictions:
             os.environ.pop("OPENAI_API_KEY", None)
             os.environ.pop("XAI_API_KEY", None)
             os.environ["OPENROUTER_API_KEY"] = "test-key"
-            os.environ["OPENROUTER_ALLOWED_MODELS"] = "o3-mini,anthropic/claude-opus-4.1,flash"
+            os.environ["OPENROUTER_ALLOWED_MODELS"] = "opus,anthropic/claude-sonnet-4.6,flash"
 
             # Register OpenRouter provider
             from providers.openrouter import OpenRouterProvider
@@ -348,18 +348,18 @@ class TestOpenRouterAliasRestrictions:
             available_models = ModelProviderRegistry.get_available_models(respect_restrictions=True)
 
             expected_models = {
-                "o3-mini",  # alias
-                "openai/o3-mini",  # canonical
-                "anthropic/claude-opus-4.1",  # full name
+                "opus",  # alias
+                "anthropic/claude-opus-4.6",  # canonical
+                "anthropic/claude-sonnet-4.6",  # full name
                 "flash",  # alias
-                "google/gemini-2.5-flash",  # canonical
+                "google/gemini-3-flash-preview",  # canonical
             }
 
             available_model_names = set(available_models.keys())
 
-            assert available_model_names == expected_models, (
-                f"Expected models {expected_models}, got {available_model_names}"
-            )
+            assert (
+                available_model_names == expected_models
+            ), f"Expected models {expected_models}, got {available_model_names}"
 
         finally:
             # Restore original environment

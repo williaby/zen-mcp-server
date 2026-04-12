@@ -330,9 +330,9 @@ class TestPromptCraftIntegration:
 
     def test_data_consistency(self):
         """Test data consistency across components."""
-        # Initialize plugin
+        # Initialize plugin with isolated data directory
         plugin = PromptCraftSystemPlugin()
-        plugin.initialize()
+        plugin.initialize(data_dir=self.test_data_dir)
 
         # Add experimental model through data manager
         test_model = ExperimentalModel(

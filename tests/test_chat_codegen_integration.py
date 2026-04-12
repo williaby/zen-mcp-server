@@ -20,9 +20,14 @@ from pathlib import Path
 
 import pytest
 
-from providers.gemini import GeminiModelProvider
+from providers.gemini import GEMINI_AVAILABLE, GeminiModelProvider
 from providers.registry import ModelProviderRegistry, ProviderType
 from tools.chat import ChatTool
+
+pytestmark = pytest.mark.skipif(
+    not GEMINI_AVAILABLE,
+    reason="Google Gemini SDK unavailable on this Python version",
+)
 
 REPLAYS_ROOT = Path(__file__).parent / "gemini_cassettes"
 CASSETTE_DIR = REPLAYS_ROOT / "chat_codegen"
@@ -75,28 +80,29 @@ async def test_chat_codegen_saves_file(monkeypatch, tmp_path):
             " <GENERATED-CODE> format so the assistant can apply the files directly."
         )
 
-        result = await chat_tool.execute(
-            {
-                "prompt": prompt,
-                "model": "gemini-2.5-pro",
-                "working_directory_absolute_path": str(working_dir),
-            }
-        )
-
-        provider = ModelProviderRegistry.get_provider_for_model("gemini-2.5-pro")
-        if provider is not None:
-            try:
-                provider.client.close()
-            except AttributeError:
-                pass
-
-        # Reset restriction service cache to avoid leaking allowed-model config
         try:
-            from utils import model_restrictions
+            result = await chat_tool.execute(
+                {
+                    "prompt": prompt,
+                    "model": "gemini-2.5-pro",
+                    "working_directory_absolute_path": str(working_dir),
+                }
+            )
 
-            model_restrictions._restriction_service = None  # type: ignore[attr-defined]
-        except Exception:
-            pass
+            provider = ModelProviderRegistry.get_provider_for_model("gemini-2.5-pro")
+            if provider is not None:
+                try:
+                    provider.client.close()
+                except AttributeError:
+                    pass
+        finally:
+            # Reset restriction service cache to avoid leaking allowed-model config
+            try:
+                from utils import model_restrictions
+
+                model_restrictions._restriction_service = None  # type: ignore[attr-defined]
+            except Exception:
+                pass
 
     assert result and result[0].type == "text"
     payload = json.loads(result[0].text)

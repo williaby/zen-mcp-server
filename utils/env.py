@@ -58,17 +58,20 @@ def reload_env(dotenv_mapping: Mapping[str, str | None] | None = None, use_infis
             if secrets:
                 # Inject secrets into environment (don't override existing vars)
                 inject_secrets_into_env(secrets, override=False)
-                _INFISICAL_LOADED = True
                 # Also store in _DOTENV_VALUES for consistent access
                 _DOTENV_VALUES.update(secrets)
+            # Mark as loaded regardless of result to prevent repeated subprocess
+            # calls in environments where Infisical is not configured.
+            _INFISICAL_LOADED = True
         except ImportError:
             # Infisical not installed, fall back to .env
-            pass
+            _INFISICAL_LOADED = True
         except Exception as e:
             # Log error but continue with .env fallback
             import logging
 
             logging.getLogger(__name__).warning(f"Failed to load secrets from Infisical: {e}")
+            _INFISICAL_LOADED = True
 
     # Load from .env file (as fallback or supplement)
     dotenv_values_from_file = _read_dotenv_values()

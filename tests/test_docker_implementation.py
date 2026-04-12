@@ -294,9 +294,9 @@ class TestDockerPerformance:
         # Simulate a startup time measurement
         simulated_startup_time = 3  # seconds
 
-        assert simulated_startup_time <= expected_startup_time_seconds, (
-            f"Startup time too long: {simulated_startup_time}s"
-        )
+        assert (
+            simulated_startup_time <= expected_startup_time_seconds
+        ), f"Startup time too long: {simulated_startup_time}s"
 
 
 @pytest.fixture
@@ -310,13 +310,11 @@ def temp_project_dir():
 
         # Create base files
         (temp_path / "server.py").write_text("# Mock server.py")
-        (temp_path / "Dockerfile").write_text(
-            """
+        (temp_path / "Dockerfile").write_text("""
 FROM python:3.11-slim
 COPY server.py /app/
 CMD ["python", "/app/server.py"]
-"""
-        )
+""")
 
         yield temp_path
 
