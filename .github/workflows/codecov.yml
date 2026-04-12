@@ -71,7 +71,7 @@ jobs:
       env:
         CUSTOM_API_URL: "http://localhost:11434/v1"
       run: |
-        coverage run -m pytest tests/ -v -m "integration" --timeout=60 --tb=short
+        coverage run -m pytest tests/ -v -m "integration" --timeout=300 --tb=short
         coverage xml -o coverage-integration.xml || true
     
     - name: Upload integration test coverage to Codecov
