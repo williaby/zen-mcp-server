@@ -55,9 +55,9 @@ class TestRealWorldScenarios:
                 # Free model is always acceptable if available
                 assert True
             else:
-                assert result.model.level.value in scenario["expected_level"], (
-                    f"Step '{scenario['step']}' got {result.model.level.value}, expected {scenario['expected_level']}"
-                )
+                assert (
+                    result.model.level.value in scenario["expected_level"]
+                ), f"Step '{scenario['step']}' got {result.model.level.value}, expected {scenario['expected_level']}"
 
     def test_debugging_escalation_workflow(self):
         """Test debugging workflow with escalation."""
@@ -245,9 +245,9 @@ class TestToolSpecificScenarios:
                 min_priority = level_priorities.index(scenario["expected_min_level"])
                 actual_priority = level_priorities.index(result.model.level.value)
 
-                assert actual_priority >= min_priority, (
-                    f"Security audit got {result.model.level.value}, expected at least {scenario['expected_min_level']}"
-                )
+                assert (
+                    actual_priority >= min_priority
+                ), f"Security audit got {result.model.level.value}, expected at least {scenario['expected_min_level']}"
 
 
 class TestCostOptimizationScenarios:
@@ -287,9 +287,9 @@ class TestCostOptimizationScenarios:
         for max_cost in max_costs:
             result = self.router.select_model("Test prompt for cost constraint", max_cost=max_cost, prefer_free=False)
 
-            assert result.model.cost_per_token <= max_cost, (
-                f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
-            )
+            assert (
+                result.model.cost_per_token <= max_cost
+            ), f"Model cost {result.model.cost_per_token} exceeds limit {max_cost}"
 
     def test_cost_vs_complexity_tradeoff(self):
         """Test cost vs complexity tradeoff scenarios."""
@@ -385,9 +385,9 @@ class TestPerformanceScenarios:
                 memory_increase = current_memory - initial_memory
 
                 # Memory shouldn't grow excessively
-                assert memory_increase < 100 * 1024 * 1024, (
-                    f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
-                )
+                assert (
+                    memory_increase < 100 * 1024 * 1024
+                ), f"Memory usage increased by {memory_increase / 1024 / 1024:.1f}MB"
 
 
 class TestErrorRecoveryScenarios:
