@@ -69,7 +69,7 @@ jobs:
     
     - name: Run integration tests with coverage
       env:
-        CUSTOM_API_URL: "http://localhost:11434"
+        CUSTOM_API_URL: "http://localhost:11434/v1"
       run: |
         coverage run -m pytest tests/ -v -m "integration" --tb=short
         coverage xml -o coverage-integration.xml
