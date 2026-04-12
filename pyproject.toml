@@ -99,7 +99,7 @@ ignore = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["."]
+source = ["tools", "utils", "providers", "routing", "systemprompts", "server", "config"]
 omit = [
     "tests/*",
     "simulator_tests/*",
