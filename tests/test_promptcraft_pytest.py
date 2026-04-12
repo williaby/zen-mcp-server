@@ -292,8 +292,8 @@ class TestBackgroundWorkers:
         mock_response.json.return_value = {
             "data": [
                 {
-                    "id": "new/test-model:free",
-                    "name": "New Test Model",
+                    "id": "new/valid-model:free",
+                    "name": "New Valid Model",
                     "context_length": 8000,
                     "pricing": {"prompt": "$0.000000", "completion": "$0.000000"},
                 },
@@ -452,10 +452,10 @@ class TestEndToEndIntegration:
     """End-to-end integration tests."""
 
     @pytest.fixture
-    def plugin_system(self):
-        """Set up complete plugin system."""
+    def plugin_system(self, tmp_path):
+        """Set up complete plugin system with isolated temp data directory."""
         plugin = PromptCraftSystemPlugin()
-        plugin.initialize()
+        plugin.initialize(data_dir=tmp_path)
         return plugin
 
     def test_complete_workflow(self, plugin_system, sample_experimental_model):
@@ -466,7 +466,7 @@ class TestEndToEndIntegration:
         # Simulate usage
         model_id = sample_experimental_model.id
         for i in range(10):
-            success = i % 4 != 0  # 75% success rate
+            success = i % 4 != 0  # 70% success rate (failures at i=0,4,8)
             plugin_system.data_manager.update_model_usage(model_id, success)
 
         # Check that model statistics are tracked
@@ -474,7 +474,7 @@ class TestEndToEndIntegration:
         test_model = next(m for m in models if m.id == model_id)
 
         assert test_model.usage_count == 10
-        assert test_model.success_rate == 0.75
+        assert abs(test_model.success_rate - 0.7) < 0.01
 
         # Check system health
         status = plugin_system.get_status()
