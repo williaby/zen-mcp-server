@@ -1,16 +1,54 @@
 """
 Tiered Consensus Tool.
 
-Simple API for multi-model consensus analysis with additive tier architecture.
-User provides just: prompt + level (1, 2, or 3)
+End-to-end multi-model consensus analysis with a simple ``prompt + level``
+API. Selects models, assigns professional roles, calls each model, and
+synthesizes the perspectives into a single consensus report.
 
-Implements:
-- Additive tier architecture (Level 2 includes Level 1's models)
-- BandSelector integration (no hardcoded models)
-- Free model failover (transient availability)
-- Domain-specific role assignments
+When to use this tool vs. siblings:
+- ``tiered_consensus`` -- you want a consensus *answer* for a question or
+  proposal. Picks 3-8 models (depending on level) and produces a synthesis.
+- ``consensus`` (upstream) -- the original per-model consensus tool that
+  takes an explicit model list. Use when you need fine-grained control of
+  which models are consulted.
+- ``dynamic_model_selector`` -- you only want a recommendation of which
+  models to use; nothing is executed.
 
-NOTE: This is separate from the core /tools/consensus.py (upstream tool).
+Tier semantics (additive: each level extends the previous):
+- Level 1 -- Foundation: 3 free models, ~$0 per analysis.
+- Level 2 -- Professional: Level 1 + 3 economy models (6 total),
+  ~$0.50 per analysis.
+- Level 3 -- Executive: Level 2 + 2 premium models (8 total),
+  ~$5.00 per analysis.
+
+Model selection is driven by ``tools/custom/band_selector.py`` reading
+``docs/models/models.csv`` and ``docs/models/bands_config.json`` -- no
+model names are hardcoded. Free-tier failover is automatic; if all free
+models for Level 1 fail, the tool transparently falls back to economy
+models and emits a warning.
+
+Backend / providers:
+- Requires at least one provider API key for the tier you choose:
+  ``OPENROUTER_API_KEY`` (recommended for Level 1/2; gives access to free
+  tier), plus ``GEMINI_API_KEY`` / ``OPENAI_API_KEY`` / ``XAI_API_KEY`` /
+  ``ANTHROPIC_API_KEY`` as needed for Level 3 premium models. If no provider
+  serves a selected model, that model is skipped via failover; if all
+  candidates fail, the tool returns a simulated response as a last resort
+  and logs an error.
+
+Output:
+- Returns MCP text-content blocks. Step 1 returns configuration guidance;
+  steps 2..N return per-model progress; the final step returns the
+  formatted consensus report (synthesis + optional full per-model
+  perspectives).
+
+Limitations:
+- Cost figures are estimates, not authoritative billing. Actual cost depends
+  on prompt length and provider pricing at call time.
+- Synthesis quality depends on model availability; transient outages reduce
+  the perspective count.
+
+NOTE: This is separate from the core ``tools/consensus.py`` (upstream tool).
 """
 
 from __future__ import annotations
@@ -37,32 +75,51 @@ class TieredConsensusRequest(WorkflowRequest):
     # Simple user-facing fields
     prompt: str = Field(
         ...,
-        description="The question or proposal to analyze with consensus",
+        description=(
+            "The question or proposal to analyze. Provide enough context for each "
+            "model to reason independently (the same prompt is sent to every model, "
+            "wrapped with a role-specific system prompt). Required."
+        ),
     )
     level: int = Field(
         ...,
         ge=1,
         le=3,
         description=(
-            "Organizational level (1-3):\n"
-            "  1 = Foundation (3 free models, $0)\n"
-            "  2 = Professional (6 models, ~$0.50)\n"
-            "  3 = Executive (8 models, ~$5.00)"
+            "Organizational tier (1-3, additive -- each level includes prior models). "
+            "1=Foundation: 3 free models, ~$0. "
+            "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.50. "
+            "3=Executive: Level 2 + 2 premium models = 8 total, ~$5.00. "
+            "Required."
         ),
     )
     domain: str = Field(
         default="code_review",
-        description="Domain type: code_review, security, architecture, general",
+        description=(
+            "Domain that selects the role assignments applied to each model. "
+            "Valid values: 'code_review' (default; reviewer/security/validator roles), "
+            "'security' (vulnerability/compliance/pentest roles), "
+            "'architecture' (system/lead/director roles), "
+            "'general' (generic analyst roles). Any other value raises ValueError."
+        ),
     )
 
     # Optional advanced parameters (most users won't need these)
     include_synthesis: bool = Field(
         default=True,
-        description="Generate synthesis report (default: true)",
+        description=(
+            "If true (default), the final step output includes the full per-model "
+            "perspectives in addition to the synthesized consensus. Set to false "
+            "for a summary-only report."
+        ),
     )
     max_cost: float | None = Field(
         default=None,
-        description="Override cost limit (default: based on level)",
+        description=(
+            "Soft USD cap that overrides the tier default. Currently advisory: "
+            "the tool does not abort mid-run if exceeded. Leave None to use the "
+            "tier's built-in estimate."
+        ),
     )
 
     @model_validator(mode="after")
@@ -76,21 +133,38 @@ class TieredConsensusRequest(WorkflowRequest):
 
 class TieredConsensusTool(WorkflowTool):
     """
-    Tiered consensus tool with simple API and additive tier architecture.
+    Run a multi-model consensus analysis on a prompt and return a synthesized report.
 
-    User provides:
-    - prompt: Question/proposal to analyze
-    - level: 1 (Foundation), 2 (Professional), or 3 (Executive)
-    - domain: Optional domain type (default: code_review)
+    The caller provides only ``prompt``, ``level`` (1/2/3), and an optional
+    ``domain``. The tool then handles model selection (via BandSelector),
+    role assignment (via RoleAssigner), per-model execution with free-tier
+    failover, and synthesis (via SynthesisEngine) automatically.
 
-    Tool automatically:
-    - Selects appropriate models using BandSelector (additive tiers)
-    - Assigns professional roles based on domain
-    - Handles free model failover
-    - Aggregates perspectives
-    - Generates consensus analysis
+    Workflow shape (driven by the MCP workflow framework):
+    - Step 1 -- returns configuration guidance (models picked, roles, est. cost).
+    - Steps 2..N+1 -- one step per selected model; each step consults that
+      model with a role-specific prompt and reports progress.
+    - Step N+2 -- generates the final consensus + synthesis output.
 
-    NOTE: Separate from /tools/consensus.py (upstream core tool)
+    Backend availability:
+    - If a selected model's provider is missing an API key, that model is
+      skipped via failover. Level 1 (free) failover can fall back to economy
+      models if all free candidates are unavailable.
+    - If every candidate fails, the tool returns a simulated response and
+      logs an error rather than raising -- so check logs when results look
+      generic.
+
+    Return value:
+    - A list of MCP text-content blocks (``[{"type": "text", "text": "..."}]``).
+      The final block contains the markdown-formatted consensus report.
+
+    Limitations:
+    - No streaming; results arrive step-by-step but each step is synchronous.
+    - Cost numbers are estimates, not billing.
+    - This tool does NOT use the standard ``model`` parameter; models are
+      chosen automatically per tier (see ``requires_model()``).
+
+    NOTE: Separate from ``tools/consensus.py`` (upstream core tool).
     """
 
     def __init__(self):
@@ -107,9 +181,12 @@ class TieredConsensusTool(WorkflowTool):
     def get_description(self) -> str:
         """Get tool description."""
         return (
-            "Multi-model consensus analysis with simple API. "
-            "Provide prompt + level (1-3) for additive tier consensus "
-            "from multiple AI models and professional perspectives."
+            "Runs a multi-model consensus analysis on a prompt and returns a synthesized report. "
+            "Provide prompt + level (1=3 free models/$0, 2=6 models/~$0.50, 3=8 models/~$5). "
+            "Models are picked automatically (additive tiers, BandSelector-driven) and assigned "
+            "domain-specific roles (code_review/security/architecture/general). "
+            "Use this when you want a consensus answer; use dynamic_model_selector if you only "
+            "want a model recommendation, or the upstream consensus tool for an explicit model list."
         )
 
     def get_tool_fields(self) -> dict[str, dict[str, Any]]:
@@ -126,33 +203,51 @@ class TieredConsensusTool(WorkflowTool):
         return {
             "prompt": {
                 "type": "string",
-                "description": "The question or proposal to analyze with consensus",
+                "description": (
+                    "The question or proposal to analyze. The same prompt is sent to every "
+                    "selected model (each wrapped with a role-specific system prompt), so "
+                    "include enough context for each model to reason independently. Required."
+                ),
             },
             "level": {
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 3,
                 "description": (
-                    "Organizational level (1-3):\n"
-                    "  1 = Foundation (3 free models, $0)\n"
-                    "  2 = Professional (6 models, ~$0.50)\n"
-                    "  3 = Executive (8 models, ~$5.00)"
+                    "Organizational tier (1-3, additive -- each level includes prior models). "
+                    "1=Foundation: 3 free models, ~$0. "
+                    "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.50. "
+                    "3=Executive: Level 2 + 2 premium models = 8 total, ~$5.00. "
+                    "Required."
                 ),
             },
             "domain": {
                 "type": "string",
                 "default": "code_review",
                 "enum": ["code_review", "security", "architecture", "general"],
-                "description": "Domain type for role assignments",
+                "description": (
+                    "Domain that selects which professional roles are assigned to the "
+                    "selected models. code_review=reviewer/security/validator; "
+                    "security=vulnerability/compliance/pentest; "
+                    "architecture=system/lead/director; "
+                    "general=generic analyst roles."
+                ),
             },
             "include_synthesis": {
                 "type": "boolean",
                 "default": True,
-                "description": "Generate synthesis report (default: true)",
+                "description": (
+                    "If true (default), the final step output includes the full per-model "
+                    "perspectives alongside the synthesized consensus. Set false for "
+                    "summary-only output."
+                ),
             },
             "max_cost": {
                 "type": "number",
-                "description": "Override cost limit (default: based on level)",
+                "description": (
+                    "Soft USD cap overriding the tier default. Advisory only -- the tool "
+                    "does not abort mid-run if exceeded. Omit to use the tier's default estimate."
+                ),
             },
         }
 

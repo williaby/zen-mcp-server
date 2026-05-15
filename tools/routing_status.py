@@ -1,8 +1,22 @@
 """
-Routing Status Tool - Provides status and control for dynamic model routing.
+Routing Status Tool -- inspect the dynamic model routing subsystem.
 
-This tool allows users to view routing statistics, model availability,
-and routing configuration without requiring external CLI commands.
+Read-only introspection for the fork's dynamic routing system (see
+``routing/integration.py``). Reports whether routing is enabled, lists
+available models by org-level band, shows usage statistics, dumps the
+active routing configuration, and can return a structured model
+recommendation for an ad-hoc prompt.
+
+Routing is gated by the ``ZEN_SMART_ROUTING`` environment variable
+(``true`` to enable). When disabled, the tool returns a help message
+explaining how to turn routing on. When the routing module itself is
+not importable (missing dependencies, partial install), the tool returns
+a "NOT AVAILABLE" message instead of raising.
+
+This tool does NOT call any AI model; it only reports on the routing
+state and asks the routing integration for recommendations. It is safe
+to invoke at any time, including before any routing decisions have been
+made (stats will simply be zero).
 """
 
 from typing import Any, Optional
@@ -17,24 +31,77 @@ class RoutingStatusRequest(ToolRequest):
     """Request model for routing status queries."""
 
     action: str = Field(
-        default="status", description="Action to perform: 'status', 'models', 'stats', 'config', 'recommend'"
+        default="status",
+        description=(
+            "Which view to return. One of: "
+            "'status' (default; enabled/model counts/totals), "
+            "'models' (models grouped by org level: free/junior/senior/executive), "
+            "'stats' (decision counts, success rate, free-model selections, savings), "
+            "'config' (active routing thresholds and settings), "
+            "'recommend' (return a model recommendation for the given prompt -- "
+            "requires the 'prompt' field). Any other value returns an error string."
+        ),
     )
     prompt: Optional[str] = Field(
-        default=None, description="Prompt for model recommendation (only used with action='recommend')"
+        default=None,
+        description=(
+            "Prompt text to get a routing recommendation for. REQUIRED when "
+            "action='recommend'; ignored otherwise. Should be the actual user-facing "
+            "prompt so the complexity analyzer can score it."
+        ),
     )
     context: Optional[dict[str, Any]] = Field(
-        default=None, description="Context for model recommendation (files, errors, etc.)"
+        default=None,
+        description=(
+            "Optional context object that improves recommendations. Only used when "
+            "action='recommend'. Recognized keys: 'files' (list[str] of absolute "
+            "paths), 'file_types' (list[str] of extensions like '.py'), 'tool_name' "
+            "(str: which tool will run the prompt), 'error' (str: error text if "
+            "this is a debugging request). Unknown keys are ignored."
+        ),
     )
 
 
 class RoutingStatusTool(SimpleTool):
-    """Tool for viewing and managing dynamic model routing."""
+    """
+    Inspect the dynamic model routing subsystem (read-only).
+
+    Returns markdown-formatted reports describing the state of the
+    fork's routing integration. Supports five views via the ``action``
+    parameter -- status, models, stats, config, recommend.
+
+    Backend / availability:
+    - Driven by ``routing.integration.get_integration_instance()``.
+    - If ``ZEN_SMART_ROUTING`` is not ``true``, returns a help message
+      explaining how to enable routing -- does NOT raise.
+    - If the ``routing`` module fails to import, returns a "NOT
+      AVAILABLE" message -- does NOT raise.
+
+    This tool never calls an external LLM. ``requires_model()`` returns
+    False, so the MCP client will not pass a ``model`` argument.
+
+    Return value:
+    - String containing a markdown report. The synchronous body is wrapped
+      into the standard MCP text-content response by ``SimpleTool``.
+
+    Limitations:
+    - Stats reset on each server restart (in-memory).
+    - The 'recommend' action requires ``prompt``; missing it returns an
+      error string rather than raising.
+    """
 
     def get_name(self) -> str:
         return "routing_status"
 
     def get_description(self) -> str:
-        return "View status and statistics for dynamic model routing system, get model recommendations"
+        return (
+            "Inspects the dynamic model routing subsystem and returns a markdown report. "
+            "Pick a view via action: status (enabled/totals), models (by org level), "
+            "stats (decisions/success rate/savings), config (thresholds), or "
+            "recommend (model pick for a given prompt -- requires prompt). "
+            "Read-only; never calls an LLM. Returns help text if routing is disabled "
+            "(ZEN_SMART_ROUTING=true required) or the routing module is missing."
+        )
 
     def get_tool_fields(self) -> dict[str, Any]:
         """Return tool-specific field definitions for schema generation."""
@@ -43,24 +110,48 @@ class RoutingStatusTool(SimpleTool):
                 "type": "string",
                 "default": "status",
                 "enum": ["status", "models", "stats", "config", "recommend"],
-                "description": "Action to perform: status (general info), models (available models), stats (usage statistics), config (configuration), recommend (get model recommendation)",
+                "description": (
+                    "Which view to return. "
+                    "status=enabled flag, model totals, success rate summary. "
+                    "models=available models grouped by org level (free/junior/senior/executive). "
+                    "stats=decision counts, success rate, free-model rate, est. savings. "
+                    "config=active routing thresholds and per-level cost limits. "
+                    "recommend=structured model recommendation for the given prompt (requires 'prompt')."
+                ),
             },
             "prompt": {
                 "type": "string",
-                "description": "Prompt for model recommendation (only used with action='recommend')",
+                "description": (
+                    "Prompt text to get a recommendation for. REQUIRED when action='recommend'; "
+                    "ignored otherwise. Pass the actual user-facing prompt so the complexity "
+                    "analyzer can score it accurately."
+                ),
             },
             "context": {
                 "type": "object",
-                "description": "Context for model recommendation (files, errors, etc.)",
+                "description": (
+                    "Optional context to improve recommendations. Used only when action='recommend'. "
+                    "Unknown keys are ignored."
+                ),
                 "properties": {
-                    "files": {"type": "array", "items": {"type": "string"}, "description": "List of file paths"},
+                    "files": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Absolute paths of files in scope. Used to weight long-context models.",
+                    },
                     "file_types": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of file extensions",
+                        "description": "File extensions like '.py' or '.ts'. Biases toward code-specialized models.",
                     },
-                    "tool_name": {"type": "string", "description": "Name of the tool making the request"},
-                    "error": {"type": "string", "description": "Error message if debugging"},
+                    "tool_name": {
+                        "type": "string",
+                        "description": "Name of the calling tool (e.g. 'chat', 'codereview'). Used for per-tool routing policy.",
+                    },
+                    "error": {
+                        "type": "string",
+                        "description": "Error message if this is a debugging request. Biases toward reasoning-strong models.",
+                    },
                 },
             },
         }

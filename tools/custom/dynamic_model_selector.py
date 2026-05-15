@@ -1,8 +1,33 @@
 """
-Dynamic Model Selector Custom Tool
+Dynamic Model Selector Custom Tool.
 
-This tool provides intelligent model selection capabilities for consensus operations
-and other tasks requiring optimal model matching based on requirements.
+Provides intelligent AI model recommendations based on task requirements,
+complexity, and budget. This is a *recommender* tool: it returns a ranked
+list of suggested models with reasoning, it does NOT execute prompts against
+those models.
+
+When to use this tool vs. siblings:
+- ``dynamic_model_selector`` -- ask "which models should I use for X?" and
+  get a recommendation list with rationale. No model is actually called.
+- ``tiered_consensus`` -- run a full multi-model consensus analysis end-to-end
+  (selection + execution + synthesis) using a fixed tier (1/2/3). Use this
+  when you want answers, not just recommendations.
+- ``routing_status`` -- inspect the running dynamic-routing system (status,
+  stats, configuration, ad-hoc recommendation). Read-only.
+
+Backend / data source:
+- Model metadata is read from ``docs/models/models.csv``,
+  ``docs/models/bands_config.json``, and ``docs/models/models_schema.json``.
+- Recommendation prompt is sent to whatever model the MCP client passes in
+  via the standard ``model`` parameter (this is a SimpleTool); if no model
+  is available, the tool falls back to a generic recommendation prompt.
+
+Required environment for downstream execution of recommended models:
+- At least one provider API key must be configured for the recommended
+  models to actually be callable elsewhere (e.g. ``OPENROUTER_API_KEY``,
+  ``GEMINI_API_KEY``, ``OPENAI_API_KEY``, ``XAI_API_KEY``,
+  ``ANTHROPIC_API_KEY``, or ``CUSTOM_API_URL`` for local providers).
+  This tool itself only needs the model running the recommendation prompt.
 """
 
 from __future__ import annotations
@@ -36,54 +61,133 @@ SCHEMA_PATH = Path(__file__).parent.parent.parent / "docs" / "models" / "models_
 class DynamicModelSelectorRequest(ToolRequest):
     """Request model for dynamic model selection."""
 
-    requirements: str = Field(description="Description of the task requirements for model selection")
-    task_type: str = Field(default="general", description="Type of task (consensus, analysis, coding, writing, etc.)")
-    complexity_level: str = Field(default="medium", description="Complexity level (low, medium, high, critical)")
-    budget_preference: str = Field(
-        default="balanced", description="Budget preference (cost-optimized, balanced, performance)"
+    requirements: str = Field(
+        description=(
+            "Free-form description of the task the recommended models will run. "
+            "Be specific about goals, inputs, expected outputs, and any quality bar "
+            "(e.g. 'review a 2,000-line Python diff for security issues; prioritize "
+            "low false-positive rate over speed'). Required."
+        ),
     )
-    num_models: int = Field(default=3, description="Number of models to select")
+    task_type: str = Field(
+        default="general",
+        description=(
+            "Coarse category that biases the recommendation. Suggested values: "
+            "'general', 'consensus', 'analysis', 'coding', 'writing', 'reasoning', "
+            "'long_context', 'vision'. Free-form strings are accepted but only the "
+            "listed categories have tuned heuristics."
+        ),
+    )
+    complexity_level: str = Field(
+        default="medium",
+        description=(
+            "Difficulty of the underlying task. One of: 'low' (FAQs, simple "
+            "transforms), 'medium' (typical code review / Q&A), 'high' (cross-file "
+            "refactors, multi-step reasoning), 'critical' (production decisions, "
+            "high-stakes review). Drives the org-level band used for selection."
+        ),
+    )
+    budget_preference: str = Field(
+        default="balanced",
+        description=(
+            "Cost vs. capability trade-off. One of: 'cost-optimized' (prefer free "
+            "and economy-tier models; accept lower ceiling), 'balanced' (mid-tier "
+            "default), 'performance' (top-tier models regardless of cost)."
+        ),
+    )
+    num_models: int = Field(
+        default=3,
+        description=(
+            "How many models to recommend (1-10). Use 1 for a single best pick, "
+            "3-5 for consensus seed sets, and higher numbers when you want a "
+            "broader survey including fallbacks."
+        ),
+    )
 
 
 class DynamicModelSelectorTool(SimpleTool):
-    """Tool for intelligent model selection based on requirements."""
+    """
+    Recommend AI models for a given task without executing the task.
+
+    This tool reads the fork-local model registry (``docs/models/models.csv``
+    and ``docs/models/bands_config.json``) and asks an LLM to produce a
+    ranked recommendation. It returns natural-language suggestions, not
+    structured data; the caller is expected to feed the recommendations
+    into another tool (e.g. ``tiered_consensus`` or ``chat`` with an
+    explicit model parameter) to actually run the work.
+
+    Behavior:
+    - Returns ``num_models`` suggestions with rationale, cost commentary,
+      and fallback alternatives.
+    - If the modular model selector is unavailable, falls back to a generic
+      recommendation prompt that does not depend on local model metadata.
+    - Does NOT contact any external API on behalf of the recommended models.
+
+    Limitations:
+    - The output is advisory text. Do not parse it as machine-readable
+      output -- use ``routing_status`` for structured recommendations.
+    - Recommendations are only as good as the underlying CSV; stale model
+      data produces stale advice.
+    """
 
     def get_name(self) -> str:
         return "dynamic_model_selector"
 
     def get_description(self) -> str:
-        return "Intelligently selects optimal AI models based on task requirements, complexity, and budget preferences."
+        return (
+            "Recommends AI models for a task based on free-form requirements, complexity, and budget. "
+            "Returns a ranked list of suggested models with reasoning and cost notes. "
+            "Does NOT execute the task -- use chat/tiered_consensus to actually run something. "
+            "Use this when you need to decide which model to use; use tiered_consensus when you want answers."
+        )
 
     def get_tool_fields(self) -> dict[str, Any]:
         """Return tool-specific field definitions for schema generation."""
         return {
             "requirements": {
                 "type": "string",
-                "description": "Description of the task requirements for model selection",
+                "description": (
+                    "Free-form description of the task the recommended models will run. "
+                    "Include goal, inputs, expected outputs, and any quality bar. Required."
+                ),
             },
             "task_type": {
                 "type": "string",
                 "default": "general",
-                "description": "Type of task (consensus, analysis, coding, writing, etc.)",
+                "description": (
+                    "Coarse task category that biases the recommendation. Suggested values: "
+                    "general, consensus, analysis, coding, writing, reasoning, long_context, vision. "
+                    "Free-form strings accepted; only the listed categories have tuned heuristics."
+                ),
             },
             "complexity_level": {
                 "type": "string",
                 "default": "medium",
                 "enum": ["low", "medium", "high", "critical"],
-                "description": "Complexity level (low, medium, high, critical)",
+                "description": (
+                    "Difficulty of the underlying task. low=FAQs/simple transforms, "
+                    "medium=typical code review/Q&A, high=cross-file refactors/multi-step reasoning, "
+                    "critical=production/high-stakes decisions."
+                ),
             },
             "budget_preference": {
                 "type": "string",
                 "default": "balanced",
                 "enum": ["cost-optimized", "balanced", "performance"],
-                "description": "Budget preference (cost-optimized, balanced, performance)",
+                "description": (
+                    "Cost vs. capability trade-off. cost-optimized=prefer free/economy tier, "
+                    "balanced=mid-tier default, performance=top-tier regardless of cost."
+                ),
             },
             "num_models": {
                 "type": "integer",
                 "default": 3,
                 "minimum": 1,
                 "maximum": 10,
-                "description": "Number of models to select",
+                "description": (
+                    "Number of models to recommend (1-10). Use 1 for a single pick, "
+                    "3-5 for consensus seed sets, higher for a broader survey."
+                ),
             },
         }
 
