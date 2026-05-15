@@ -17,15 +17,23 @@ When to use this tool vs. siblings:
 Tier semantics (additive: each level extends the previous):
 - Level 1 -- Foundation: 3 free models, ~$0 per analysis.
 - Level 2 -- Professional: Level 1 + 3 economy models (6 total),
-  ~$0.50 per analysis.
+  ~$0.01 per analysis (rough; see ``get_level_description``).
 - Level 3 -- Executive: Level 2 + 2 premium models (8 total),
-  ~$5.00 per analysis.
+  ~$0.10 per analysis (rough; see ``get_level_description``).
+
+Per-call costs are estimates only -- actual numbers depend on prompt
+length, output length, and live provider pricing. The authoritative
+computation lives in ``tools.custom.consensus_models.TierManager.get_tier_costs``
+and the canonical user-facing strings in
+``tools.custom.consensus_models.get_level_description``.
 
 Model selection is driven by ``tools/custom/band_selector.py`` reading
 ``docs/models/models.csv`` and ``docs/models/bands_config.json`` -- no
 model names are hardcoded. Free-tier failover is automatic; if all free
-models for Level 1 fail, the tool transparently falls back to economy
-models and emits a warning.
+candidates for Level 1 fail, the tool *may* fall back to economy models
+(the failover loop walks up to ``max_failover_attempts`` candidates from
+a combined free+economy pool, free candidates ordered first), emitting
+warnings as it goes.
 
 Backend / providers:
 - Requires at least one provider API key for the tier you choose:
@@ -88,9 +96,10 @@ class TieredConsensusRequest(WorkflowRequest):
         description=(
             "Organizational tier (1-3, additive -- each level includes prior models). "
             "1=Foundation: 3 free models, ~$0. "
-            "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.50. "
-            "3=Executive: Level 2 + 2 premium models = 8 total, ~$5.00. "
-            "Required."
+            "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.01. "
+            "3=Executive: Level 2 + 2 premium models = 8 total, ~$0.10. "
+            "Cost figures are illustrative; the live estimate is computed by "
+            "TierManager.get_tier_costs(). Required."
         ),
     )
     domain: str = Field(
@@ -182,7 +191,8 @@ class TieredConsensusTool(WorkflowTool):
         """Get tool description."""
         return (
             "Runs a multi-model consensus analysis on a prompt and returns a synthesized report. "
-            "Provide prompt + level (1=3 free models/$0, 2=6 models/~$0.50, 3=8 models/~$5). "
+            "Provide prompt + level (1=3 free models/$0, 2=6 models/~$0.01, 3=8 models/~$0.10; "
+            "costs are rough -- live estimate via TierManager.get_tier_costs). "
             "Models are picked automatically (additive tiers, BandSelector-driven) and assigned "
             "domain-specific roles (code_review/security/architecture/general). "
             "Use this when you want a consensus answer; use dynamic_model_selector if you only "
@@ -216,9 +226,10 @@ class TieredConsensusTool(WorkflowTool):
                 "description": (
                     "Organizational tier (1-3, additive -- each level includes prior models). "
                     "1=Foundation: 3 free models, ~$0. "
-                    "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.50. "
-                    "3=Executive: Level 2 + 2 premium models = 8 total, ~$5.00. "
-                    "Required."
+                    "2=Professional: Level 1 + 3 economy models = 6 total, ~$0.01. "
+                    "3=Executive: Level 2 + 2 premium models = 8 total, ~$0.10. "
+                    "Cost figures are illustrative; the live estimate is computed by "
+                    "TierManager.get_tier_costs(). Required."
                 ),
             },
             "domain": {

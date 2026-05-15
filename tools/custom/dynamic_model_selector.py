@@ -4,7 +4,9 @@ Dynamic Model Selector Custom Tool.
 Provides intelligent AI model recommendations based on task requirements,
 complexity, and budget. This is a *recommender* tool: it returns a ranked
 list of suggested models with reasoning, it does NOT execute prompts against
-those models.
+*those* models. It DOES call exactly one model (whatever the MCP client
+passes via the standard ``model`` parameter, or the server default) to
+generate the recommendation text.
 
 When to use this tool vs. siblings:
 - ``dynamic_model_selector`` -- ask "which models should I use for X?" and
@@ -16,11 +18,14 @@ When to use this tool vs. siblings:
   stats, configuration, ad-hoc recommendation). Read-only.
 
 Backend / data source:
-- Model metadata is read from ``docs/models/models.csv``,
-  ``docs/models/bands_config.json``, and ``docs/models/models_schema.json``.
-- Recommendation prompt is sent to whatever model the MCP client passes in
-  via the standard ``model`` parameter (this is a SimpleTool); if no model
-  is available, the tool falls back to a generic recommendation prompt.
+- When the optional modular ``model_selector`` package is importable
+  (``HAS_MODEL_SELECTOR=True``), the prompt template references the
+  fork's model registry files (``docs/models/models.csv``,
+  ``docs/models/bands_config.json``, ``docs/models/models_schema.json``)
+  so the LLM has a concrete pool to choose from. Otherwise the prompt
+  falls back to generic phrasing and lets the LLM use its own knowledge.
+- The recommendation prompt itself is sent (as a SimpleTool) to whatever
+  model the MCP client passes via the standard ``model`` parameter.
 
 Required environment for downstream execution of recommended models:
 - At least one provider API key must be configured for the recommended
@@ -98,9 +103,12 @@ class DynamicModelSelectorRequest(ToolRequest):
     num_models: int = Field(
         default=3,
         description=(
-            "How many models to recommend (1-10). Use 1 for a single best pick, "
-            "3-5 for consensus seed sets, and higher numbers when you want a "
-            "broader survey including fallbacks."
+            "How many models to recommend. Recommended range 1-10; the JSON "
+            "schema enforces minimum=1/maximum=10 at the MCP boundary, but the "
+            "Pydantic model itself does not, so callers bypassing schema "
+            "validation may pass other values. Use 1 for a single best pick, "
+            "3-5 for consensus seed sets, and higher numbers for a broader "
+            "survey including fallbacks."
         ),
     )
 
@@ -121,11 +129,14 @@ class DynamicModelSelectorTool(SimpleTool):
       and fallback alternatives.
     - If the modular model selector is unavailable, falls back to a generic
       recommendation prompt that does not depend on local model metadata.
-    - Does NOT contact any external API on behalf of the recommended models.
+    - Does NOT call any of the *recommended* models; only the one LLM
+      handling the recommendation prompt is invoked.
 
     Limitations:
-    - The output is advisory text. Do not parse it as machine-readable
-      output -- use ``routing_status`` for structured recommendations.
+    - The output is advisory natural-language text, not structured data.
+      Use ``routing_status action=recommend`` if you want a markdown report
+      with parseable headings (model name, level, confidence, cost),
+      though it too is text rather than JSON.
     - Recommendations are only as good as the underlying CSV; stale model
       data produces stale advice.
     """

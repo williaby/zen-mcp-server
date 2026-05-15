@@ -4,19 +4,29 @@ Routing Status Tool -- inspect the dynamic model routing subsystem.
 Read-only introspection for the fork's dynamic routing system (see
 ``routing/integration.py``). Reports whether routing is enabled, lists
 available models by org-level band, shows usage statistics, dumps the
-active routing configuration, and can return a structured model
-recommendation for an ad-hoc prompt.
+active routing configuration, and can return a markdown model
+recommendation (with model/level/confidence/cost/fallbacks) for an
+ad-hoc prompt.
 
 Routing is gated by the ``ZEN_SMART_ROUTING`` environment variable
-(``true`` to enable). When disabled, the tool returns a help message
-explaining how to turn routing on. When the routing module itself is
-not importable (missing dependencies, partial install), the tool returns
-a "NOT AVAILABLE" message instead of raising.
+(``true`` to enable). When disabled, the recommend/data helpers return
+a help message explaining how to turn routing on. When the routing
+module itself is not importable (missing dependencies, partial install),
+they return a "NOT AVAILABLE" message instead of raising.
 
-This tool does NOT call any AI model; it only reports on the routing
-state and asks the routing integration for recommendations. It is safe
-to invoke at any time, including before any routing decisions have been
-made (stats will simply be zero).
+Output format: all five ``action`` views return markdown strings, not
+structured JSON. Clients should treat the response as human-readable
+text rather than parsing it programmatically.
+
+Execution caveat (known issue): this tool inherits ``SimpleTool``, whose
+``execute()`` method always invokes ``provider.generate_content()`` with
+the prepared prompt -- so an LLM call does occur even though
+``requires_model()`` returns False and the data-only helpers in this
+module (``_get_general_status``, ``_get_models_info``, etc.) are not
+wired into the default execute path. Behavior is therefore "ask the
+default LLM to describe routing status" rather than the structured
+introspection the helper methods would produce. Tracked for follow-up;
+see PR #14 review thread.
 """
 
 from typing import Any, Optional
@@ -64,25 +74,32 @@ class RoutingStatusRequest(ToolRequest):
 
 class RoutingStatusTool(SimpleTool):
     """
-    Inspect the dynamic model routing subsystem (read-only).
+    Inspect the dynamic model routing subsystem (intended to be read-only).
 
-    Returns markdown-formatted reports describing the state of the
-    fork's routing integration. Supports five views via the ``action``
+    Designed to return markdown-formatted reports describing the state of
+    the fork's routing integration. Supports five views via the ``action``
     parameter -- status, models, stats, config, recommend.
 
     Backend / availability:
-    - Driven by ``routing.integration.get_integration_instance()``.
-    - If ``ZEN_SMART_ROUTING`` is not ``true``, returns a help message
-      explaining how to enable routing -- does NOT raise.
-    - If the ``routing`` module fails to import, returns a "NOT
-      AVAILABLE" message -- does NOT raise.
+    - The data helpers (``_get_general_status``, ``_get_models_info``,
+      ``_get_statistics``, ``_get_configuration``, ``_get_recommendation``)
+      are driven by ``routing.integration.get_integration_instance()``.
+    - If ``ZEN_SMART_ROUTING`` is not ``true``, the helpers return a help
+      message explaining how to enable routing -- they do NOT raise.
+    - If the ``routing`` module fails to import, the helpers return a
+      "NOT AVAILABLE" message -- they do NOT raise.
 
-    This tool never calls an external LLM. ``requires_model()`` returns
-    False, so the MCP client will not pass a ``model`` argument.
+    ``requires_model()`` returns False, so the MCP server's auto-mode
+    resolution skips model validation at the boundary. However, this tool
+    inherits ``SimpleTool.execute()``, which still calls
+    ``provider.generate_content()``. The data helpers above and
+    ``execute_tool()`` are not yet wired into the execute path, so the
+    current runtime behavior is "ask the default LLM to summarize
+    routing" rather than "return cached routing metrics verbatim".
+    Tracked for follow-up.
 
     Return value:
-    - String containing a markdown report. The synchronous body is wrapped
-      into the standard MCP text-content response by ``SimpleTool``.
+    - String containing a markdown report (NOT JSON).
 
     Limitations:
     - Stats reset on each server restart (in-memory).
@@ -99,8 +116,11 @@ class RoutingStatusTool(SimpleTool):
             "Pick a view via action: status (enabled/totals), models (by org level), "
             "stats (decisions/success rate/savings), config (thresholds), or "
             "recommend (model pick for a given prompt -- requires prompt). "
-            "Read-only; never calls an LLM. Returns help text if routing is disabled "
-            "(ZEN_SMART_ROUTING=true required) or the routing module is missing."
+            "Output is markdown text (not structured JSON). "
+            "Returns help text if routing is disabled (ZEN_SMART_ROUTING=true required) "
+            "or the routing module is missing. "
+            "Note: currently inherits SimpleTool's LLM-calling execute path, so the "
+            "default model is invoked under the hood -- see module docstring."
         )
 
     def get_tool_fields(self) -> dict[str, Any]:
