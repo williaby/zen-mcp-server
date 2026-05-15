@@ -1062,6 +1062,50 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
     return _default_turn_formatting(turn)
 
 
+def _sanitize_replayed_content(content: str) -> str:
+    """
+    Defang the conversation-history delimiter strings if they appear inside a
+    replayed turn payload.
+
+    The conversation history (see build_conversation_history) frames the
+    untrusted assistant content with literal delimiters such as
+    `=== END CONVERSATION HISTORY ===` and `--- Turn N (Agent) ---`. An
+    upstream backend model is free to emit those same delimiters inside its
+    response. If we replayed that response verbatim, the orchestrator LLM
+    that reads our reconstructed prompt could be tricked into treating
+    attacker-controlled bytes as belonging to the OUTER (trusted) frame —
+    a delimiter-confusion prompt-injection vector (OWASP LLM01).
+
+    We rewrite literal occurrences of the frame markers in replayed content
+    to a visually similar but non-matching form. This is intentionally
+    conservative: it does not try to "sanitize" the model's natural-language
+    output, only to defang the specific tokens our own framing relies on.
+
+    Args:
+        content: Replayed turn content (may be attacker-controlled)
+
+    Returns:
+        Content with our framing delimiters defanged.
+    """
+    if not content:
+        return content
+    # Strings to defang — keep in sync with the framing emitted by
+    # build_conversation_history().
+    markers = (
+        "=== CONVERSATION HISTORY (CONTINUATION) ===",
+        "=== END CONVERSATION HISTORY ===",
+        "=== FILES REFERENCED IN THIS CONVERSATION ===",
+        "=== END REFERENCED FILES ===",
+    )
+    sanitized = content
+    for m in markers:
+        # Replace the leading "===" with "=⋮=" (Unicode U+22EE) so the marker
+        # no longer matches when the LLM scans for our framing tokens, while
+        # still being readable.
+        sanitized = sanitized.replace(m, m.replace("===", "=⋮=", 1))
+    return sanitized
+
+
 def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
     """
     Default formatting for conversation turns.
@@ -1082,8 +1126,9 @@ def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
         parts.append(f"Files used in this turn: {', '.join(turn.files)}")
         parts.append("")  # Empty line for readability
 
-    # Add the actual content
-    parts.append(turn.content)
+    # Defang our framing markers in replayed (potentially attacker-controlled)
+    # content so an upstream model response cannot escape its frame.
+    parts.append(_sanitize_replayed_content(turn.content))
 
     return parts
 
