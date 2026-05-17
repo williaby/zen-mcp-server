@@ -81,7 +81,7 @@ jobs:
         run: |
           set -euo pipefail
           DOCKER_TAGS=$(printf '%s' "$DOCKER_TAGS_RAW" | tr '\n' ' ')
-          # Build the release notes file using printf and python (no shell heredoc),
+          # Build the release notes file using printf + sed (no shell heredoc),
           # so user-controlled $RELEASE_BODY can never trigger $(...) or backtick
           # expansion. printf %s treats its argument as literal data.
           NOTES_FILE="$(mktemp)"

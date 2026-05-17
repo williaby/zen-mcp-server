@@ -282,8 +282,17 @@ class VersionTool(BaseTool):
         # Check for updates from GitHub
         output_lines.append("## Update Status")
 
+        # Distinguish "disabled" (no PAL_VERSION_CHECK_URL configured) from
+        # "enabled but failed" (URL set, fetch/validate failed) so operators
+        # who opted in aren't misled by the same message that's shown when
+        # they haven't configured anything at all.
+        import os as _os
+
+        version_check_url = (_os.getenv("PAL_VERSION_CHECK_URL", "") or "").strip()
+        check_enabled = bool(version_check_url)
+
         try:
-            github_info = fetch_github_version()
+            github_info = fetch_github_version() if check_enabled else None
 
             if github_info:
                 remote_version, remote_updated = github_info
@@ -320,12 +329,20 @@ class VersionTool(BaseTool):
                         f"Your version `{__version__}` is ahead of the published version `{remote_version}`"
                     )
                     output_lines.append("You may be running a development or custom build.")
-            else:
+            elif not check_enabled:
                 output_lines.append("ℹ️  **Remote version check disabled.**")
                 output_lines.append(
                     "Set the `PAL_VERSION_CHECK_URL` environment variable to an HTTPS "
                     "URL serving the upstream `config.py` if you want this tool to "
                     "report whether a newer version is available."
+                )
+            else:
+                output_lines.append("⚠️  **Remote version check failed.**")
+                output_lines.append(
+                    f"`PAL_VERSION_CHECK_URL` is configured (`{version_check_url}`) but the "
+                    "fetch, parse, or content-validation step did not succeed. Check the "
+                    "server log for the specific reason (e.g. non-https scheme, HTTP error, "
+                    "or response that failed whitelist validation)."
                 )
 
         except Exception as e:

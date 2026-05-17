@@ -1064,28 +1064,34 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
 
 def _sanitize_replayed_content(content: str) -> str:
     """
-    Defang the conversation-history delimiter strings if they appear inside a
-    replayed turn payload.
+    Defang the conversation-history `=== … ===` envelope markers if they
+    appear inside a replayed turn payload.
 
     The conversation history (see build_conversation_history) frames the
     untrusted assistant content with literal delimiters such as
-    `=== END CONVERSATION HISTORY ===` and `--- Turn N (Agent) ---`. An
-    upstream backend model is free to emit those same delimiters inside its
-    response. If we replayed that response verbatim, the orchestrator LLM
-    that reads our reconstructed prompt could be tricked into treating
-    attacker-controlled bytes as belonging to the OUTER (trusted) frame —
-    a delimiter-confusion prompt-injection vector (OWASP LLM01).
+    `=== END CONVERSATION HISTORY ===`. An upstream backend model is free
+    to emit those same delimiters inside its response. If we replayed that
+    response verbatim, the orchestrator LLM that reads our reconstructed
+    prompt could be tricked into treating attacker-controlled bytes as
+    belonging to the OUTER (trusted) frame — a delimiter-confusion
+    prompt-injection vector (OWASP LLM01).
 
-    We rewrite literal occurrences of the frame markers in replayed content
-    to a visually similar but non-matching form. This is intentionally
-    conservative: it does not try to "sanitize" the model's natural-language
-    output, only to defang the specific tokens our own framing relies on.
+    We rewrite literal occurrences of the *envelope* markers in replayed
+    content to a visually similar but non-matching form. The per-turn
+    headers (`--- Turn N (...) ---`) are intentionally NOT defanged here:
+    `---` is a common markdown thematic break and rewriting every
+    occurrence would mangle legitimate model output. The envelope markers,
+    by contrast, are unique strings unlikely to appear in normal prose.
+
+    This is intentionally conservative: it does not try to "sanitize" the
+    model's natural-language output, only to defang the specific tokens
+    our own framing relies on.
 
     Args:
         content: Replayed turn content (may be attacker-controlled)
 
     Returns:
-        Content with our framing delimiters defanged.
+        Content with our envelope delimiters defanged.
     """
     if not content:
         return content
