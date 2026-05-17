@@ -50,7 +50,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-dev.txt pytest pytest-cov
       - name: Run tests with coverage
-        run: pytest --cov-config=pyproject.toml --cov-report=xml:coverage.xml -v
+        # `--cov` (no value) tells pytest-cov to activate and pick the
+        # measured packages from `[tool.coverage.run] source` in
+        # pyproject.toml. Without any `--cov` flag, pytest-cov is a no-op
+        # and the coverage.xml ends up empty — which is why SonarCloud
+        # was reporting "0.0% Coverage on New Code" even when tests pass.
+        run: pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml -v
         continue-on-error: true
       - name: Ensure coverage file
         run: |
