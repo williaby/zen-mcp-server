@@ -221,4 +221,7 @@ class TestFetchGithubVersion:
             assert cm.read.called
             call = cm.read.call_args
             assert call.args, "fetch_github_version must call read() with an explicit size cap"
-            assert call.args[0] <= 1024 * 1024  # at most ~1MB
+            # Lock the cap to the value documented in fetch_github_version's
+            # comments (64 KiB). A regression to a larger value would let a
+            # hostile upstream stream more bytes than intended before parsing.
+            assert call.args[0] == 64 * 1024

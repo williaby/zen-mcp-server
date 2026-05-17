@@ -27,11 +27,36 @@ jobs:
         with:
           egress-policy: audit
 
+      # Resolve the release tag once so manual `workflow_dispatch` runs with an
+      # empty `tag` input correctly fall back to the latest release tag (the
+      # documented behavior). Without this, `github.event.release.tag_name` is
+      # undefined for workflow_dispatch and the checkout/metadata steps would
+      # silently default to the default branch and skip semver tagging.
+      - name: Resolve release tag
+        id: release_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            tag="$INPUT_TAG"
+          elif [ -n "${EVENT_TAG:-}" ]; then
+            tag="$EVENT_TAG"
+          else
+            tag="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')"
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::Could not determine a release tag to build (no input, no release event, no published releases)."
+            exit 1
+          fi
+          echo "value=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          # If triggered by workflow_dispatch with a tag, checkout that tag
-          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          ref: ${{ steps.release_tag.outputs.value }}
           persist-credentials: false
 
       - name: Set up Docker Buildx
@@ -51,9 +76,9 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             # Tag with the release version
-            type=semver,pattern={{version}},value=${{ inputs.tag || github.event.release.tag_name }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.tag || github.event.release.tag_name }}
-            type=semver,pattern={{major}},value=${{ inputs.tag || github.event.release.tag_name }}
+            type=semver,pattern={{version}},value=${{ steps.release_tag.outputs.value }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.release_tag.outputs.value }}
+            type=semver,pattern={{major}},value=${{ steps.release_tag.outputs.value }}
             # Also tag as latest for the most recent release
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -74,7 +99,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Pass user-controlled fields via env to avoid shell injection through
           # GitHub Actions expression interpolation into the run: script.
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ steps.release_tag.outputs.value }}
           RELEASE_BODY: ${{ github.event.release.body }}
           REPO: ${{ github.repository }}
           DOCKER_TAGS_RAW: ${{ steps.meta.outputs.tags }}
@@ -98,7 +123,7 @@ jobs:
         run: |
           echo "## 🐳 Docker Release Build Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Release**: ${{ inputs.tag || github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release**: ${{ steps.release_tag.outputs.value }}" >> $GITHUB_STEP_SUMMARY
           echo "**Images built:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY

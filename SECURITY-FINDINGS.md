@@ -9,10 +9,10 @@ Branch: `claude/security-review-prompt-injection-5QwKI`
 | Area | Findings | Fixed in this PR | Documented / deferred |
 |---|---|---|---|
 | LLM01 Prompt injection | 5 | 1 (delimiter defang) | 4 |
-| LLM02 Insecure output handling | 2 | 0 | 2 |
+| LLM02 Insecure output handling | 2 | 1 (version-tool response validation) | 1 |
 | LLM06 Sensitive info disclosure | 4 | 2 (default LOG_LEVEL, version-tool egress) | 2 |
 | Tool input validation | 3 | 1 (model-name bounds) | 2 |
-| GitHub Actions hardening | 8 workflow files | 8 (SHA pinning, permissions, harden-runner, script-injection fix) | 2 reusable-workflow `@main` refs |
+| GitHub Actions hardening | 9 workflow files | 9 (SHA pinning, permissions, harden-runner, script-injection fix) | 2 reusable-workflow `@main` refs |
 
 Severity legend: **Critical / High / Medium / Low / Info**. Severity is contextual to this server — an MCP that runs locally under the user's account and brokers prompts to third-party LLMs.
 

@@ -1050,10 +1050,17 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
                 # Use inheritance pattern - try to call the method directly
                 # If it doesn't exist or raises AttributeError, fall back to default
                 try:
-                    return tool.format_conversation_turn(turn)
+                    formatted = tool.format_conversation_turn(turn)
                 except AttributeError:
                     # Tool doesn't implement format_conversation_turn - use default
                     pass
+                else:
+                    # Tool-specific formatters typically embed `turn.content`
+                    # verbatim (see BaseTool.format_conversation_turn). Apply
+                    # the same delimiter-defang we use in the default path so
+                    # an attacker-controlled upstream response cannot escape
+                    # our envelope via a tool that overrides the formatter.
+                    return [_sanitize_replayed_content(part) for part in formatted]
         except Exception as e:
             # Log but don't fail - fall back to default formatting
             logger.debug(f"[HISTORY] Could not get tool-specific formatting for {turn.tool_name}: {e}")

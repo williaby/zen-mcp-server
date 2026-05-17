@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  pull-requests: write
 jobs:
   check-secrets:
     name: Check Configuration
@@ -35,6 +34,9 @@ jobs:
     needs: check-secrets
     if: needs.check-secrets.outputs.has-token == 'true'
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write   # quality-gate-action posts PR review comments
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1

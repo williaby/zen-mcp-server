@@ -338,11 +338,15 @@ class VersionTool(BaseTool):
                 )
             else:
                 output_lines.append("⚠️  **Remote version check failed.**")
+                # Do not echo the configured URL back to the caller — it may be
+                # an internal host or include a tokenized path that the operator
+                # would prefer not to surface in tool output. Direct them to the
+                # server log for the specific failure reason instead.
                 output_lines.append(
-                    f"`PAL_VERSION_CHECK_URL` is configured (`{version_check_url}`) but the "
-                    "fetch, parse, or content-validation step did not succeed. Check the "
-                    "server log for the specific reason (e.g. non-https scheme, HTTP error, "
-                    "or response that failed whitelist validation)."
+                    "`PAL_VERSION_CHECK_URL` is configured, but the fetch, parse, or "
+                    "content-validation step did not succeed. Check the server log for the "
+                    "specific reason (e.g. non-https scheme, HTTP error, or response that "
+                    "failed whitelist validation)."
                 )
 
         except Exception as e:
