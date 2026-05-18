@@ -15,14 +15,19 @@ These cover three new code paths added by the security review:
 
 from __future__ import annotations
 
+import json
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from server import handle_call_tool
 from tools.version import fetch_github_version
-from utils.conversation_memory import _sanitize_replayed_content
+from utils.conversation_memory import (
+    ConversationTurn,
+    _get_tool_formatted_content,
+    _sanitize_replayed_content,
+)
 
 
 class TestSanitizeReplayedContent:
@@ -234,14 +239,10 @@ class TestVersionToolFailedVsDisabled:
 
     @pytest.mark.asyncio
     async def test_disabled_message_when_url_not_set(self):
-        import asyncio  # noqa: F401
-
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("PAL_VERSION_CHECK_URL", None)
             result = await handle_call_tool("version", {})
             assert len(result) == 1
-            import json
-
             data = json.loads(result[0].text)
             assert "Remote version check disabled" in data["content"]
             # The "failed" message must not appear in the disabled case.
@@ -254,14 +255,39 @@ class TestVersionToolFailedVsDisabled:
         url = "https://nonexistent.invalid.example.com/c.py"
         with patch.dict(os.environ, {"PAL_VERSION_CHECK_URL": url}):
             result = await handle_call_tool("version", {})
-            import json
-
             data = json.loads(result[0].text)
             assert "Remote version check failed" in data["content"]
             # The configured URL must NOT be echoed back to the caller —
             # see the redaction note in tools/version.py.
             assert url not in data["content"]
             assert "nonexistent.invalid" not in data["content"]
+
+    @pytest.mark.asyncio
+    async def test_success_branches_when_fetch_returns_version(self):
+        """When the fetch succeeds, VersionTool renders one of three branches
+        based on the version comparison (older / equal / newer than remote).
+        Exercise each so the rendering paths are covered."""
+        with patch.dict(os.environ, {"PAL_VERSION_CHECK_URL": "https://example.com/c.py"}):
+            # 1) Remote is newer than local — "UPDATE AVAILABLE"
+            with patch("tools.version.fetch_github_version", return_value=("999.999.999", "9999-01-01")):
+                result = await handle_call_tool("version", {})
+                data = json.loads(result[0].text)
+                assert "UPDATE AVAILABLE" in data["content"]
+                assert "999.999.999" in data["content"]
+
+            # 2) Remote equals local — "UP TO DATE"
+            from config import __version__
+
+            with patch("tools.version.fetch_github_version", return_value=(__version__, "now")):
+                result = await handle_call_tool("version", {})
+                data = json.loads(result[0].text)
+                assert "UP TO DATE" in data["content"]
+
+            # 3) Local ahead of remote — "DEVELOPMENT VERSION"
+            with patch("tools.version.fetch_github_version", return_value=("0.0.1", "ancient")):
+                result = await handle_call_tool("version", {})
+                data = json.loads(result[0].text)
+                assert "DEVELOPMENT VERSION" in data["content"]
 
 
 class TestToolFormattedContentIsSanitized:
@@ -271,13 +297,6 @@ class TestToolFormattedContentIsSanitized:
     confusion that the default path is already protected against."""
 
     def test_tool_formatter_output_is_defanged(self):
-        from unittest.mock import MagicMock
-
-        from utils.conversation_memory import (
-            ConversationTurn,
-            _get_tool_formatted_content,
-        )
-
         # Build a turn whose tool-specific formatter would emit our framing
         # markers verbatim. The expected behavior is that the markers are
         # defanged before the result is incorporated into the conversation
