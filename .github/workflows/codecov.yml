@@ -6,35 +6,45 @@ on:
   pull_request:
     branches: [main, develop]
 
+permissions:
+  contents: read
+
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        persist-credentials: false
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
         pip install coverage[toml]
-    
+
     - name: Run unit tests with coverage
       run: |
         coverage run -m pytest tests/ -v -m "not integration" --timeout=60 --tb=short
         coverage xml -o coverage-unit.xml
-    
+
     - name: Upload unit test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4.6.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-unit.xml
@@ -44,38 +54,45 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        persist-credentials: false
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
       with:
         python-version: "3.11"
-    
+
     - name: Install Ollama
       run: |
         curl -fsSL https://ollama.com/install.sh | sh
         ollama serve &
         sleep 10
         ollama pull llama3.2
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
         pip install coverage[toml]
-    
+
     - name: Run integration tests with coverage
       env:
         CUSTOM_API_URL: "http://localhost:11434/v1"
       run: |
         coverage run -m pytest tests/ -v -m "integration" --timeout=300 --tb=short
         coverage xml -o coverage-integration.xml || true
-    
+
     - name: Upload integration test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4.6.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-integration.xml
@@ -85,22 +102,29 @@ jobs:
 
   simulator-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        persist-credentials: false
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
       with:
         python-version: "3.11"
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
         pip install coverage[toml]
-    
+
     - name: Run simulator tests with coverage (quick mode)
       env:
         DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -109,9 +133,9 @@ jobs:
       run: |
         coverage run communication_simulator_test.py --quick
         coverage xml -o coverage-simulator.xml || true
-    
+
     - name: Upload simulator test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4.6.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-simulator.xml

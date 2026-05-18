@@ -83,44 +83,74 @@ def fetch_github_version() -> Optional[tuple[str, str]]:
     """
     Fetch the latest version information from GitHub repository.
 
+    Disabled by default: the version tool no longer makes an outbound network
+    call on every invocation. Reasons:
+
+      1. The previous implementation fetched from BeehiveInnovations/pal-mcp-server,
+         which is NOT the upstream for this fork (williaby/zen-mcp-server per CLAUDE.md).
+         Trusting that origin for an "are you up to date?" check would have given an
+         attacker who controls that path the ability to influence operator behavior
+         (telling users to "git pull" arbitrary updates).
+      2. urlopen() over HTTPS provides cert validation but the response was parsed
+         with a regex into displayed strings — a tampered response could inject
+         arbitrary text into the tool output rendered to Claude.
+      3. Calling out to GitHub on every `version` invocation is unnecessary
+         telemetry from MCP servers running in private/air-gapped environments.
+
+    To re-enable, set PAL_VERSION_CHECK_URL to an HTTPS URL pointing at the
+    canonical config.py of the operator's chosen upstream.
+
     Returns:
-        Tuple of (version, last_updated) if successful, None if failed
+        Tuple of (version, last_updated) if successful, None if failed/disabled.
     """
+    import os
+
     if not HAS_URLLIB:
-        logger.warning("urllib not available, cannot check for updates")
         return None
 
-    github_url = "https://raw.githubusercontent.com/BeehiveInnovations/pal-mcp-server/main/config.py"
+    github_url = os.getenv("PAL_VERSION_CHECK_URL", "").strip()
+    if not github_url:
+        # Disabled by default — see docstring.
+        return None
+    if not github_url.startswith("https://"):
+        logger.warning("PAL_VERSION_CHECK_URL must use https://; refusing to fetch")
+        return None
 
     try:
-        # Set a 10-second timeout
-        with urlopen(github_url, timeout=10) as response:
+        # nosec B310 - URL scheme is validated above; only https:// is accepted.
+        with urlopen(github_url, timeout=10) as response:  # noqa: S310
             if response.status != 200:
-                logger.warning(f"HTTP error while checking GitHub: {response.status}")
+                logger.warning(f"HTTP error while checking version URL: {response.status}")
                 return None
 
-            content = response.read().decode("utf-8")
+            # Bound the read to defend against an upstream returning multi-MB content.
+            content = response.read(64 * 1024).decode("utf-8", errors="replace")
 
-            # Extract version using regex
             version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
             updated_match = re.search(r'__updated__\s*=\s*["\']([^"\']+)["\']', content)
 
             if version_match:
                 remote_version = version_match.group(1)
                 remote_updated = updated_match.group(1) if updated_match else "Unknown"
+                # Only allow safe characters in displayed strings to prevent the remote
+                # response from injecting newlines/markdown into tool output.
+                safe_re = re.compile(r"^[A-Za-z0-9._:+\- ]{1,64}$")
+                if not safe_re.match(remote_version) or not safe_re.match(remote_updated):
+                    logger.warning("Remote version strings failed validation; ignoring")
+                    return None
                 return (remote_version, remote_updated)
             else:
-                logger.warning("Could not parse version from GitHub config.py")
+                logger.warning("Could not parse version from remote config.py")
                 return None
 
     except HTTPError as e:
-        logger.warning(f"HTTP error while checking GitHub: {e.code}")
+        logger.warning(f"HTTP error while checking version URL: {e.code}")
         return None
     except URLError as e:
-        logger.warning(f"URL error while checking GitHub: {e.reason}")
+        logger.warning(f"URL error while checking version URL: {e.reason}")
         return None
     except Exception as e:
-        logger.warning(f"Error checking GitHub for updates: {e}")
+        logger.warning(f"Error checking for updates: {type(e).__name__}")
         return None
 
 
@@ -252,8 +282,17 @@ class VersionTool(BaseTool):
         # Check for updates from GitHub
         output_lines.append("## Update Status")
 
+        # Distinguish "disabled" (no PAL_VERSION_CHECK_URL configured) from
+        # "enabled but failed" (URL set, fetch/validate failed) so operators
+        # who opted in aren't misled by the same message that's shown when
+        # they haven't configured anything at all.
+        import os as _os
+
+        version_check_url = (_os.getenv("PAL_VERSION_CHECK_URL", "") or "").strip()
+        check_enabled = bool(version_check_url)
+
         try:
-            github_info = fetch_github_version()
+            github_info = fetch_github_version() if check_enabled else None
 
             if github_info:
                 remote_version, remote_updated = github_info
@@ -290,10 +329,25 @@ class VersionTool(BaseTool):
                         f"Your version `{__version__}` is ahead of the published version `{remote_version}`"
                     )
                     output_lines.append("You may be running a development or custom build.")
+            elif not check_enabled:
+                output_lines.append("ℹ️  **Remote version check disabled.**")
+                output_lines.append(
+                    "Set the `PAL_VERSION_CHECK_URL` environment variable to an HTTPS "
+                    "URL serving the upstream `config.py` if you want this tool to "
+                    "report whether a newer version is available."
+                )
             else:
-                output_lines.append("❌ **Could not check for updates**")
-                output_lines.append("Unable to connect to GitHub or parse version information.")
-                output_lines.append("Check your internet connection or try again later.")
+                output_lines.append("⚠️  **Remote version check failed.**")
+                # Do not echo the configured URL back to the caller — it may be
+                # an internal host or include a tokenized path that the operator
+                # would prefer not to surface in tool output. Direct them to the
+                # server log for the specific failure reason instead.
+                output_lines.append(
+                    "`PAL_VERSION_CHECK_URL` is configured, but the fetch, parse, or "
+                    "content-validation step did not succeed. Check the server log for the "
+                    "specific reason (e.g. non-https scheme, HTTP error, or response that "
+                    "failed whitelist validation)."
+                )
 
         except Exception as e:
             logger.error(f"Error during version check: {e}")

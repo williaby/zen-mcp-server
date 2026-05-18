@@ -78,7 +78,9 @@ except ImportError:
 
 # Configure logging for server operations
 # Can be controlled via LOG_LEVEL environment variable (DEBUG, INFO, WARNING, ERROR)
-log_level = (get_env("LOG_LEVEL", "DEBUG") or "DEBUG").upper()
+# Default INFO: DEBUG logs prompts/responses/model parameters which may include sensitive
+# content from upstream LLM responses. Set LOG_LEVEL=DEBUG only when actively troubleshooting.
+log_level = (get_env("LOG_LEVEL", "INFO") or "INFO").upper()
 
 # Create timezone-aware formatter
 
@@ -845,8 +847,42 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
         from utils.file_utils import check_total_file_size
         from utils.model_context import ModelContext
 
+        # Skip model resolution for tools that don't require models (e.g., planner).
+        # We also skip the model-shape validation below for these tools — they never
+        # touch the `model` argument, so rejecting a malformed value the tool will
+        # ignore would just be an annoyance for the caller.
+        if not tool.requires_model():
+            logger.debug(f"Tool {name} doesn't require model resolution - skipping model validation")
+            return await tool.execute(arguments)
+
         # Get model from arguments or use default
         model_name = arguments.get("model") or DEFAULT_MODEL
+
+        # Validate model identifier shape at the MCP boundary. The model name flows
+        # into provider lookup, prompts, log lines, and error messages — without a
+        # bound it is a DoS vector (untrusted callers can pass multi-megabyte strings)
+        # and a log/prompt-injection vector (newlines and control chars break framing).
+        if not isinstance(model_name, str):
+            raise ToolExecutionError(
+                ToolOutput(
+                    status="error",
+                    content=f"Model must be a string, got {type(model_name).__name__}",
+                    content_type="text",
+                    metadata={"tool_name": name},
+                ).model_dump_json()
+            )
+        # 256 chars is comfortably above any real model identifier
+        # (e.g. "openrouter/anthropic/claude-3-5-sonnet:beta") while bounding the input.
+        if len(model_name) > 256 or any(ch in model_name for ch in ("\n", "\r", "\x00")):
+            raise ToolExecutionError(
+                ToolOutput(
+                    status="error",
+                    content="Invalid model identifier (too long or contains control characters).",
+                    content_type="text",
+                    metadata={"tool_name": name},
+                ).model_dump_json()
+            )
+
         logger.debug(f"Initial model for {name}: {model_name}")
 
         # Parse model:option format if present
@@ -858,12 +894,6 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
 
         # Consensus tool handles its own model configuration validation
         # No special handling needed at server level
-
-        # Skip model resolution for tools that don't require models (e.g., planner)
-        if not tool.requires_model():
-            logger.debug(f"Tool {name} doesn't require model resolution - skipping model validation")
-            # Execute tool directly without model context
-            return await tool.execute(arguments)
 
         # Handle auto mode at MCP boundary - resolve to specific model
         if model_name.lower() == "auto":

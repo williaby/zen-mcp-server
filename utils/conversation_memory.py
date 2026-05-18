@@ -1050,16 +1050,73 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
                 # Use inheritance pattern - try to call the method directly
                 # If it doesn't exist or raises AttributeError, fall back to default
                 try:
-                    return tool.format_conversation_turn(turn)
+                    formatted = tool.format_conversation_turn(turn)
                 except AttributeError:
                     # Tool doesn't implement format_conversation_turn - use default
                     pass
+                else:
+                    # Tool-specific formatters typically embed `turn.content`
+                    # verbatim (see BaseTool.format_conversation_turn). Apply
+                    # the same delimiter-defang we use in the default path so
+                    # an attacker-controlled upstream response cannot escape
+                    # our envelope via a tool that overrides the formatter.
+                    return [_sanitize_replayed_content(part) for part in formatted]
         except Exception as e:
             # Log but don't fail - fall back to default formatting
             logger.debug(f"[HISTORY] Could not get tool-specific formatting for {turn.tool_name}: {e}")
 
     # Default formatting
     return _default_turn_formatting(turn)
+
+
+def _sanitize_replayed_content(content: str) -> str:
+    """
+    Defang the conversation-history `=== … ===` envelope markers if they
+    appear inside a replayed turn payload.
+
+    The conversation history (see build_conversation_history) frames the
+    untrusted assistant content with literal delimiters such as
+    `=== END CONVERSATION HISTORY ===`. An upstream backend model is free
+    to emit those same delimiters inside its response. If we replayed that
+    response verbatim, the orchestrator LLM that reads our reconstructed
+    prompt could be tricked into treating attacker-controlled bytes as
+    belonging to the OUTER (trusted) frame — a delimiter-confusion
+    prompt-injection vector (OWASP LLM01).
+
+    We rewrite literal occurrences of the *envelope* markers in replayed
+    content to a visually similar but non-matching form. The per-turn
+    headers (`--- Turn N (...) ---`) are intentionally NOT defanged here:
+    `---` is a common markdown thematic break and rewriting every
+    occurrence would mangle legitimate model output. The envelope markers,
+    by contrast, are unique strings unlikely to appear in normal prose.
+
+    This is intentionally conservative: it does not try to "sanitize" the
+    model's natural-language output, only to defang the specific tokens
+    our own framing relies on.
+
+    Args:
+        content: Replayed turn content (may be attacker-controlled)
+
+    Returns:
+        Content with our envelope delimiters defanged.
+    """
+    if not content:
+        return content
+    # Strings to defang — keep in sync with the framing emitted by
+    # build_conversation_history().
+    markers = (
+        "=== CONVERSATION HISTORY (CONTINUATION) ===",
+        "=== END CONVERSATION HISTORY ===",
+        "=== FILES REFERENCED IN THIS CONVERSATION ===",
+        "=== END REFERENCED FILES ===",
+    )
+    sanitized = content
+    for m in markers:
+        # Replace the leading "===" with "=⋮=" (Unicode U+22EE) so the marker
+        # no longer matches when the LLM scans for our framing tokens, while
+        # still being readable.
+        sanitized = sanitized.replace(m, m.replace("===", "=⋮=", 1))
+    return sanitized
 
 
 def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
@@ -1082,8 +1139,9 @@ def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
         parts.append(f"Files used in this turn: {', '.join(turn.files)}")
         parts.append("")  # Empty line for readability
 
-    # Add the actual content
-    parts.append(turn.content)
+    # Defang our framing markers in replayed (potentially attacker-controlled)
+    # content so an upstream model response cannot escape its frame.
+    parts.append(_sanitize_replayed_content(turn.content))
 
     return parts
 

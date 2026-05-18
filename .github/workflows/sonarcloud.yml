@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  pull-requests: write
 jobs:
   check-secrets:
     name: Check Configuration
@@ -15,10 +14,16 @@ jobs:
     outputs:
       has-token: ${{ steps.check.outputs.has-token }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1
+        with:
+          egress-policy: audit
       - name: Check for SONAR_TOKEN
         id: check
+        env:
+          SONAR_TOKEN_PRESENT: ${{ secrets.SONAR_TOKEN != '' }}
         run: |
-          if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
+          if [ "$SONAR_TOKEN_PRESENT" = "true" ]; then
             echo "has-token=true" >> $GITHUB_OUTPUT
           else
             echo "has-token=false" >> $GITHUB_OUTPUT
@@ -29,17 +34,30 @@ jobs:
     needs: check-secrets
     if: needs.check-secrets.outputs.has-token == 'true'
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write   # quality-gate-action posts PR review comments
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # v2.10.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+          persist-credentials: false
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
         with:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-dev.txt pytest pytest-cov
       - name: Run tests with coverage
-        run: pytest --cov-config=pyproject.toml --cov-report=xml:coverage.xml -v
+        # `--cov` (no value) tells pytest-cov to activate and pick the
+        # measured packages from `[tool.coverage.run] source` in
+        # pyproject.toml. Without any `--cov` flag, pytest-cov is a no-op
+        # and the coverage.xml ends up empty — which is why SonarCloud
+        # was reporting "0.0% Coverage on New Code" even when tests pass.
+        run: pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml -v
         continue-on-error: true
       - name: Ensure coverage file
         run: |
@@ -55,7 +73,7 @@ jobs:
             -Dsonar.projectKey=williaby_zen-mcp-server
             -Dsonar.python.version=3.12
       - name: Check Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@master
+        uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b  # v1.2.0
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
