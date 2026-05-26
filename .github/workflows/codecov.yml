@@ -14,10 +14,10 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c  # v4.9.1
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -34,7 +34,7 @@ jobs:
         coverage xml -o coverage-unit.xml
     
     - name: Upload unit test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457  # v3.1.6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-unit.xml
@@ -46,10 +46,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
     
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c  # v4.9.1
       with:
         python-version: "3.11"
     
@@ -75,7 +75,7 @@ jobs:
         coverage xml -o coverage-integration.xml || true
     
     - name: Upload integration test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457  # v3.1.6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-integration.xml
@@ -87,10 +87,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
     
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c  # v4.9.1
       with:
         python-version: "3.11"
     
@@ -111,7 +111,7 @@ jobs:
         coverage xml -o coverage-simulator.xml || true
     
     - name: Upload simulator test coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457  # v3.1.6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage-simulator.xml
