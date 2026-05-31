@@ -31,7 +31,6 @@ class XAIModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
     FALLBACK_MODEL = "grok-4"
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize X.AI provider with API key."""
         # Set X.AI base URL
         kwargs.setdefault("base_url", "https://api.x.ai/v1")
         self._ensure_registry()
@@ -46,11 +45,11 @@ class XAIModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
         """Get XAI's preferred model for a given category from allowed models.
 
         Args:
-            category: The tool category requiring a model
-            allowed_models: Pre-filtered list of models allowed by restrictions
+            category (ToolModelCategory): The tool category requiring a model
+            allowed_models (list[str]): Pre-filtered list of models allowed by restrictions
 
         Returns:
-            Preferred model name or None
+            Optional[str]: Preferred model name or None.
         """
         from tools.models import ToolModelCategory
 

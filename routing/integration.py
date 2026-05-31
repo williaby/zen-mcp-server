@@ -57,14 +57,13 @@ class ModelRoutingIntegration:
         return os.getenv("ZEN_SMART_ROUTING", "false").lower() == "true"
 
     def wrap_get_model_provider(self, original_method: Callable) -> Callable:
-        """
-        Wrap the get_model_provider method to inject dynamic routing.
+        """Wrap the get_model_provider method to inject dynamic routing.
 
         Args:
-            original_method: The original get_model_provider method from BaseTool
+            original_method (Callable): The original get_model_provider method from BaseTool
 
         Returns:
-            Wrapped method that performs intelligent model selection
+            Callable: Wrapped method that performs intelligent model selection.
         """
 
         @wraps(original_method)
@@ -342,15 +341,14 @@ def integrate_with_server():
 
 
 def route_model_request(prompt: str, context: dict[str, Any] = None) -> dict[str, Any]:
-    """
-    Convenience function for external model routing requests.
+    """Convenience function for external model routing requests.
 
     Args:
-        prompt: The task description/prompt
-        context: Additional context (files, errors, etc.)
+        prompt (str): The task description/prompt
+        context (dict[str, Any]): Additional context (files, errors, etc.)
 
     Returns:
-        Dict with model recommendation or error
+        dict[str, Any]: Dict with model recommendation or error.
     """
     integration = get_integration_instance()
     return integration.get_model_recommendation(prompt, context)

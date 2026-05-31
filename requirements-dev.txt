@@ -10,3 +10,4 @@ isort>=5.12.0
 coverage[toml]>=7.0.0
 python-semantic-release>=10.3.0
 build>=1.0.0
+pydoclint>=0.8.4

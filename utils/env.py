@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -37,9 +37,9 @@ def reload_env(dotenv_mapping: Mapping[str, str | None] | None = None, use_infis
     """Reload .env values and recompute override semantics.
 
     Args:
-        dotenv_mapping: Optional mapping used instead of reading the .env file.
+        dotenv_mapping (Mapping[str, str | None] | None): Optional mapping used instead of reading the .env file.
             Intended for tests; when provided, load_dotenv is not invoked.
-        use_infisical: If True, attempt to load secrets from Infisical before .env file
+        use_infisical (bool): If True, attempt to load secrets from Infisical before .env file
     """
 
     global _DOTENV_VALUES, _FORCE_ENV_OVERRIDE, _INFISICAL_LOADED
@@ -122,11 +122,14 @@ def get_all_env() -> dict[str, str | None]:
 
 
 @contextmanager
-def suppress_env_vars(*names: str):
+def suppress_env_vars(*names: str) -> Generator[None, None, None]:
     """Temporarily remove environment variables during the context.
 
     Args:
-        names: Environment variable names to remove. Empty or falsy names are ignored.
+        *names (str): Environment variable names to remove. Empty or falsy names are ignored.
+
+    Yields:
+        None: Yields control with the named vars removed; restores them on exit.
     """
 
     removed: dict[str, str] = {}

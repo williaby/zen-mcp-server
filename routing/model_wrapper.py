@@ -58,15 +58,14 @@ class ModelWrapper:
         self.performance_tracking: dict[str, dict[str, Any]] = {}
 
     def wrap_model_call(self, original_call: Callable, context: ModelCallContext) -> Callable:
-        """
-        Wrap a model call to add routing capabilities.
+        """Wrap a model call to add routing capabilities.
 
         Args:
-            original_call: The original model call function
-            context: Context information for the call
+            original_call (Callable): The original model call function
+            context (ModelCallContext): Context information for the call
 
         Returns:
-            Wrapped function with routing capabilities
+            Callable: Wrapped function with routing capabilities.
         """
 
         @wraps(original_call)
@@ -341,27 +340,25 @@ class RoutingModelProvider:
 
 
 def create_routing_wrapper(router: Optional[ModelLevelRouter] = None) -> ModelWrapper:
-    """
-    Create a model wrapper for routing capabilities.
+    """Create a model wrapper for routing capabilities.
 
     Args:
-        router: Optional router instance, creates default if None
+        router (Optional[ModelLevelRouter]): Optional router instance, creates default if None
 
     Returns:
-        ModelWrapper instance ready for use
+        ModelWrapper: ModelWrapper instance ready for use.
     """
     return ModelWrapper(router)
 
 
-def wrap_provider_with_routing(provider, wrapper: ModelWrapper):
-    """
-    Wrap a model provider with routing capabilities.
+def wrap_provider_with_routing(provider: Any, wrapper: ModelWrapper) -> "RoutingModelProvider":
+    """Wrap a model provider with routing capabilities.
 
     Args:
-        provider: Original model provider
-        wrapper: ModelWrapper instance
+        provider (Any): Original model provider.
+        wrapper (ModelWrapper): ModelWrapper instance
 
     Returns:
-        RoutingModelProvider that adds routing to the original provider
+        RoutingModelProvider: RoutingModelProvider that adds routing to the original provider.
     """
     return RoutingModelProvider(provider, wrapper)

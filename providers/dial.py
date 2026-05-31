@@ -2,7 +2,7 @@
 
 import logging
 import threading
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Optional
 
 from utils.env import get_env
 
@@ -33,12 +33,6 @@ class DIALModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
     RETRY_DELAYS = [1, 3, 5, 8]  # seconds
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize DIAL provider with API key and host.
-
-        Args:
-            api_key: DIAL API key for authentication
-            **kwargs: Additional configuration options
-        """
         self._ensure_registry()
         # Get DIAL API host from environment or kwargs
         dial_host = kwargs.get("base_url") or get_env("DIAL_API_HOST") or "https://core.dialx.ai"
@@ -105,17 +99,17 @@ class DIALModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
         """Get the provider type."""
         return ProviderType.DIAL
 
-    def _get_deployment_client(self, deployment: str):
+    def _get_deployment_client(self, deployment: str) -> Any:
         """Get or create a cached client for a specific deployment.
 
         This avoids recreating OpenAI clients on every request, improving performance.
         Reuses the shared HTTP client for connection pooling.
 
         Args:
-            deployment: The deployment/model name
+            deployment (str): The deployment/model name
 
         Returns:
-            OpenAI client configured for the specific deployment
+            Any: OpenAI client configured for the specific deployment.
         """
         # Check if client already exists without locking for performance
         if deployment in self._deployment_clients:
@@ -165,17 +159,20 @@ class DIALModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
         /openai/deployments/{deployment}/chat/completions
 
         Args:
-            prompt: The main user prompt/query to send to the model
-            model_name: Model name or alias (e.g., "o3", "sonnet-4.1", "gemini-2.5-pro")
-            system_prompt: Optional system instructions to prepend to the prompt for context/behavior
-            temperature: Sampling temperature for randomness (0.0=deterministic, 1.0=creative), default 0.3
+            prompt (str): The main user prompt/query to send to the model
+            model_name (str): Model name or alias (e.g., "o3", "sonnet-4.1", "gemini-2.5-pro")
+            system_prompt (Optional[str]): Optional system instructions to prepend to the prompt for context/behavior
+            temperature (float): Sampling temperature for randomness (0.0=deterministic, 1.0=creative), default 0.3.
                         Note: O3/O4 models don't support temperature and will ignore this parameter
-            max_output_tokens: Optional maximum number of tokens to generate in the response
-            images: Optional list of image paths or data URLs to include with the prompt (for vision-capable models)
+            max_output_tokens (Optional[int]): Optional maximum number of tokens to generate in the response
+            images (Optional[list[str]]): Optional list of image paths or data URLs to include with the prompt
             **kwargs: Additional OpenAI-compatible parameters (top_p, frequency_penalty, presence_penalty, seed, stop)
 
         Returns:
             ModelResponse: Contains the generated content, token usage stats, model metadata, and finish reason
+
+        Raises:
+            ValueError: If the model name is not in the allowed models list.
         """
         # Validate model name against allow-list
         if not self.validate_model_name(model_name):

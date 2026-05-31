@@ -99,8 +99,7 @@ EXCLUDED_DIRS = {
 
 
 def is_dangerous_path(path: Path) -> bool:
-    """
-    Check if a path is in or under a dangerous directory.
+    """Check if a path is in or under a dangerous directory.
 
     This function handles two categories of dangerous paths differently:
 
@@ -112,12 +111,12 @@ def is_dangerous_path(path: Path) -> bool:
        Subdirectory access control is delegated to is_home_directory_root().
 
     Args:
-        path: Path to check
+        path (Path): Path to check
 
     Returns:
-        True if the path is dangerous and should not be accessed
+        bool: True if the path is dangerous and should not be accessed.
 
-    Security:
+    Note:
         Fixes path traversal vulnerability (CWE-22) while preserving
         user access to home subdirectories.
     """

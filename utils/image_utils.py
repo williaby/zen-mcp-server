@@ -21,14 +21,11 @@ def validate_image(image_path: str, max_size_mb: float = None) -> tuple[bytes, s
     """Validate a user-supplied image path or data URL.
 
     Args:
-        image_path: Either a filesystem path or a data URL.
-        max_size_mb: Optional size limit (defaults to ``DEFAULT_MAX_IMAGE_SIZE_MB``).
+        image_path (str): Either a filesystem path or a data URL.
+        max_size_mb (float): Optional size limit (defaults to ``DEFAULT_MAX_IMAGE_SIZE_MB``).
 
     Returns:
-        A tuple ``(image_bytes, mime_type)`` ready for upstream providers.
-
-    Raises:
-        ValueError: When the image is missing, malformed, or exceeds limits.
+        tuple[bytes, str]: A tuple ``(image_bytes, mime_type)`` ready for upstream providers.
     """
     if max_size_mb is None:
         max_size_mb = DEFAULT_MAX_IMAGE_SIZE_MB

@@ -43,8 +43,11 @@ class RegistryBackedProviderMixin:
         """Populate ``MODEL_CAPABILITIES`` from the configured registry.
 
         Args:
-            force_reload: When ``True`` the registry is re-created even if it
+            force_reload (bool): When ``True`` the registry is re-created even if it
                 was previously loaded. This is primarily used by tests.
+
+        Raises:
+            RuntimeError: If REGISTRY_CLASS is not defined on the subclass.
         """
 
         if cls.REGISTRY_CLASS is None:  # pragma: no cover - defensive programming

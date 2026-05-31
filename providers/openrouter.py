@@ -44,12 +44,6 @@ class OpenRouterProvider(OpenAICompatibleProvider):
     _registry: OpenRouterModelRegistry | None = None
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize OpenRouter provider.
-
-        Args:
-            api_key: OpenRouter API key
-            **kwargs: Additional configuration
-        """
         base_url = "https://openrouter.ai/api/v1"
         self._alias_cache: dict[str, str] = {}
         super().__init__(api_key, base_url=base_url, **kwargs)

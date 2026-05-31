@@ -94,8 +94,7 @@ class ModelContext:
         return self._capabilities
 
     def calculate_token_allocation(self, reserved_for_response: Optional[int] = None) -> TokenAllocation:
-        """
-        Calculate token allocation based on model capacity and conversation requirements.
+        """Calculate token allocation based on model capacity and conversation requirements.
 
         This method implements the core token budget calculation that supports the
         dual prioritization strategy used in conversation memory and file processing:
@@ -103,7 +102,7 @@ class ModelContext:
         TOKEN ALLOCATION STRATEGY:
         1. CONTENT vs RESPONSE SPLIT:
            - Smaller models (< 300K): 60% content, 40% response (conservative)
-           - Larger models (≥ 300K): 80% content, 20% response (generous)
+           - Larger models (>=300K): 80% content, 20% response (generous)
 
         2. CONTENT SUB-ALLOCATION:
            - File tokens: 30-40% of content budget for newest file versions
@@ -116,10 +115,10 @@ class ModelContext:
            - Remaining budget passed to tools via _remaining_tokens parameter
 
         Args:
-            reserved_for_response: Override response token reservation
+            reserved_for_response (Optional[int]): Override response token reservation
 
         Returns:
-            TokenAllocation with calculated budgets for dual prioritization strategy
+            TokenAllocation: TokenAllocation with calculated budgets for dual prioritization strategy.
         """
         total_tokens = self.capabilities.context_window
 

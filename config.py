@@ -115,11 +115,10 @@ DEFAULT_CONSENSUS_MAX_INSTANCES_PER_COMBINATION = 2
 
 
 def _calculate_mcp_prompt_limit() -> int:
-    """
-    Calculate MCP prompt size limit based on MAX_MCP_OUTPUT_TOKENS environment variable.
+    """Calculate MCP prompt size limit based on MAX_MCP_OUTPUT_TOKENS environment variable.
 
     Returns:
-        Maximum character count for user input prompts
+        int: Maximum character count for user input prompts.
     """
     # Check for Claude's MAX_MCP_OUTPUT_TOKENS environment variable
     max_tokens_str = get_env("MAX_MCP_OUTPUT_TOKENS")

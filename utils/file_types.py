@@ -141,14 +141,13 @@ FILE_CATEGORIES = {
 
 
 def get_file_category(file_path: str) -> str:
-    """
-    Determine the category of a file based on its extension.
+    """Determine the category of a file based on its extension.
 
     Args:
-        file_path: Path to the file
+        file_path (str): Path to the file
 
     Returns:
-        Category name or "unknown" if not recognized
+        str: Category name or "unknown" if not recognized.
     """
     from pathlib import Path
 
@@ -229,14 +228,13 @@ TOKEN_ESTIMATION_RATIOS = {
 
 
 def get_token_estimation_ratio(file_path: str) -> float:
-    """
-    Get the token estimation ratio for a file based on its extension.
+    """Get the token estimation ratio for a file based on its extension.
 
     Args:
-        file_path: Path to the file
+        file_path (str): Path to the file
 
     Returns:
-        Token-to-byte ratio for the file type (default: 3.5 for unknown types)
+        float: Token-to-byte ratio for the file type (default: 3.5 for unknown types).
     """
     from pathlib import Path
 
@@ -256,14 +254,13 @@ IMAGE_MIME_TYPES = {
 
 
 def get_image_mime_type(extension: str) -> str:
-    """
-    Get the MIME type for an image file extension.
+    """Get the MIME type for an image file extension.
 
     Args:
-        extension: File extension (with or without leading dot)
+        extension (str): File extension (with or without leading dot)
 
     Returns:
-        MIME type string (default: image/jpeg for unknown extensions)
+        str: MIME type string (default: image/jpeg for unknown extensions).
     """
     if not extension.startswith("."):
         extension = "." + extension

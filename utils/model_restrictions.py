@@ -57,7 +57,6 @@ class ModelRestrictionService:
     }
 
     def __init__(self):
-        """Initialize the restriction service by loading from environment."""
         self.restrictions: dict[ProviderType, set[str]] = {}
         self._alias_resolution_cache: dict[ProviderType, dict[str, str]] = defaultdict(dict)
         self._load_from_env()
@@ -88,14 +87,13 @@ class ModelRestrictionService:
                 logger.debug(f"{env_var} contains only whitespace - all {provider_type.value} models allowed")
 
     def validate_against_known_models(self, provider_instances: dict[ProviderType, any]) -> None:
-        """
-        Validate restrictions against known models from providers.
+        """Validate restrictions against known models from providers.
 
         This should be called after providers are initialized to warn about
         typos or invalid model names in the restriction lists.
 
         Args:
-            provider_instances: Dictionary of provider type to provider instance
+            provider_instances (dict[ProviderType, any]): Dictionary of provider type to provider instance
         """
         for provider_type, allowed_models in self.restrictions.items():
             provider = provider_instances.get(provider_type)
@@ -126,16 +124,15 @@ class ModelRestrictionService:
                     )
 
     def is_allowed(self, provider_type: ProviderType, model_name: str, original_name: Optional[str] = None) -> bool:
-        """
-        Check if a model is allowed for a specific provider.
+        """Check if a model is allowed for a specific provider.
 
         Args:
-            provider_type: The provider type (OPENAI, GOOGLE, etc.)
-            model_name: The canonical model name (after alias resolution)
-            original_name: The original model name before alias resolution (optional)
+            provider_type (ProviderType): The provider type (OPENAI, GOOGLE, etc.)
+            model_name (str): The canonical model name (after alias resolution)
+            original_name (Optional[str]): The original model name before alias resolution (optional)
 
         Returns:
-            True if allowed (or no restrictions), False if restricted
+            bool: True if allowed (or no restrictions), False if restricted.
         """
         if provider_type not in self.restrictions:
             # No restrictions for this provider
@@ -190,39 +187,36 @@ class ModelRestrictionService:
         return False
 
     def get_allowed_models(self, provider_type: ProviderType) -> Optional[set[str]]:
-        """
-        Get the set of allowed models for a provider.
+        """Get the set of allowed models for a provider.
 
         Args:
-            provider_type: The provider type
+            provider_type (ProviderType): The provider type
 
         Returns:
-            Set of allowed model names, or None if no restrictions
+            Optional[set[str]]: Set of allowed model names, or None if no restrictions.
         """
         return self.restrictions.get(provider_type)
 
     def has_restrictions(self, provider_type: ProviderType) -> bool:
-        """
-        Check if a provider has any restrictions.
+        """Check if a provider has any restrictions.
 
         Args:
-            provider_type: The provider type
+            provider_type (ProviderType): The provider type
 
         Returns:
-            True if restrictions exist, False otherwise
+            bool: True if restrictions exist, False otherwise.
         """
         return provider_type in self.restrictions
 
     def filter_models(self, provider_type: ProviderType, models: list[str]) -> list[str]:
-        """
-        Filter a list of models based on restrictions.
+        """Filter a list of models based on restrictions.
 
         Args:
-            provider_type: The provider type
-            models: List of model names to filter
+            provider_type (ProviderType): The provider type
+            models (list[str]): List of model names to filter
 
         Returns:
-            Filtered list containing only allowed models
+            list[str]: Filtered list containing only allowed models.
         """
         if not self.has_restrictions(provider_type):
             return models
@@ -230,11 +224,10 @@ class ModelRestrictionService:
         return [m for m in models if self.is_allowed(provider_type, m)]
 
     def get_restriction_summary(self) -> dict[str, any]:
-        """
-        Get a summary of all restrictions for logging/debugging.
+        """Get a summary of all restrictions for logging/debugging.
 
         Returns:
-            Dictionary with provider names and their restrictions
+            dict[str, any]: Dictionary with provider names and their restrictions.
         """
         summary = {}
         for provider_type, allowed_set in self.restrictions.items():
@@ -251,11 +244,10 @@ _restriction_service: Optional[ModelRestrictionService] = None
 
 
 def get_restriction_service() -> ModelRestrictionService:
-    """
-    Get the global restriction service instance.
+    """Get the global restriction service instance.
 
     Returns:
-        The singleton ModelRestrictionService instance
+        ModelRestrictionService: The singleton ModelRestrictionService instance.
     """
     global _restriction_service
     if _restriction_service is None:

@@ -51,7 +51,6 @@ class GeminiModelProvider(RegistryBackedProviderMixin, ModelProvider):
     }
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize Gemini provider with API key and optional base URL."""
         self._ensure_registry()
         super().__init__(api_key, **kwargs)
         self._client = None
@@ -130,21 +129,24 @@ class GeminiModelProvider(RegistryBackedProviderMixin, ModelProvider):
         images: Optional[list[str]] = None,
         **kwargs,
     ) -> ModelResponse:
-        """
-        Generate content using Gemini model.
+        """Generate content using Gemini model.
 
         Args:
-            prompt: The main user prompt/query to send to the model
-            model_name: Canonical model name or its alias (e.g., "gemini-2.5-pro", "flash", "pro")
-            system_prompt: Optional system instructions to prepend to the prompt for context/behavior
-            temperature: Controls randomness in generation (0.0=deterministic, 1.0=creative), default 0.3
-            max_output_tokens: Optional maximum number of tokens to generate in the response
-            thinking_mode: Thinking budget level for models that support it ("minimal", "low", "medium", "high", "max"), default "medium"
-            images: Optional list of image paths or data URLs to include with the prompt (for vision models)
+            prompt (str): The main user prompt/query to send to the model
+            model_name (str): Canonical model name or its alias (e.g., "gemini-2.5-pro", "flash", "pro")
+            system_prompt (Optional[str]): Optional system instructions to prepend to the prompt for context/behavior
+            temperature (float): Controls randomness in generation (0.0=deterministic, 1.0=creative), default 0.3
+            max_output_tokens (Optional[int]): Optional maximum number of tokens to generate in the response
+            thinking_mode (str): Thinking budget level for models that support it
+                ("minimal", "low", "medium", "high", "max"), default "medium"
+            images (Optional[list[str]]): Optional list of image paths or data URLs to include with the prompt
             **kwargs: Additional keyword arguments (reserved for future use)
 
         Returns:
             ModelResponse: Contains the generated content, token usage stats, model metadata, and safety information
+
+        Raises:
+            RuntimeError: If all retry attempts fail.
         """
         # Validate parameters and fetch capabilities
         self.validate_parameters(model_name, temperature)
@@ -366,10 +368,10 @@ class GeminiModelProvider(RegistryBackedProviderMixin, ModelProvider):
         Uses Gemini API error structure instead of text pattern matching for reliability.
 
         Args:
-            error: Exception from Gemini API call
+            error (Exception): Exception from Gemini API call
 
         Returns:
-            True if error should be retried, False otherwise
+            bool: True if error should be retried, False otherwise.
         """
         error_str = str(error).lower()
 
@@ -465,11 +467,11 @@ class GeminiModelProvider(RegistryBackedProviderMixin, ModelProvider):
         """Get Gemini's preferred model for a given category from allowed models.
 
         Args:
-            category: The tool category requiring a model
-            allowed_models: Pre-filtered list of models allowed by restrictions
+            category (ToolModelCategory): The tool category requiring a model
+            allowed_models (list[str]): Pre-filtered list of models allowed by restrictions
 
         Returns:
-            Preferred model name or None
+            Optional[str]: Preferred model name or None
         """
         from tools.models import ToolModelCategory
 

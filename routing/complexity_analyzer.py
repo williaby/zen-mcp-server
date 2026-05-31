@@ -300,15 +300,14 @@ class ComplexityAnalyzer:
         }
 
     def analyze(self, prompt: str, context: Optional[dict[str, Any]] = None) -> tuple[str, float, TaskType]:
-        """
-        Analyze prompt and context to determine complexity and task type.
+        """Analyze prompt and context to determine complexity and task type.
 
         Args:
-            prompt: The input prompt/task description
-            context: Additional context (file types, errors, etc.)
+            prompt (str): The input prompt/task description
+            context (Optional[dict[str, Any]]): Additional context (file types, errors, etc.)
 
         Returns:
-            tuple: (complexity_level, confidence, task_type)
+            tuple[str, float, TaskType]: (complexity_level, confidence, task_type)
         """
         indicators = []
 

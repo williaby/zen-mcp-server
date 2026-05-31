@@ -172,6 +172,16 @@ patch_tags = ["fix", "perf"]
 [tool.semantic_release.remote.token]
 env = "GH_TOKEN"
 
+[tool.pydoclint]
+style = "google"
+exclude = '\.git|tests/|scripts/|benchmarks/|tools/|noxfile\.py|\.claude/'
+arg-type-hints-in-docstring = true
+arg-type-hints-in-signature = true
+skip-checking-raises = false
+require-return-section-when-returning-nothing = false
+require-return-section-when-returning-values = false
+require-yield-section-when-yielding-values = false
+
 [build-system]
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
