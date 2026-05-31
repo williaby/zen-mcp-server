@@ -85,7 +85,7 @@ def _get_cloudflare_access_headers() -> dict[str, str]:
     """Get Cloudflare Access headers for authenticating through Cloudflare gateway.
 
     Returns:
-        Dictionary of headers to include in requests
+        dict[str, str]: Dictionary of headers to include in requests.
     """
     headers = {}
 
@@ -146,13 +146,13 @@ def load_secrets_from_infisical_sdk(
     """Load secrets using Infisical Python SDK.
 
     Args:
-        workspace_id: Infisical workspace/project ID (reads from .infisical.json if not provided)
-        environment: Environment name (dev/staging/prod, auto-detected if not provided)
-        path: Secret path in Infisical (default: /)
-        site_url: Custom Infisical instance URL (reads from .infisical.json if not provided)
+        workspace_id (str | None): Infisical workspace/project ID (reads from .infisical.json if not provided)
+        environment (str | None): Environment name (dev/staging/prod, auto-detected if not provided)
+        path (str): Secret path in Infisical (default: /)
+        site_url (str | None): Custom Infisical instance URL (reads from .infisical.json if not provided)
 
     Returns:
-        Dictionary of secrets (key-value pairs)
+        dict[str, str]: Dictionary of secrets (key-value pairs).
     """
     if not INFISICAL_SDK_AVAILABLE:
         logger.debug("Infisical SDK not available")
@@ -235,11 +235,11 @@ def load_secrets_from_infisical_cli(
     variables (CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET).
 
     Args:
-        environment: Environment name (dev/staging/prod, auto-detected if not provided)
-        path: Secret path in Infisical (default: /)
+        environment (str | None): Environment name (dev/staging/prod, auto-detected if not provided)
+        path (str): Secret path in Infisical (default: /)
 
     Returns:
-        Dictionary of secrets (key-value pairs)
+        dict[str, str]: Dictionary of secrets (key-value pairs).
     """
     # Check if CLI is installed
     try:
@@ -310,13 +310,13 @@ def load_secrets_from_infisical(
     3. Empty dict (fall back to .env file)
 
     Args:
-        workspace_id: Infisical workspace/project ID (for SDK)
-        environment: Environment name (auto-detected if not provided)
-        path: Secret path in Infisical
-        prefer_cli: If True, try CLI before SDK
+        workspace_id (str | None): Infisical workspace/project ID (for SDK)
+        environment (str | None): Environment name (auto-detected if not provided)
+        path (str): Secret path in Infisical
+        prefer_cli (bool): If True, try CLI before SDK
 
     Returns:
-        Dictionary of secrets (empty if Infisical not available)
+        dict[str, str]: Dictionary of secrets (empty if Infisical not available).
     """
     if prefer_cli:
         # Try CLI first
@@ -355,11 +355,11 @@ def inject_secrets_into_env(secrets: dict[str, str], override: bool = False) -> 
     """Inject secrets into os.environ.
 
     Args:
-        secrets: Dictionary of secrets to inject
-        override: If True, override existing environment variables
+        secrets (dict[str, str]): Dictionary of secrets to inject
+        override (bool): If True, override existing environment variables
 
     Returns:
-        Number of secrets injected
+        int: Number of secrets injected.
     """
     count = 0
     for key, value in secrets.items():

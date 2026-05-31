@@ -149,22 +149,21 @@ CONVERSATION_TIMEOUT_SECONDS = CONVERSATION_TIMEOUT_HOURS * 3600
 
 
 class ConversationTurn(BaseModel):
-    """
-    Single turn in a conversation
+    """Single turn in a conversation.
 
     Represents one exchange in the AI-to-AI conversation, tracking both
     the content and metadata needed for cross-tool continuation.
 
     Attributes:
-        role: "user" (Agent request) or "assistant" (model response)
-        content: The actual message content/response
-        timestamp: ISO timestamp when this turn was created
-        files: List of file paths referenced in this specific turn
-        images: List of image paths referenced in this specific turn
-        tool_name: Which tool generated this turn (for cross-tool tracking)
-        model_provider: Provider used (e.g., "google", "openai")
-        model_name: Specific model used (e.g., "gemini-2.5-flash", "o3-mini")
-        model_metadata: Additional model-specific metadata (e.g., thinking mode, token usage)
+        role (str): "user" (Agent request) or "assistant" (model response)
+        content (str): The actual message content/response
+        timestamp (str): ISO timestamp when this turn was created
+        files (Optional[list[str]]): List of file paths referenced in this specific turn
+        images (Optional[list[str]]): List of image paths referenced in this specific turn
+        tool_name (Optional[str]): Which tool generated this turn (for cross-tool tracking)
+        model_provider (Optional[str]): Provider used (e.g., "google", "openai")
+        model_name (Optional[str]): Specific model used (e.g., "gemini-2.5-flash", "o3-mini")
+        model_metadata (Optional[dict[str, Any]]): Additional model-specific metadata (e.g., thinking mode, token usage)
     """
 
     role: str  # "user" or "assistant"
@@ -179,21 +178,20 @@ class ConversationTurn(BaseModel):
 
 
 class ThreadContext(BaseModel):
-    """
-    Complete conversation context for a thread
+    """Complete conversation context for a thread.
 
     Contains all information needed to reconstruct a conversation state
     across different tools and request cycles. This is the core data
     structure that enables cross-tool continuation.
 
     Attributes:
-        thread_id: UUID identifying this conversation thread
-        parent_thread_id: UUID of parent thread (for conversation chains)
-        created_at: ISO timestamp when thread was created
-        last_updated_at: ISO timestamp of last modification
-        tool_name: Name of the tool that initiated this thread
-        turns: List of all conversation turns in chronological order
-        initial_context: Original request data that started the conversation
+        thread_id (str): UUID identifying this conversation thread
+        parent_thread_id (Optional[str]): UUID of parent thread (for conversation chains)
+        created_at (str): ISO timestamp when thread was created
+        last_updated_at (str): ISO timestamp of last modification
+        tool_name (str): Name of the tool that initiated this thread
+        turns (list[ConversationTurn]): List of all conversation turns in chronological order
+        initial_context (dict[str, Any]): Original request data that started the conversation
     """
 
     thread_id: str
@@ -206,29 +204,23 @@ class ThreadContext(BaseModel):
 
 
 def get_storage():
-    """
-    Get in-memory storage backend for conversation persistence.
-
-    Returns:
-        InMemoryStorage: Thread-safe in-memory storage backend
-    """
+    """Get in-memory storage backend for conversation persistence."""
     from .storage_backend import get_storage_backend
 
     return get_storage_backend()
 
 
 def create_thread(tool_name: str, initial_request: dict[str, Any], parent_thread_id: Optional[str] = None) -> str:
-    """
-    Create new conversation thread and return thread ID
+    """Create new conversation thread and return thread ID.
 
     Initializes a new conversation thread for AI-to-AI discussions.
     This is called when a tool wants to enable follow-up conversations
     or when Claude explicitly starts a multi-turn interaction.
 
     Args:
-        tool_name: Name of the tool creating this thread (e.g., "analyze", "chat")
-        initial_request: Original request parameters (will be filtered for serialization)
-        parent_thread_id: Optional parent thread ID for conversation chains
+        tool_name (str): Name of the tool creating this thread (e.g., "analyze", "chat")
+        initial_request (dict[str, Any]): Original request parameters (will be filtered for serialization)
+        parent_thread_id (Optional[str]): Optional parent thread ID for conversation chains
 
     Returns:
         str: UUID thread identifier that can be used for continuation
@@ -270,21 +262,20 @@ def create_thread(tool_name: str, initial_request: dict[str, Any], parent_thread
 
 
 def get_thread(thread_id: str) -> Optional[ThreadContext]:
-    """
-    Retrieve thread context from in-memory storage
+    """Retrieve thread context from in-memory storage.
 
     Fetches complete conversation context for cross-tool continuation.
     This is the core function that enables tools to access conversation
     history from previous interactions.
 
     Args:
-        thread_id: UUID of the conversation thread
+        thread_id (str): UUID of the conversation thread
 
     Returns:
-        ThreadContext: Complete conversation context if found
-        None: If thread doesn't exist, expired, or invalid UUID
+        Optional[ThreadContext]: Complete conversation context if found, or None if thread
+        doesn't exist, has expired, or is an invalid UUID.
 
-    Security:
+    Note:
         - Validates UUID format to prevent injection attacks
         - Handles storage connection failures gracefully
         - No error information leakage on failure
@@ -316,23 +307,22 @@ def add_turn(
     model_name: Optional[str] = None,
     model_metadata: Optional[dict[str, Any]] = None,
 ) -> bool:
-    """
-    Add turn to existing thread with atomic file ordering.
+    """Add turn to existing thread with atomic file ordering.
 
     Appends a new conversation turn to an existing thread. This is the core
     function for building conversation history and enabling cross-tool
     continuation. Each turn preserves the tool and model that generated it.
 
     Args:
-        thread_id: UUID of the conversation thread
-        role: "user" (Agent request) or "assistant" (model response)
-        content: The actual message/response content
-        files: Optional list of files referenced in this turn
-        images: Optional list of images referenced in this turn
-        tool_name: Name of the tool adding this turn (for attribution)
-        model_provider: Provider used (e.g., "google", "openai")
-        model_name: Specific model used (e.g., "gemini-2.5-flash", "o3-mini")
-        model_metadata: Additional model info (e.g., thinking mode, token usage)
+        thread_id (str): UUID of the conversation thread
+        role (str): "user" (Agent request) or "assistant" (model response)
+        content (str): The actual message/response content
+        files (Optional[list[str]]): Optional list of files referenced in this turn
+        images (Optional[list[str]]): Optional list of images referenced in this turn
+        tool_name (Optional[str]): Name of the tool adding this turn (for attribution)
+        model_provider (Optional[str]): Provider used (e.g., "google", "openai")
+        model_name (Optional[str]): Specific model used (e.g., "gemini-2.5-flash", "o3-mini")
+        model_metadata (Optional[dict[str, Any]]): Additional model info (e.g., thinking mode, token usage)
 
     Returns:
         bool: True if turn was successfully added, False otherwise
@@ -389,18 +379,17 @@ def add_turn(
 
 
 def get_thread_chain(thread_id: str, max_depth: int = 20) -> list[ThreadContext]:
-    """
-    Traverse the parent chain to get all threads in conversation sequence.
+    """Traverse the parent chain to get all threads in conversation sequence.
 
     Retrieves the complete conversation chain by following parent_thread_id
     links. Returns threads in chronological order (oldest first).
 
     Args:
-        thread_id: Starting thread ID
-        max_depth: Maximum chain depth to prevent infinite loops
+        thread_id (str): Starting thread ID
+        max_depth (int): Maximum chain depth to prevent infinite loops
 
     Returns:
-        list[ThreadContext]: All threads in chain, oldest first
+        list[ThreadContext]: All threads in chain, oldest first.
     """
     chain = []
     current_id = thread_id
@@ -460,7 +449,7 @@ def get_conversation_file_list(context: ThreadContext) -> list[str]:
         (main.py from Turn 3 takes precedence over Turn 1)
 
     Args:
-        context: ThreadContext containing all conversation turns to process
+        context (ThreadContext): ThreadContext containing all conversation turns to process
 
     Returns:
         list[str]: Unique file paths ordered by newest reference first.
@@ -503,8 +492,7 @@ def get_conversation_file_list(context: ThreadContext) -> list[str]:
 
 
 def get_conversation_image_list(context: ThreadContext) -> list[str]:
-    """
-    Extract all unique images from conversation turns with newest-first prioritization.
+    """Extract all unique images from conversation turns with newest-first prioritization.
 
     This function implements the identical prioritization logic as get_conversation_file_list()
     to ensure consistency in how images are handled across conversation turns. It walks
@@ -532,7 +520,7 @@ def get_conversation_image_list(context: ThreadContext) -> list[str]:
         (diagram.png from Turn 3 takes precedence over Turn 1)
 
     Args:
-        context: ThreadContext containing all conversation turns to process
+        context (ThreadContext): ThreadContext containing all conversation turns to process
 
     Returns:
         list[str]: Unique image paths ordered by newest reference first.
@@ -575,17 +563,16 @@ def get_conversation_image_list(context: ThreadContext) -> list[str]:
 
 
 def _plan_file_inclusion_by_size(all_files: list[str], max_file_tokens: int) -> tuple[list[str], list[str], int]:
-    """
-    Plan which files to include based on size constraints.
+    """Plan which files to include based on size constraints.
 
     This is ONLY used for conversation history building, not MCP boundary checks.
 
     Args:
-        all_files: List of files to consider for inclusion
-        max_file_tokens: Maximum tokens available for file content
+        all_files (list[str]): List of files to consider for inclusion
+        max_file_tokens (int): Maximum tokens available for file content
 
     Returns:
-        Tuple of (files_to_include, files_to_skip, estimated_total_tokens)
+        tuple[list[str], list[str], int]: Tuple of (files_to_include, files_to_skip, estimated_total_tokens)
     """
     if not all_files:
         return [], [], 0
@@ -635,7 +622,9 @@ def _plan_file_inclusion_by_size(all_files: list[str], max_file_tokens: int) -> 
     return files_to_include, files_to_skip, total_tokens
 
 
-def build_conversation_history(context: ThreadContext, model_context=None, read_files_func=None) -> tuple[str, int]:
+def build_conversation_history(
+    context: ThreadContext, model_context: Any = None, read_files_func: Any = None
+) -> tuple[str, int]:
     """
     Build formatted conversation history for tool prompts with embedded file contents.
 
@@ -680,9 +669,9 @@ def build_conversation_history(context: ThreadContext, model_context=None, read_
     - Gracefully handles token limits with informative notes
 
     Args:
-        context: ThreadContext containing the conversation to format
-        model_context: ModelContext for token allocation (optional, uses DEFAULT_MODEL fallback)
-        read_files_func: Optional function to read files (primarily for testing)
+        context (ThreadContext): ThreadContext containing the conversation to format
+        model_context (Any): ModelContext for token allocation (optional, uses DEFAULT_MODEL fallback)
+        read_files_func (Any): Optional function to read files (primarily for testing)
 
     Returns:
         tuple[str, int]: (formatted_conversation_history, total_tokens_used)
@@ -1027,18 +1016,17 @@ def build_conversation_history(context: ThreadContext, model_context=None, read_
 
 
 def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
-    """
-    Get tool-specific formatting for a conversation turn.
+    """Get tool-specific formatting for a conversation turn.
 
     This function attempts to use the tool's custom formatting method if available,
     falling back to default formatting if the tool cannot be found or doesn't
     provide custom formatting.
 
     Args:
-        turn: The conversation turn to format
+        turn (ConversationTurn): The conversation turn to format
 
     Returns:
-        list[str]: Formatted content lines for this turn
+        list[str]: Formatted content lines for this turn.
     """
     if turn.tool_name:
         try:
@@ -1063,17 +1051,16 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
 
 
 def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
-    """
-    Default formatting for conversation turns.
+    """Default formatting for conversation turns.
 
     This provides the standard formatting when no tool-specific
     formatting is available.
 
     Args:
-        turn: The conversation turn to format
+        turn (ConversationTurn): The conversation turn to format
 
     Returns:
-        list[str]: Default formatted content lines
+        list[str]: Default formatted content lines.
     """
     parts = []
 
@@ -1089,17 +1076,16 @@ def _default_turn_formatting(turn: ConversationTurn) -> list[str]:
 
 
 def _is_valid_uuid(val: str) -> bool:
-    """
-    Validate UUID format for security
+    """Validate UUID format for security.
 
     Ensures thread IDs are valid UUIDs to prevent injection attacks
     and malformed requests.
 
     Args:
-        val: String to validate as UUID
+        val (str): String to validate as UUID
 
     Returns:
-        bool: True if valid UUID format, False otherwise
+        bool: True if valid UUID format, False otherwise.
     """
     try:
         uuid.UUID(val)

@@ -35,26 +35,6 @@ class CustomProvider(OpenAICompatibleProvider):
     _registry: CustomEndpointModelRegistry | None = None
 
     def __init__(self, api_key: str = "", base_url: str = "", **kwargs):
-        """Initialize Custom provider for local/self-hosted models.
-
-        This provider supports any OpenAI-compatible API endpoint including:
-        - Ollama (typically no API key required)
-        - vLLM (may require API key)
-        - LM Studio (may require API key)
-        - Text Generation WebUI (may require API key)
-        - Enterprise/self-hosted APIs (typically require API key)
-
-        Args:
-            api_key: API key for the custom endpoint. Can be empty string for
-                    providers that don't require authentication (like Ollama).
-                    Falls back to CUSTOM_API_KEY environment variable if not provided.
-            base_url: Base URL for the custom API endpoint (e.g., 'http://localhost:11434/v1').
-                     Falls back to CUSTOM_API_URL environment variable if not provided.
-            **kwargs: Additional configuration passed to parent OpenAI-compatible provider
-
-        Raises:
-            ValueError: If no base_url is provided via parameter or environment variable
-        """
         # Fall back to environment variables only if not provided
         if not base_url:
             base_url = get_env("CUSTOM_API_URL", "") or ""

@@ -131,13 +131,13 @@ class ModelCapabilities:
         """Build an ordered list of model names and aliases.
 
         Args:
-            model_configs: Mapping of canonical model names to capabilities.
-            include_aliases: When True, include aliases for each model.
-            lowercase: When True, normalize names to lowercase.
-            unique: When True, ensure each returned name appears once (after formatting).
+            model_configs (dict[str, ModelCapabilities]): Mapping of canonical model names to capabilities.
+            include_aliases (bool): When True, include aliases for each model.
+            lowercase (bool): When True, normalize names to lowercase.
+            unique (bool): When True, ensure each returned name appears once (after formatting).
 
         Returns:
-            Ordered list of model names (and optionally aliases) formatted per options.
+            list[str]: Ordered list of model names (and optionally aliases) formatted per options.
         """
 
         formatted_names: list[str] = []

@@ -61,8 +61,8 @@ class ModelProviderRegistry:
         """Register a new provider class.
 
         Args:
-            provider_type: Type of the provider (e.g., ProviderType.GOOGLE)
-            provider_class: Class that implements ModelProvider interface
+            provider_type (ProviderType): Type of the provider (e.g., ProviderType.GOOGLE)
+            provider_class (type[ModelProvider]): Class that implements ModelProvider interface
         """
         instance = cls()
         instance._providers[provider_type] = provider_class
@@ -74,11 +74,11 @@ class ModelProviderRegistry:
         """Get an initialized provider instance.
 
         Args:
-            provider_type: Type of provider to get
-            force_new: Force creation of new instance instead of using cached
+            provider_type (ProviderType): Type of provider to get
+            force_new (bool): Force creation of new instance instead of using cached
 
         Returns:
-            Initialized ModelProvider instance or None if not available
+            Optional[ModelProvider]: Initialized ModelProvider instance or None if not available.
         """
         instance = cls()
 
@@ -160,10 +160,10 @@ class ModelProviderRegistry:
         3. OPENROUTER - Catch-all for cloud models via unified API
 
         Args:
-            model_name: Name of the model (e.g., "gemini-2.5-flash", "gpt5")
+            model_name (str): Name of the model (e.g., "gemini-2.5-flash", "gpt5")
 
         Returns:
-            ModelProvider instance that supports this model
+            Optional[ModelProvider]: ModelProvider instance that supports this model.
         """
         logging.debug(f"get_provider_for_model called with model_name='{model_name}'")
 
@@ -199,10 +199,10 @@ class ModelProviderRegistry:
         """Get mapping of all available models to their providers.
 
         Args:
-            respect_restrictions: If True, filter out models not allowed by restrictions
+            respect_restrictions (bool): If True, filter out models not allowed by restrictions
 
         Returns:
-            Dict mapping model names to provider types
+            dict[str, ProviderType]: Dict mapping model names to provider types.
         """
         # Import here to avoid circular imports
         from utils.model_restrictions import get_restriction_service
@@ -307,10 +307,10 @@ class ModelProviderRegistry:
         This respects model restrictions automatically.
 
         Args:
-            provider_type: Optional provider to filter by
+            provider_type (Optional[ProviderType]): Optional provider to filter by
 
         Returns:
-            List of available model names
+            list[str]: List of available model names.
         """
         available_models = cls.get_available_models(respect_restrictions=True)
 
@@ -326,10 +326,10 @@ class ModelProviderRegistry:
         """Get API key for a provider from environment variables.
 
         Args:
-            provider_type: Provider type to get API key for
+            provider_type (ProviderType): Provider type to get API key for
 
         Returns:
-            API key string or None if not found
+            Optional[str]: API key string or None if not found.
         """
         key_mapping = {
             ProviderType.GOOGLE: "GEMINI_API_KEY",
@@ -352,11 +352,11 @@ class ModelProviderRegistry:
         """Get a list of allowed canonical model names for a given provider.
 
         Args:
-            provider: The provider instance to get models for
-            provider_type: The provider type for restriction checking
+            provider (ModelProvider): The provider instance to get models for
+            provider_type (ProviderType): The provider type for restriction checking
 
         Returns:
-            List of model names that are both supported and allowed
+            list[str]: List of model names that are both supported and allowed.
         """
         from utils.model_restrictions import get_restriction_service
 
@@ -390,10 +390,10 @@ class ModelProviderRegistry:
         3. Falling back to first available model if no preference given
 
         Args:
-            tool_category: Optional category to influence model selection
+            tool_category (Optional[ToolModelCategory]): Optional category to influence model selection
 
         Returns:
-            Model name string for fallback use
+            str: Model name string for fallback use.
         """
         from tools.models import ToolModelCategory
 
@@ -437,7 +437,7 @@ class ModelProviderRegistry:
         """Get list of provider types that have valid API keys.
 
         Returns:
-            List of ProviderType values for providers with valid API keys
+            list[ProviderType]: List of ProviderType values for providers with valid API keys.
         """
         available = []
         instance = cls()

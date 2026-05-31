@@ -281,15 +281,14 @@ class ModelLevelRouter:
         return (cost_priority, success_penalty, model.error_count)
 
     def analyze_task_complexity(self, prompt: str, context: dict[str, Any] = None) -> tuple[str, float, TaskType]:
-        """
-        Analyze task complexity and type.
+        """Analyze task complexity and type.
 
         Args:
-            prompt: The input prompt/task description
-            context: Additional context information
+            prompt (str): The input prompt/task description
+            context (dict[str, Any]): Additional context information
 
         Returns:
-            tuple: (complexity_level, confidence, task_type)
+            tuple[str, float, TaskType]: (complexity_level, confidence, task_type)
         """
         try:
             return self.complexity_analyzer.analyze(prompt, context)
@@ -300,17 +299,19 @@ class ModelLevelRouter:
     def select_model(
         self, prompt: str, context: dict[str, Any] = None, prefer_free: bool = True, max_cost: float = None
     ) -> RoutingResult:
-        """
-        Select the best model for a given prompt and context.
+        """Select the best model for a given prompt and context.
 
         Args:
-            prompt: The input prompt/task description
-            context: Additional context (file types, errors, etc.)
-            prefer_free: Whether to prioritize free models
-            max_cost: Maximum allowed cost per token
+            prompt (str): The input prompt/task description
+            context (dict[str, Any]): Additional context (file types, errors, etc.)
+            prefer_free (bool): Whether to prioritize free models
+            max_cost (float): Maximum allowed cost per token
 
         Returns:
-            RoutingResult with selected model and reasoning
+            RoutingResult: RoutingResult with selected model and reasoning.
+
+        Raises:
+            RuntimeError: If no suitable models are available.
         """
         cache_key = self._get_cache_key(prompt, context, prefer_free, max_cost)
 

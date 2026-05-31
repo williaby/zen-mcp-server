@@ -50,17 +50,16 @@ from .token_utils import DEFAULT_CONTEXT_WINDOW, estimate_tokens
 
 
 def _is_builtin_custom_models_config(path_str: str) -> bool:
-    """
-    Check if path points to the server's built-in custom_models.json config file.
+    """Check if path points to the server's built-in custom_models.json config file.
 
     This only matches the server's internal config, not user-specified CUSTOM_MODELS_CONFIG_PATH.
     We identify the built-in config by checking if it resolves to the server's conf directory.
 
     Args:
-        path_str: Path to check
+        path_str (str): Path to check
 
     Returns:
-        True if this is the server's built-in custom_models.json config file
+        bool: True if this is the server's built-in custom_models.json config file.
     """
     try:
         path = Path(path_str)
@@ -82,17 +81,16 @@ logger = logging.getLogger(__name__)
 
 
 def is_mcp_directory(path: Path) -> bool:
-    """
-    Check if a directory is the MCP server's own directory.
+    """Check if a directory is the MCP server's own directory.
 
     This prevents the MCP from including its own code when scanning projects
     where the MCP has been cloned as a subdirectory.
 
     Args:
-        path: Directory path to check
+        path (Path): Directory path to check
 
     Returns:
-        True if this is the MCP server directory or a subdirectory
+        bool: True if this is the MCP server directory or a subdirectory.
     """
     if not path.is_dir():
         return False
@@ -112,27 +110,25 @@ def is_mcp_directory(path: Path) -> bool:
 
 
 def get_user_home_directory() -> Optional[Path]:
-    """
-    Get the user's home directory.
+    """Get the user's home directory.
 
     Returns:
-        User's home directory path
+        Optional[Path]: User's home directory path.
     """
     return Path.home()
 
 
 def is_home_directory_root(path: Path) -> bool:
-    """
-    Check if the given path is the user's home directory root.
+    """Check if the given path is the user's home directory root.
 
     This prevents scanning the entire home directory which could include
     sensitive data and non-project files.
 
     Args:
-        path: Directory path to check
+        path (Path): Directory path to check
 
     Returns:
-        True if this is the home directory root
+        bool: True if this is the home directory root.
     """
     user_home = get_user_home_directory()
     if not user_home:
@@ -181,17 +177,16 @@ def is_home_directory_root(path: Path) -> bool:
 
 
 def detect_file_type(file_path: str) -> str:
-    """
-    Detect file type for appropriate processing strategy.
+    """Detect file type for appropriate processing strategy.
 
     This function is intended for specific file type handling (e.g., image processing,
     binary file analysis, or enhanced file filtering).
 
     Args:
-        file_path: Path to the file to analyze
+        file_path (str): Path to the file to analyze
 
     Returns:
-        str: "text", "binary", or "image"
+        str: "text", "binary", or "image".
     """
     path = Path(file_path)
 
@@ -220,15 +215,14 @@ def detect_file_type(file_path: str) -> str:
 
 
 def should_add_line_numbers(file_path: str, include_line_numbers: Optional[bool] = None) -> bool:
-    """
-    Determine if line numbers should be added to a file.
+    """Determine if line numbers should be added to a file.
 
     Args:
-        file_path: Path to the file
-        include_line_numbers: Explicit preference, or None for auto-detection
+        file_path (str): Path to the file
+        include_line_numbers (Optional[bool]): Explicit preference, or None for auto-detection
 
     Returns:
-        bool: True if line numbers should be added
+        bool: True if line numbers should be added.
     """
     if include_line_numbers is not None:
         return include_line_numbers
@@ -239,29 +233,27 @@ def should_add_line_numbers(file_path: str, include_line_numbers: Optional[bool]
 
 
 def _normalize_line_endings(content: str) -> str:
-    """
-    Normalize line endings for consistent line numbering.
+    """Normalize line endings for consistent line numbering.
 
     Args:
-        content: File content with potentially mixed line endings
+        content (str): File content with potentially mixed line endings
 
     Returns:
-        str: Content with normalized LF line endings
+        str: Content with normalized LF line endings.
     """
     # Normalize all line endings to LF for consistent counting
     return content.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def _add_line_numbers(content: str) -> str:
-    """
-    Add line numbers to text content for precise referencing.
+    """Add line numbers to text content for precise referencing.
 
     Args:
-        content: Text content to number
+        content (str): Text content to number
 
     Returns:
-        str: Content with line numbers in format "  45│ actual code line"
-        Supports files up to 99,999 lines with dynamic width allocation
+        str: Content with line numbers in format "  45| actual code line".
+        Supports files up to 99,999 lines with dynamic width allocation.
     """
     # Normalize line endings first
     normalized_content = _normalize_line_endings(content)
@@ -280,8 +272,7 @@ def _add_line_numbers(content: str) -> str:
 
 
 def resolve_and_validate_path(path_str: str) -> Path:
-    """
-    Resolves and validates a path against security policies.
+    """Resolve and validate a path against security policies.
 
     This function ensures safe file access by:
     1. Requiring absolute paths (no ambiguity)
@@ -289,14 +280,14 @@ def resolve_and_validate_path(path_str: str) -> Path:
     3. Blocking access to dangerous system directories
 
     Args:
-        path_str: Path string (must be absolute)
+        path_str (str): Path string (must be absolute)
 
     Returns:
-        Resolved Path object that is safe to access
+        Path: Resolved Path object that is safe to access.
 
     Raises:
-        ValueError: If path is not absolute or otherwise invalid
-        PermissionError: If path is in a dangerous location
+        ValueError: If path is not absolute or otherwise invalid.
+        PermissionError: If path is in a dangerous location.
     """
     # Step 1: Create a Path object
     user_path = Path(path_str)
@@ -325,19 +316,18 @@ def resolve_and_validate_path(path_str: str) -> Path:
 
 
 def expand_paths(paths: list[str], extensions: Optional[set[str]] = None) -> list[str]:
-    """
-    Expand paths to individual files, handling both files and directories.
+    """Expand paths to individual files, handling both files and directories.
 
     This function recursively walks directories to find all matching files.
     It automatically filters out hidden files and common non-code directories
     like __pycache__ to avoid including generated or system files.
 
     Args:
-        paths: List of file or directory paths (must be absolute)
-        extensions: Optional set of file extensions to include (defaults to CODE_EXTENSIONS)
+        paths (list[str]): List of file or directory paths (must be absolute)
+        extensions (Optional[set[str]]): Optional set of file extensions to include (defaults to CODE_EXTENSIONS)
 
     Returns:
-        List of individual file paths, sorted for consistent ordering
+        list[str]: List of individual file paths, sorted for consistent ordering.
     """
     if extensions is None:
         extensions = CODE_EXTENSIONS
@@ -421,21 +411,20 @@ def expand_paths(paths: list[str], extensions: Optional[set[str]] = None) -> lis
 def read_file_content(
     file_path: str, max_size: int = 1_000_000, *, include_line_numbers: Optional[bool] = None
 ) -> tuple[str, int]:
-    """
-    Read a single file and format it for inclusion in AI prompts.
+    """Read a single file and format it for inclusion in AI prompts.
 
     This function handles various error conditions gracefully and always
     returns formatted content, even for errors. This ensures the AI model
     gets context about what files were attempted but couldn't be read.
 
     Args:
-        file_path: Path to file (must be absolute)
-        max_size: Maximum file size to read (default 1MB to prevent memory issues)
-        include_line_numbers: Whether to add line numbers. If None, auto-detects based on file type
+        file_path (str): Path to file (must be absolute)
+        max_size (int): Maximum file size to read (default 1MB to prevent memory issues)
+        include_line_numbers (Optional[bool]): Whether to add line numbers. If None, auto-detects based on file type
 
     Returns:
-        Tuple of (formatted_content, estimated_tokens)
-        Content is wrapped with clear delimiters for AI parsing
+        tuple[str, int]: Tuple of (formatted_content, estimated_tokens).
+        Content is wrapped with clear delimiters for AI parsing.
     """
     logger.debug(f"[FILES] read_file_content called for: {file_path}")
     try:
@@ -528,8 +517,7 @@ def read_files(
     *,
     include_line_numbers: bool = False,
 ) -> str:
-    """
-    Read multiple files and optional direct code with smart token management.
+    """Read multiple files and optional direct code with smart token management.
 
     This function implements intelligent token budgeting to maximize the amount
     of relevant content that can be included in an AI prompt while staying
@@ -537,14 +525,14 @@ def read_files(
     the token budget is exhausted.
 
     Args:
-        file_paths: List of file or directory paths (absolute paths required)
-        code: Optional direct code to include (prioritized over files)
-        max_tokens: Maximum tokens to use (defaults to DEFAULT_CONTEXT_WINDOW)
-        reserve_tokens: Tokens to reserve for prompt and response (default 50K)
-        include_line_numbers: Whether to add line numbers to file content
+        file_paths (list[str]): List of file or directory paths (absolute paths required)
+        code (Optional[str]): Optional direct code to include (prioritized over files)
+        max_tokens (Optional[int]): Maximum tokens to use (defaults to DEFAULT_CONTEXT_WINDOW)
+        reserve_tokens (int): Tokens to reserve for prompt and response (default 50K)
+        include_line_numbers (bool): Whether to add line numbers to file content
 
     Returns:
-        str: All file contents formatted for AI consumption
+        str: All file contents formatted for AI consumption.
     """
     if max_tokens is None:
         max_tokens = DEFAULT_CONTEXT_WINDOW
@@ -626,14 +614,13 @@ def read_files(
 
 
 def estimate_file_tokens(file_path: str) -> int:
-    """
-    Estimate tokens for a file using file-type aware ratios.
+    """Estimate tokens for a file using file-type aware ratios.
 
     Args:
-        file_path: Path to the file
+        file_path (str): Path to the file
 
     Returns:
-        Estimated token count for the file
+        int: Estimated token count for the file.
     """
     try:
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
@@ -652,16 +639,15 @@ def estimate_file_tokens(file_path: str) -> int:
 
 
 def check_files_size_limit(files: list[str], max_tokens: int, threshold_percent: float = 1.0) -> tuple[bool, int, int]:
-    """
-    Check if a list of files would exceed token limits.
+    """Check if a list of files would exceed token limits.
 
     Args:
-        files: List of file paths to check
-        max_tokens: Maximum allowed tokens
-        threshold_percent: Percentage of max_tokens to use as threshold (0.0-1.0)
+        files (list[str]): List of file paths to check
+        max_tokens (int): Maximum allowed tokens
+        threshold_percent (float): Percentage of max_tokens to use as threshold (0.0-1.0)
 
     Returns:
-        Tuple of (within_limit, total_estimated_tokens, file_count)
+        tuple[bool, int, int]: Tuple of (within_limit, total_estimated_tokens, file_count).
     """
     if not files:
         return True, 0, 0
@@ -685,14 +671,13 @@ def check_files_size_limit(files: list[str], max_tokens: int, threshold_percent:
 
 
 def read_json_file(file_path: str) -> Optional[dict]:
-    """
-    Read and parse a JSON file with proper error handling.
+    """Read and parse a JSON file with proper error handling.
 
     Args:
-        file_path: Path to the JSON file
+        file_path (str): Path to the JSON file
 
     Returns:
-        Parsed JSON data as dict, or None if file doesn't exist or invalid
+        Optional[dict]: Parsed JSON data as dict, or None if file doesn't exist or invalid.
     """
     try:
         if not os.path.exists(file_path):
@@ -705,16 +690,15 @@ def read_json_file(file_path: str) -> Optional[dict]:
 
 
 def write_json_file(file_path: str, data: dict, indent: int = 2) -> bool:
-    """
-    Write data to a JSON file with proper formatting.
+    """Write data to a JSON file with proper formatting.
 
     Args:
-        file_path: Path to write the JSON file
-        data: Dictionary data to serialize
-        indent: JSON indentation level
+        file_path (str): Path to write the JSON file
+        data (dict): Dictionary data to serialize
+        indent (int): JSON indentation level
 
     Returns:
-        True if successful, False otherwise
+        bool: True if successful, False otherwise.
     """
     try:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -727,14 +711,13 @@ def write_json_file(file_path: str, data: dict, indent: int = 2) -> bool:
 
 
 def get_file_size(file_path: str) -> int:
-    """
-    Get file size in bytes with proper error handling.
+    """Get file size in bytes with proper error handling.
 
     Args:
-        file_path: Path to the file
+        file_path (str): Path to the file
 
     Returns:
-        File size in bytes, or 0 if file doesn't exist or error
+        int: File size in bytes, or 0 if file doesn't exist or error.
     """
     try:
         if os.path.exists(file_path) and os.path.isfile(file_path):
@@ -745,14 +728,13 @@ def get_file_size(file_path: str) -> int:
 
 
 def ensure_directory_exists(file_path: str) -> bool:
-    """
-    Ensure the parent directory of a file path exists.
+    """Ensure the parent directory of a file path exists.
 
     Args:
-        file_path: Path to file (directory will be created for parent)
+        file_path (str): Path to file (directory will be created for parent)
 
     Returns:
-        True if directory exists or was created, False on error
+        bool: True if directory exists or was created, False on error.
     """
     try:
         directory = os.path.dirname(file_path)
@@ -764,14 +746,13 @@ def ensure_directory_exists(file_path: str) -> bool:
 
 
 def is_text_file(file_path: str) -> bool:
-    """
-    Check if a file is likely a text file based on extension and content.
+    """Check if a file is likely a text file based on extension and content.
 
     Args:
-        file_path: Path to the file
+        file_path (str): Path to the file
 
     Returns:
-        True if file appears to be text, False otherwise
+        bool: True if file appears to be text, False otherwise.
     """
     from .file_types import is_text_file as check_text_type
 
@@ -779,15 +760,14 @@ def is_text_file(file_path: str) -> bool:
 
 
 def read_file_safely(file_path: str, max_size: int = 10 * 1024 * 1024) -> Optional[str]:
-    """
-    Read a file with size limits and encoding handling.
+    """Read a file with size limits and encoding handling.
 
     Args:
-        file_path: Path to the file
-        max_size: Maximum file size in bytes (default 10MB)
+        file_path (str): Path to the file
+        max_size (int): Maximum file size in bytes (default 10MB)
 
     Returns:
-        File content as string, or None if file too large or unreadable
+        Optional[str]: File content as string, or None if file too large or unreadable.
     """
     try:
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
@@ -804,8 +784,7 @@ def read_file_safely(file_path: str, max_size: int = 10 * 1024 * 1024) -> Option
 
 
 def check_total_file_size(files: list[str], model_name: str) -> Optional[dict]:
-    """
-    Check if total file sizes would exceed token threshold before embedding.
+    """Check if total file sizes would exceed token threshold before embedding.
 
     IMPORTANT: This performs STRICT REJECTION at MCP boundary.
     No partial inclusion - either all files fit or request is rejected.
@@ -815,11 +794,14 @@ def check_total_file_size(files: list[str], model_name: str) -> Optional[dict]:
     It should never receive 'auto' or None - model resolution happens earlier.
 
     Args:
-        files: List of file paths to check
-        model_name: The resolved model name for context-aware thresholds (required)
+        files (list[str]): List of file paths to check
+        model_name (str): The resolved model name for context-aware thresholds (required)
 
     Returns:
-        Dict with `code_too_large` response if too large, None if acceptable
+        Optional[dict]: Dict with ``code_too_large`` response if too large, None if acceptable.
+
+    Raises:
+        ValueError: If model_name is unresolved (None or "auto").
     """
     if not files:
         return None

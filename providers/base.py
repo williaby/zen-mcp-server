@@ -40,7 +40,6 @@ class ModelProvider(ABC):
     MODEL_CAPABILITIES: dict[str, Any] = {}
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize the provider with API key and optional configuration."""
         self.api_key = api_key
         self.config = kwargs
         self._sorted_capabilities_cache: Optional[list[tuple[str, ModelCapabilities]]] = None
@@ -55,14 +54,17 @@ class ModelProvider(ABC):
     def get_capabilities(self, model_name: str) -> ModelCapabilities:
         """Resolve capability metadata for a model name.
 
-        This centralises the alias resolution → lookup → restriction check
+        This centralises the alias resolution, lookup, and restriction check
         pipeline so providers only override the pieces they genuinely need to
         customise. Subclasses usually only override ``_lookup_capabilities`` to
         integrate a registry or dynamic source, or ``_finalise_capabilities`` to
         tweak the returned object.
 
         Args:
-            model_name: Canonical model name or its alias
+            model_name (str): Canonical model name or its alias
+
+        Returns:
+            ModelCapabilities: Resolved capability metadata for the model.
         """
 
         resolved_model_name = self._resolve_model_name(model_name)
@@ -160,13 +162,13 @@ class ModelProvider(ABC):
         constraints appropriately.
 
         Args:
-            prompt: The main user prompt/query to send to the model
-            model_name: Canonical model name or its alias that the provider supports
-            system_prompt: Optional system instructions to prepend to the prompt for
+            prompt (str): The main user prompt/query to send to the model
+            model_name (str): Canonical model name or its alias that the provider supports
+            system_prompt (Optional[str]): Optional system instructions to prepend to the prompt for
                           establishing context, behavior, or role
-            temperature: Controls randomness in generation (0.0=deterministic, 1.0=creative),
+            temperature (float): Controls randomness in generation (0.0=deterministic, 1.0=creative),
                         default 0.3. Some models may not support temperature control
-            max_output_tokens: Optional maximum number of tokens to generate in the response.
+            max_output_tokens (Optional[int]): Optional maximum number of tokens to generate in the response.
                               If not specified, uses the model's default limit
             **kwargs: Additional provider-specific parameters that vary by implementation
                      (e.g., thinking_mode for Gemini, top_p for OpenAI, images for vision models)
@@ -246,20 +248,22 @@ class ModelProvider(ABC):
         max_attempts: int,
         delays: Optional[list[float]] = None,
         log_prefix: str = "",
-    ):
+    ) -> Any:
         """Execute ``operation`` with retry semantics.
 
         Args:
-            operation: Callable returning the provider result.
-            max_attempts: Maximum number of attempts (>=1).
-            delays: Optional list of sleep durations between attempts.
-            log_prefix: Optional identifier for log clarity.
+            operation (Callable[[], Any]): Callable returning the provider result.
+            max_attempts (int): Maximum number of attempts (>=1).
+            delays (Optional[list[float]]): Optional list of sleep durations between attempts.
+            log_prefix (str): Optional identifier for log clarity.
 
         Returns:
-            Whatever ``operation`` returns.
+            Any: Whatever ``operation`` returns.
 
         Raises:
-            The last exception when all retries fail or the error is not retryable.
+            Exception: The last exception when all retries fail or the error is not retryable.
+            ValueError: If max_attempts is less than 1.
+            RuntimeError: If the retry loop exits without a result.
         """
 
         if max_attempts < 1:
@@ -304,17 +308,19 @@ class ModelProvider(ABC):
                     )
 
         # Should never reach here because loop either returns or raises
-        raise last_exc if last_exc else RuntimeError("Retry loop exited without result")
+        raise RuntimeError("Retry loop exited without result")
 
     # ------------------------------------------------------------------
     # Validation hooks
     # ------------------------------------------------------------------
     def validate_model_name(self, model_name: str) -> bool:
-        """
-        Return ``True`` when the model resolves to an allowed capability.
+        """Return ``True`` when the model resolves to an allowed capability.
 
         Args:
-            model_name: Canonical model name or its alias
+            model_name (str): Canonical model name or its alias
+
+        Returns:
+            bool: True when the model resolves to an allowed capability.
         """
 
         try:
@@ -324,11 +330,15 @@ class ModelProvider(ABC):
         return True
 
     def validate_parameters(self, model_name: str, temperature: float, **kwargs) -> None:
-        """
-        Validate model parameters against capabilities.
+        """Validate model parameters against capabilities.
 
         Args:
-            model_name: Canonical model name or its alias
+            model_name (str): Canonical model name or its alias
+            temperature (float): Temperature value to validate against the model's constraint
+            **kwargs: Additional provider-specific parameters (currently unused by base implementation)
+
+        Raises:
+            ValueError: If the temperature is invalid for the specified model.
         """
 
         capabilities = self.get_capabilities(model_name)
@@ -408,10 +418,10 @@ class ModelProvider(ABC):
         model configuration sources.
 
         Args:
-            model_name: Canonical model name or its alias
+            model_name (str): Canonical model name or its alias
 
         Returns:
-            Resolved model name
+            str: Resolved model name
         """
         # Get model configurations from the hook method
         model_configs = self.get_all_model_capabilities()

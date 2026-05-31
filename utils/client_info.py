@@ -45,14 +45,13 @@ DEFAULT_FRIENDLY_NAME = "Claude"
 
 
 def get_friendly_name(client_name: str) -> str:
-    """
-    Map a client name to a friendly name.
+    """Map a client name to a friendly name.
 
     Args:
-        client_name: The raw client name from clientInfo
+        client_name (str): The raw client name from clientInfo
 
     Returns:
-        A friendly name for display (e.g., "Claude", "Gemini")
+        str: A friendly name for display (e.g., "Claude", "Gemini").
     """
     if not client_name:
         return DEFAULT_FRIENDLY_NAME
@@ -70,19 +69,17 @@ def get_friendly_name(client_name: str) -> str:
 
 
 def get_cached_client_info() -> Optional[dict[str, Any]]:
-    """
-    Get cached client information if available.
+    """Get cached client information if available.
 
     Returns:
-        Cached client info dictionary or None
+        Optional[dict[str, Any]]: Cached client info dictionary or None.
     """
     global _client_info_cache
     return _client_info_cache
 
 
 def get_client_info_from_context(server: Any) -> Optional[dict[str, Any]]:
-    """
-    Extract client information from the MCP server's request context.
+    """Extract client information from the MCP server's request context.
 
     The MCP protocol sends clientInfo during initialization containing:
     - name: The client application name (e.g., "Claude Code", "Claude Desktop")
@@ -91,10 +88,10 @@ def get_client_info_from_context(server: Any) -> Optional[dict[str, Any]]:
     This function also adds a friendly_name field and caches the result.
 
     Args:
-        server: The MCP server instance
+        server (Any): The MCP server instance
 
     Returns:
-        Dictionary with client info or None if not available:
+        Optional[dict[str, Any]]: Dictionary with client info or None if not available:
         {
             "name": "claude-ai",
             "version": "1.0.0",
@@ -193,15 +190,14 @@ def get_client_info_from_context(server: Any) -> Optional[dict[str, Any]]:
 
 
 def format_client_info(client_info: Optional[dict[str, Any]], use_friendly_name: bool = True) -> str:
-    """
-    Format client information for display.
+    """Format client information for display.
 
     Args:
-        client_info: Dictionary with client info or None
-        use_friendly_name: If True, use the friendly name instead of raw name
+        client_info (Optional[dict[str, Any]]): Dictionary with client info or None
+        use_friendly_name (bool): If True, use the friendly name instead of raw name
 
     Returns:
-        Formatted string like "Claude v1.0.0" or "Claude"
+        str: Formatted string like "Claude v1.0.0" or "Claude".
     """
     if not client_info:
         return DEFAULT_FRIENDLY_NAME
@@ -221,14 +217,13 @@ def format_client_info(client_info: Optional[dict[str, Any]], use_friendly_name:
 
 
 def get_client_friendly_name() -> str:
-    """
-    Get the cached client's friendly name.
+    """Get the cached client's friendly name.
 
     This is a convenience function that returns just the friendly name
     from the cached client info, defaulting to "Claude" if not available.
 
     Returns:
-        The friendly name (e.g., "Claude", "Gemini")
+        str: The friendly name (e.g., "Claude", "Gemini").
     """
     cached_info = get_cached_client_info()
     if cached_info:
@@ -237,12 +232,11 @@ def get_client_friendly_name() -> str:
 
 
 def log_client_info(server: Any, logger_instance: Optional[logging.Logger] = None) -> None:
-    """
-    Log client information extracted from the server.
+    """Log client information extracted from the server.
 
     Args:
-        server: The MCP server instance
-        logger_instance: Optional logger to use (defaults to module logger)
+        server (Any): The MCP server instance
+        logger_instance (Optional[logging.Logger]): Optional logger to use (defaults to module logger)
     """
     log = logger_instance or logger
 

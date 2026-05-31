@@ -88,16 +88,16 @@ class TemperatureConstraint(ABC):
         """Derive temperature support and constraint for a model.
 
         Args:
-            model_name: Canonical model identifier or alias.
-            constraint_hint: Optional configuration hint (``"fixed"``,
+            model_name (str): Canonical model identifier or alias.
+            constraint_hint (Optional[str]): Optional configuration hint (``"fixed"``,
                 ``"range"``, ``"discrete"``). When provided, the hint is
                 honoured directly.
 
         Returns:
-            Tuple ``(supports_temperature, constraint, diagnosis)`` describing
-            whether temperature may be tuned, the constraint object that should
-            be attached to :class:`ModelCapabilities`, and the reasoning behind
-            the decision.
+            tuple[bool, TemperatureConstraint, str]: Tuple ``(supports_temperature, constraint, diagnosis)``
+                describing whether temperature may be tuned, the constraint object that should
+                be attached to :class:`ModelCapabilities`, and the reasoning behind
+                the decision.
         """
 
         if constraint_hint:

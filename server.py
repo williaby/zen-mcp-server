@@ -175,11 +175,10 @@ ESSENTIAL_TOOLS = {"version", "listmodels"}
 
 
 def parse_disabled_tools_env() -> set[str]:
-    """
-    Parse the DISABLED_TOOLS environment variable into a set of tool names.
+    """Parse the DISABLED_TOOLS environment variable into a set of tool names.
 
     Returns:
-        Set of lowercase tool names to disable, empty set if none specified
+        set[str]: Set of lowercase tool names to disable, empty set if none specified.
     """
     disabled_tools_env = (get_env("DISABLED_TOOLS", "") or "").strip()
     if not disabled_tools_env:
@@ -188,12 +187,11 @@ def parse_disabled_tools_env() -> set[str]:
 
 
 def validate_disabled_tools(disabled_tools: set[str], all_tools: dict[str, Any]) -> None:
-    """
-    Validate the disabled tools list and log appropriate warnings.
+    """Validate the disabled tools list and log appropriate warnings.
 
     Args:
-        disabled_tools: Set of tool names requested to be disabled
-        all_tools: Dictionary of all available tool instances
+        disabled_tools (set[str]): Set of tool names requested to be disabled
+        all_tools (dict[str, Any]): Dictionary of all available tool instances
     """
     essential_disabled = disabled_tools & ESSENTIAL_TOOLS
     if essential_disabled:
@@ -204,15 +202,14 @@ def validate_disabled_tools(disabled_tools: set[str], all_tools: dict[str, Any])
 
 
 def apply_tool_filter(all_tools: dict[str, Any], disabled_tools: set[str]) -> dict[str, Any]:
-    """
-    Apply the disabled tools filter to create the final tools dictionary.
+    """Apply the disabled tools filter to create the final tools dictionary.
 
     Args:
-        all_tools: Dictionary of all available tool instances
-        disabled_tools: Set of tool names to disable
+        all_tools (dict[str, Any]): Dictionary of all available tool instances
+        disabled_tools (set[str]): Set of tool names to disable
 
     Returns:
-        Dictionary containing only enabled tools
+        dict[str, Any]: Dictionary containing only enabled tools.
     """
     enabled_tools = {}
     for tool_name, tool_instance in all_tools.items():
@@ -224,12 +221,11 @@ def apply_tool_filter(all_tools: dict[str, Any], disabled_tools: set[str]) -> di
 
 
 def log_tool_configuration(disabled_tools: set[str], enabled_tools: dict[str, Any]) -> None:
-    """
-    Log the final tool configuration for visibility.
+    """Log the final tool configuration for visibility.
 
     Args:
-        disabled_tools: Set of tool names that were requested to be disabled
-        enabled_tools: Dictionary of tools that remain enabled
+        disabled_tools (set[str]): Set of tool names that were requested to be disabled
+        enabled_tools (dict[str, Any]): Dictionary of tools that remain enabled
     """
     if not disabled_tools:
         logger.info("All tools enabled (DISABLED_TOOLS not set)")
@@ -241,14 +237,13 @@ def log_tool_configuration(disabled_tools: set[str], enabled_tools: dict[str, An
 
 
 def filter_disabled_tools(all_tools: dict[str, Any]) -> dict[str, Any]:
-    """
-    Filter tools based on DISABLED_TOOLS environment variable.
+    """Filter tools based on DISABLED_TOOLS environment variable.
 
     Args:
-        all_tools: Dictionary of all available tool instances
+        all_tools (dict[str, Any]): Dictionary of all available tool instances
 
     Returns:
-        dict: Filtered dictionary containing only enabled tools
+        dict[str, Any]: Filtered dictionary containing only enabled tools.
     """
     disabled_tools = parse_disabled_tools_env()
     if not disabled_tools:
@@ -685,8 +680,7 @@ def configure_providers():
 
 @server.list_tools()
 async def handle_list_tools() -> list[Tool]:
-    """
-    List all available tools with their descriptions and input schemas.
+    """List all available tools with their descriptions and input schemas.
 
     This handler is called by MCP clients during initialization to discover
     what tools are available. Each tool provides:
@@ -695,7 +689,7 @@ async def handle_list_tools() -> list[Tool]:
     - inputSchema: JSON Schema defining the expected parameters
 
     Returns:
-        List of Tool objects representing all available tools
+        list[Tool]: List of Tool objects representing all available tools.
     """
     logger.debug("MCP client requested tool list")
 
@@ -779,22 +773,21 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
     - Supporting conversation chains across different tool types
 
     Args:
-        name: The name of the tool to execute (e.g., "analyze", "chat", "codereview")
-        arguments: Dictionary of arguments to pass to the tool, potentially including:
+        name (str): The name of the tool to execute (e.g., "analyze", "chat", "codereview")
+        arguments (dict[str, Any]): Dictionary of arguments to pass to the tool, potentially including:
                   - continuation_id: UUID for conversation thread resumption
                   - files: File paths for analysis (subject to deduplication)
                   - prompt: User request or follow-up question
                   - model: Specific AI model to use (optional)
 
     Returns:
-        List of TextContent objects containing:
+        list[TextContent]: List of TextContent objects containing:
         - Tool's primary response with analysis/results
         - Continuation offers for follow-up conversations (when applicable)
         - Structured JSON responses with status and content
 
     Raises:
-        ValueError: If continuation_id is invalid or conversation thread not found
-        Exception: For tool-specific errors or execution failures
+        ToolExecutionError: For tool-specific errors or execution failures.
 
     Example Conversation Flow:
         1. The CLI calls analyze tool with files → creates new thread
@@ -935,8 +928,7 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
 
 
 def parse_model_option(model_string: str) -> tuple[str, Optional[str]]:
-    """
-    Parse model:option format into model name and option.
+    """Parse model:option format into model name and option.
 
     Handles different formats:
     - OpenRouter models: preserve :free, :beta, :preview suffixes as part of model name
@@ -944,10 +936,10 @@ def parse_model_option(model_string: str) -> tuple[str, Optional[str]]:
     - Consensus stance: extract options like :for, :against
 
     Args:
-        model_string: String that may contain "model:option" format
+        model_string (str): String that may contain "model:option" format
 
     Returns:
-        tuple: (model_name, option) where option may be None
+        tuple[str, Optional[str]]: (model_name, option) where option may be None.
     """
     if ":" in model_string and not model_string.startswith("http"):  # Avoid parsing URLs
         # Check if this looks like an OpenRouter model (contains /)
@@ -969,15 +961,14 @@ def parse_model_option(model_string: str) -> tuple[str, Optional[str]]:
 
 
 def get_follow_up_instructions(current_turn_count: int, max_turns: int = None) -> str:
-    """
-    Generate dynamic follow-up instructions based on conversation turn count.
+    """Generate dynamic follow-up instructions based on conversation turn count.
 
     Args:
-        current_turn_count: Current number of turns in the conversation
-        max_turns: Maximum allowed turns before conversation ends (defaults to MAX_CONVERSATION_TURNS)
+        current_turn_count (int): Current number of turns in the conversation
+        max_turns (int): Maximum allowed turns before conversation ends (defaults to MAX_CONVERSATION_TURNS)
 
     Returns:
-        Follow-up instructions to append to the tool prompt
+        str: Follow-up instructions to append to the tool prompt.
     """
     if max_turns is None:
         from utils.conversation_memory import MAX_CONVERSATION_TURNS
@@ -1072,7 +1063,7 @@ async def reconstruct_thread_context(arguments: dict[str, Any]) -> dict[str, Any
     - Invalid continuation_id: Security validation and user-friendly errors
 
     Args:
-        arguments: Original request arguments dictionary containing:
+        arguments (dict[str, Any]): Original request arguments dictionary containing:
                   - continuation_id (required): UUID of conversation thread to resume
                   - Other tool-specific arguments that will be preserved
 
@@ -1084,8 +1075,7 @@ async def reconstruct_thread_context(arguments: dict[str, Any]) -> dict[str, Any
         - Cross-tool knowledge transfer enabled
 
     Raises:
-        ValueError: When continuation_id is invalid, thread not found, or expired
-                   Includes user-friendly recovery instructions
+        ValueError: When continuation_id is invalid, thread not found, or expired.
 
     Performance Characteristics:
         - O(1) thread lookup in memory
@@ -1346,15 +1336,14 @@ async def reconstruct_thread_context(arguments: dict[str, Any]) -> dict[str, Any
 
 @server.list_prompts()
 async def handle_list_prompts() -> list[Prompt]:
-    """
-    List all available prompts for CLI Code shortcuts.
+    """List all available prompts for CLI Code shortcuts.
 
     This handler returns prompts that enable shortcuts like /pal:thinkdeeper.
     We automatically generate prompts from all tools (1:1 mapping) plus add
     a few marketing aliases with richer templates for commonly used tools.
 
     Returns:
-        List of Prompt objects representing all available prompts
+        list[Prompt]: List of Prompt objects representing all available prompts.
     """
     logger.debug("MCP client requested prompt list")
     prompts = []
@@ -1396,8 +1385,7 @@ async def handle_list_prompts() -> list[Prompt]:
 
 @server.get_prompt()
 async def handle_get_prompt(name: str, arguments: dict[str, Any] = None) -> GetPromptResult:
-    """
-    Get prompt details and generate the actual prompt text.
+    """Get prompt details and generate the actual prompt text.
 
     This handler is called when a user invokes a prompt (e.g., /pal:thinkdeeper or /pal:chat:gpt5).
     It generates the appropriate text that CLI will then use to call the
@@ -1408,14 +1396,14 @@ async def handle_get_prompt(name: str, arguments: dict[str, Any] = None) -> GetP
     - "gpt5" is the model to use
 
     Args:
-        name: The name of the prompt to execute (can include model like "chat:gpt5")
-        arguments: Optional arguments for the prompt (e.g., model, thinking_mode)
+        name (str): The name of the prompt to execute (can include model like "chat:gpt5")
+        arguments (dict[str, Any]): Optional arguments for the prompt (e.g., model, thinking_mode)
 
     Returns:
-        GetPromptResult with the prompt details and generated message
+        GetPromptResult: GetPromptResult with the prompt details and generated message.
 
     Raises:
-        ValueError: If the prompt name is unknown
+        ValueError: If the prompt name is unknown.
     """
     logger.debug(f"MCP client requested prompt: {name} with args: {arguments}")
 

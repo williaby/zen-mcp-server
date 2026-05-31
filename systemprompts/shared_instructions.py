@@ -36,16 +36,15 @@ GROUNDING_GUIDANCE = """• Ground every suggestion in the project's current tec
 def build_prompt_with_common_sections(
     role_section: str, specific_guidelines: str, additional_sections: str = ""
 ) -> str:
-    """
-    Build a system prompt with common sections included.
+    """Build a system prompt with common sections included.
 
     Args:
-        role_section: Tool-specific role description
-        specific_guidelines: Tool-specific guidelines and procedures
-        additional_sections: Any additional tool-specific content
+        role_section (str): Tool-specific role description
+        specific_guidelines (str): Tool-specific guidelines and procedures
+        additional_sections (str): Any additional tool-specific content
 
     Returns:
-        Complete system prompt with common sections included
+        str: Complete system prompt with common sections included.
     """
     return f"""ROLE
 {role_section}

@@ -26,7 +26,6 @@ class OpenAIModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider)
     MODEL_CAPABILITIES: ClassVar[dict[str, ModelCapabilities]] = {}
 
     def __init__(self, api_key: str, **kwargs):
-        """Initialize OpenAI provider with API key."""
         self._ensure_registry()
         # Set default OpenAI base URL, allow override for regions/custom endpoints
         kwargs.setdefault("base_url", "https://api.openai.com/v1")
@@ -94,11 +93,11 @@ class OpenAIModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider)
         """Get OpenAI's preferred model for a given category from allowed models.
 
         Args:
-            category: The tool category requiring a model
-            allowed_models: Pre-filtered list of models allowed by restrictions
+            category (ToolModelCategory): The tool category requiring a model
+            allowed_models (list[str]): Pre-filtered list of models allowed by restrictions
 
         Returns:
-            Preferred model name or None
+            Optional[str]: Preferred model name or None.
         """
         from tools.models import ToolModelCategory
 

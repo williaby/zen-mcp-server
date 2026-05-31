@@ -24,17 +24,16 @@ def get_default_router():
     return default_router
 
 
-def route_model(prompt: str, context: dict = None, prefer_free: bool = True):
-    """
-    Convenience function for quick model routing.
+def route_model(prompt: str, context: dict = None, prefer_free: bool = True) -> dict:
+    """Convenience function for quick model routing.
 
     Args:
-        prompt: The input prompt/task description
-        context: Additional context (file types, previous errors, etc.)
-        prefer_free: Whether to prioritize free models
+        prompt (str): The input prompt/task description
+        context (dict): Additional context (file types, previous errors, etc.)
+        prefer_free (bool): Whether to prioritize free models
 
     Returns:
-        dict: Selected model information
+        dict: Selected model information.
     """
     router = get_default_router()
     return router.select_model(prompt, context, prefer_free)

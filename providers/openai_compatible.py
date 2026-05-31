@@ -3,7 +3,7 @@
 import copy
 import ipaddress
 import logging
-from typing import Optional
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 from openai import OpenAI
@@ -34,13 +34,6 @@ class OpenAICompatibleProvider(ModelProvider):
     FRIENDLY_NAME = "OpenAI Compatible"
 
     def __init__(self, api_key: str, base_url: str = None, **kwargs):
-        """Initialize the provider with API key and optional base URL.
-
-        Args:
-            api_key: API key for authentication
-            base_url: Base URL for the API endpoint
-            **kwargs: Additional configuration options including timeout
-        """
         self._allowed_alias_cache: dict[str, str] = {}
         super().__init__(api_key, **kwargs)
         self._client = None
@@ -109,7 +102,7 @@ class OpenAICompatibleProvider(ModelProvider):
         """Parse allowed models from environment variable.
 
         Returns:
-            Set of allowed model names (lowercase) or None if not configured
+            Optional[set[str]]: Set of allowed model names (lowercase) or None if not configured.
         """
         # Get provider-specific allowed models
         provider_type = self.get_provider_type().value.upper()
@@ -133,7 +126,7 @@ class OpenAICompatibleProvider(ModelProvider):
 
         return None
 
-    def _configure_timeouts(self, **kwargs):
+    def _configure_timeouts(self, **kwargs: float) -> Any:
         """Configure timeout settings based on provider type and custom settings.
 
         Custom URLs and local models often need longer timeouts due to:
@@ -141,8 +134,12 @@ class OpenAICompatibleProvider(ModelProvider):
         - Extended thinking models taking longer to respond
         - Local inference being slower than cloud APIs
 
+        Args:
+            **kwargs (float): Optional overrides including connect_timeout, read_timeout,
+                write_timeout, and pool_timeout values.
+
         Returns:
-            httpx.Timeout object with appropriate timeout settings
+            Any: httpx.Timeout object with appropriate timeout settings.
         """
         import httpx
 
@@ -203,7 +200,7 @@ class OpenAICompatibleProvider(ModelProvider):
         """Check if the base URL points to localhost or local network.
 
         Returns:
-            True if URL is localhost or local network, False otherwise
+            bool: True if URL is localhost or local network, False otherwise.
         """
         if not self.base_url:
             return False
@@ -233,7 +230,8 @@ class OpenAICompatibleProvider(ModelProvider):
         """Validate base URL for security (SSRF protection).
 
         Raises:
-            ValueError: If URL is invalid or potentially unsafe
+            ValueError: If URL is invalid or potentially unsafe.
+            Exception: If URL parsing raises an unexpected error.
         """
         if not self.base_url:
             return
@@ -337,10 +335,10 @@ class OpenAICompatibleProvider(ModelProvider):
         """Sanitize sensitive data from parameters before logging.
 
         Args:
-            params: Dictionary of API parameters
+            params (dict): Dictionary of API parameters
 
         Returns:
-            dict: Sanitized copy of parameters safe for logging
+            dict: Sanitized copy of parameters safe for logging.
         """
         sanitized = copy.deepcopy(params)
 
@@ -361,17 +359,17 @@ class OpenAICompatibleProvider(ModelProvider):
 
         return sanitized
 
-    def _safe_extract_output_text(self, response) -> str:
+    def _safe_extract_output_text(self, response: Any) -> str:
         """Safely extract output_text from o3-pro response with validation.
 
         Args:
-            response: Response object from OpenAI SDK
+            response (Any): Response object from OpenAI SDK.
 
         Returns:
-            str: The output text content
+            str: The output text content.
 
         Raises:
-            ValueError: If output_text is missing, None, or not a string
+            ValueError: If output_text is missing, None, or not a string.
         """
         logger.debug("Response object type: %s", type(response))
         logger.debug("Response attributes: %s", dir(response))
@@ -514,16 +512,20 @@ class OpenAICompatibleProvider(ModelProvider):
         """Generate content using the OpenAI-compatible API.
 
         Args:
-            prompt: User prompt to send to the model
-            model_name: Canonical model name or its alias
-            system_prompt: Optional system prompt for model behavior
-            temperature: Sampling temperature
-            max_output_tokens: Maximum tokens to generate
-            images: Optional list of image paths or data URLs to include with the prompt (for vision models)
+            prompt (str): User prompt to send to the model
+            model_name (str): Canonical model name or its alias
+            system_prompt (Optional[str]): Optional system prompt for model behavior
+            temperature (float): Sampling temperature
+            max_output_tokens (Optional[int]): Maximum tokens to generate
+            images (Optional[list[str]]): Optional list of image paths or data URLs to include with the prompt
             **kwargs: Additional provider-specific parameters
 
         Returns:
-            ModelResponse with generated content and metadata
+            ModelResponse: Generated content and metadata.
+
+        Raises:
+            ValueError: If the model name is not allowed.
+            RuntimeError: If the API call fails after retries.
         """
         # Validate model name against allow-list
         if not self.validate_model_name(model_name):
@@ -687,8 +689,8 @@ class OpenAICompatibleProvider(ModelProvider):
         For proxy providers, this may use generic capabilities.
 
         Args:
-            model_name: Canonical model name or its alias
-            temperature: Temperature to validate
+            model_name (str): Canonical model name or its alias
+            temperature (float): Temperature to validate
             **kwargs: Additional parameters to validate
         """
         try:
@@ -709,14 +711,14 @@ class OpenAICompatibleProvider(ModelProvider):
             # Log warning but don't fail
             logging.warning(f"Parameter validation limited for {model_name}: {e}")
 
-    def _extract_usage(self, response) -> dict[str, int]:
+    def _extract_usage(self, response: Any) -> dict[str, int]:
         """Extract token usage from OpenAI response.
 
         Args:
-            response: OpenAI API response object
+            response (Any): OpenAI API response object.
 
         Returns:
-            Dictionary with usage statistics
+            dict[str, int]: Dictionary with usage statistics.
         """
         usage = {}
 
@@ -754,10 +756,10 @@ class OpenAICompatibleProvider(ModelProvider):
         Uses OpenAI API error structure instead of text pattern matching for reliability.
 
         Args:
-            error: Exception from OpenAI API call
+            error (Exception): Exception from OpenAI API call
 
         Returns:
-            True if error should be retried, False otherwise
+            bool: True if error should be retried, False otherwise.
         """
         error_str = str(error).lower()
 
