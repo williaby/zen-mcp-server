@@ -196,5 +196,4 @@ logs/
 /worktrees/
 /.worktrees/
 test_simulation_files/
-.mcp.json
 .infisical.json
