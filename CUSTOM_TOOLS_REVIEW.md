@@ -102,25 +102,27 @@ ROLE_HIERARCHIES = {
     "startup": {
         "code_reviewer": "deepseek/deepseek-chat:free",
         "security_checker": "meta-llama/llama-3.3-70b-instruct:free",
-        "technical_validator": "qwen/qwen-2.5-coder-32b-instruct:free"
+        "technical_validator": "qwen/qwen-2.5-coder-32b-instruct:free",
     },
     "scaleup": {
         # Inherits startup roles
         "senior_developer": "google/gemini-2.5-flash",
         "system_architect": "openai/gpt-5-mini",
-        "devops_engineer": "anthropic/claude-sonnet-4"
+        "devops_engineer": "anthropic/claude-sonnet-4",
     },
     "enterprise": {
         # Inherits startup + scaleup roles
         "lead_architect": "anthropic/claude-opus-4.1",
-        "technical_director": "openai/gpt-5"
-    }
+        "technical_director": "openai/gpt-5",
+    },
 }
+
 
 def _create_fallback_assignments(self, request: LayeredConsensusRequest) -> dict:
     """Unified fallback assignment with inheritance."""
     try:
         from .band_selector import BandSelector
+
         selector = BandSelector()
 
         # Get all roles for this org level (with inheritance)
@@ -137,6 +139,7 @@ def _create_fallback_assignments(self, request: LayeredConsensusRequest) -> dict
         logger.error(f"Fallback assignment failed: {e}")
         return self._ultimate_fallback_assignments(request.org_level)
 
+
 def _get_roles_for_org_level(self, org_level: str) -> List[str]:
     """Get all roles with proper inheritance."""
     roles = []
@@ -144,12 +147,13 @@ def _get_roles_for_org_level(self, org_level: str) -> List[str]:
         roles.extend(ROLE_HIERARCHIES[tier].keys())
     return roles
 
+
 def _get_tier_hierarchy(self, org_level: str) -> List[str]:
     """Get organizational tier hierarchy (additive)."""
     hierarchy = {
         "startup": ["startup"],
         "scaleup": ["startup", "scaleup"],
-        "enterprise": ["startup", "scaleup", "enterprise"]
+        "enterprise": ["startup", "scaleup", "enterprise"],
     }
     return hierarchy.get(org_level, ["startup"])
 ```
@@ -169,6 +173,7 @@ from .band_selector import BandSelector  # FileNotFoundError
 ```python
 try:
     from .band_selector import BandSelector
+
     HAS_BAND_SELECTOR = True
 except ImportError as e:
     logger.warning(f"BandSelector not available: {e}. Using legacy model selection.")
@@ -199,7 +204,7 @@ class RoleRegistry:
             "description": "Code quality and syntax validation",
             "expertise": "technical_implementation",
             "tier": "startup",
-            "focus": ["code_quality", "maintainability", "best_practices"]
+            "focus": ["code_quality", "maintainability", "best_practices"],
         },
         # ... etc
     }
@@ -252,6 +257,7 @@ But the code still supports legacy layers (lines 311-314), creating confusion.
 try:
     from .model_selector.api import ModelSelector as NewModelSelector
     from .model_selector.orchestrator import create_model_selector
+
     HAS_MODEL_SELECTOR = True
 except ImportError:
     HAS_MODEL_SELECTOR = False  # Silent failure
@@ -262,12 +268,10 @@ except ImportError:
 try:
     from .model_selector.api import ModelSelector as NewModelSelector
     from .model_selector.orchestrator import create_model_selector
+
     HAS_MODEL_SELECTOR = True
 except ImportError as e:
-    logger.error(
-        f"Model selector modules not found: {e}. "
-        "Run 'pip install -e .' to install dependencies."
-    )
+    logger.error(f"Model selector modules not found: {e}. Run 'pip install -e .' to install dependencies.")
     HAS_MODEL_SELECTOR = False
     # Optionally raise if this is a required dependency
     # raise RuntimeError("Required model_selector module not found") from e
@@ -284,6 +288,7 @@ def select_consensus_models(self, org_level: str) -> Tuple[List[str], float]:
 **FIX:**
 ```python
 from typing import Tuple  # Add to imports at top
+
 
 def select_consensus_models(self, org_level: str) -> tuple[list[str], float]:
     """Select consensus models - delegates to new architecture."""
@@ -304,13 +309,11 @@ def select_consensus_models(self, org_level: str) -> tuple[list[str], float]:
 ```python
 VALID_ORG_LEVELS = {"startup", "scaleup", "enterprise", "junior", "senior", "executive"}
 
+
 def select_consensus_models(self, org_level: str) -> tuple[list[str], float]:
     """Select consensus models with validation."""
     if org_level not in VALID_ORG_LEVELS:
-        raise ValueError(
-            f"Invalid org_level: {org_level}. "
-            f"Must be one of: {', '.join(VALID_ORG_LEVELS)}"
-        )
+        raise ValueError(f"Invalid org_level: {org_level}. Must be one of: {', '.join(VALID_ORG_LEVELS)}")
     return self._orchestrator.select_consensus_models(org_level)
 ```
 
@@ -340,7 +343,7 @@ return {
         "alternative_models": ["gpt-4o", "claude-3-opus-20240229"],  # ← HARDCODED!
         "estimated_cost": 0.01,  # ← PLACEHOLDER!
         "confidence": 0.85,  # ← MADE UP!
-    }
+    },
 }
 ```
 
@@ -362,9 +365,7 @@ async def _analyze_route_action(self, request: PromptCraftMCPBridgeRequest) -> D
     # Use dynamic model selector for REAL recommendations
     selector = create_default_selector()
     recommendations = selector.recommend_models_for_task(
-        complexity=complexity.level,
-        task_type=request.task_type or "general",
-        budget="balanced"
+        complexity=complexity.level, task_type=request.task_type or "general", budget="balanced"
     )
 
     return {
@@ -458,7 +459,7 @@ class BandSelector:
         """Load models from CSV."""
         models = []
         try:
-            with open(self.models_csv_path, 'r') as f:
+            with open(self.models_csv_path, "r") as f:
                 reader = csv.DictReader(f)
                 models = list(reader)
         except Exception as e:
@@ -468,35 +469,21 @@ class BandSelector:
     def get_models_by_role(self, role: str, org_level: str, limit: int = 1) -> List[str]:
         """Get models for a specific role and org level."""
         matching_models = [
-            m['model'] for m in self.models_data
-            if m.get('role') == role and m.get('org_level') == org_level
+            m["model"] for m in self.models_data if m.get("role") == role and m.get("org_level") == org_level
         ]
         return matching_models[:limit]
 
     def get_models_by_cost_tier(self, tier: str, limit: int = 5) -> List[str]:
         """Get models by cost tier."""
-        tier_map = {
-            "free": "free",
-            "economy": "value_tier",
-            "value": "open_source",
-            "premium": "premium"
-        }
-        matching_models = [
-            m['model'] for m in self.models_data
-            if m.get('tier') == tier_map.get(tier, tier)
-        ]
+        tier_map = {"free": "free", "economy": "value_tier", "value": "open_source", "premium": "premium"}
+        matching_models = [m["model"] for m in self.models_data if m.get("tier") == tier_map.get(tier, tier)]
         return matching_models[:limit]
 
     def get_models_by_org_level(self, org_level: str, limit: int = 5) -> List[str]:
         """Get models for organizational level."""
-        org_map = {
-            "startup": "junior",
-            "scaleup": "senior",
-            "enterprise": "executive"
-        }
+        org_map = {"startup": "junior", "scaleup": "senior", "enterprise": "executive"}
         matching_models = [
-            m['model'] for m in self.models_data
-            if m.get('org_level') == org_map.get(org_level, org_level)
+            m["model"] for m in self.models_data if m.get("org_level") == org_map.get(org_level, org_level)
         ]
         return matching_models[:limit]
 
@@ -516,7 +503,7 @@ class BandSelector:
             "openai/gpt-5-mini",
             "anthropic/claude-sonnet-4",
             "anthropic/claude-opus-4.1",
-            "openai/gpt-5"
+            "openai/gpt-5",
         ]
         return fallback[:limit]
 ```
@@ -561,13 +548,12 @@ def test_role_hierarchy_inheritance():
     assert "senior_developer" in scaleup_roles
     assert "system_architect" in scaleup_roles
 
+
 def test_fallback_when_band_selector_fails():
     """Test graceful degradation when BandSelector fails."""
-    with patch('tools.custom.layered_consensus.BandSelector', side_effect=ImportError):
+    with patch("tools.custom.layered_consensus.BandSelector", side_effect=ImportError):
         tool = LayeredConsensusTool()
-        assignments = tool._create_layer_assignments(
-            LayeredConsensusRequest(question="test", org_level="startup")
-        )
+        assignments = tool._create_layer_assignments(LayeredConsensusRequest(question="test", org_level="startup"))
 
         # Should still return valid assignments
         assert len(assignments) == 3
@@ -589,9 +575,9 @@ async def test_custom_tools_discovery():
 
     # Verify tools have required methods
     for tool_name, tool in tools.items():
-        assert hasattr(tool, 'get_name')
-        assert hasattr(tool, 'get_description')
-        assert hasattr(tool, 'execute')
+        assert hasattr(tool, "get_name")
+        assert hasattr(tool, "get_description")
+        assert hasattr(tool, "execute")
 ```
 
 ---
@@ -702,7 +688,7 @@ HIGH_CONFIDENCE_THRESHOLD = 0.85  # Based on benchmark data
 
 ```python
 # NO validation when reading CSV
-with open(self.models_csv_path, 'r') as f:
+with open(self.models_csv_path, "r") as f:
     reader = csv.DictReader(f)
     models = list(reader)  # ← Could contain =cmd|'/c calc'
 ```
@@ -711,7 +697,7 @@ with open(self.models_csv_path, 'r') as f:
 ```python
 def _sanitize_csv_value(self, value: str) -> str:
     """Sanitize CSV values to prevent formula injection."""
-    if value.startswith(('=', '+', '-', '@', '|', '%')):
+    if value.startswith(("=", "+", "-", "@", "|", "%")):
         return f"'{value}"  # Escape formula characters
     return value
 ```
@@ -734,6 +720,7 @@ PromptCraft MCP bridge has no rate limiting for expensive operations
 ```python
 # Add caching
 from functools import lru_cache
+
 
 @lru_cache(maxsize=1)
 def _load_models_cached(csv_path: str) -> List[dict]:

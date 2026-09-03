@@ -1,22 +1,19 @@
 ---
 default_stages: [pre-commit, pre-push]
 repos:
-  - repo: https://github.com/psf/black
-    rev: 26.3.1
-    hooks:
-      - id: black
-
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
+  # #EDGE: black + isort previously ran alongside ruff's linter here, but CI
+  # (python-ci.yml) enforces `ruff format --check`, not black. Black and
+  # ruff-format disagree on multi-line assert-with-message wrapping, so a
+  # pre-commit run kept undoing what CI required, and vice versa. Standardize
+  # on ruff for both lint and format, matching the fleet-wide pattern.
+  # #VERIFY: if a future ruff-format vs ruff-lint disagreement appears,
+  # confirm CI and pre-commit still invoke the same ruff version (uv.lock).
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.8
+    rev: 1f1e8bf348ff38fc88619a38d3ca4d9c56abea49  # v0.16.5
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
 
 # Configuration for specific tools
 default_language_version:

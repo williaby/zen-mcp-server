@@ -84,7 +84,10 @@ class TestMCPProtocolBridge:
 
     def test_mcp_to_http_response_route_analysis(self):
         """Test converting MCP result to HTTP response for route analysis."""
-        mcp_result = {"content": [{"text": """PromptCraft MCP Bridge Result:
+        mcp_result = {
+            "content": [
+                {
+                    "text": """PromptCraft MCP Bridge Result:
 
 {
   "success": true,
@@ -103,7 +106,10 @@ class TestMCPProtocolBridge:
   },
   "processing_time": 0.15,
   "bridge_version": "1.0.0"
-}"""}]}
+}"""
+                }
+            ]
+        }
 
         http_response = self.bridge.mcp_to_http_response("/api/promptcraft/route/analyze", mcp_result)
 

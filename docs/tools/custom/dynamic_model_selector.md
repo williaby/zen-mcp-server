@@ -139,7 +139,7 @@ layered_models, cost = selector.select_layered_consensus_models("executive")
 {
     "junior": ["meta-llama/llama-3.3-70b-instruct:free", "qwen/qwen3-coder:free"],
     "senior": ["anthropic/claude-sonnet-4", "openai/gpt-5-mini"],
-    "executive": ["openai/gpt-5", "anthropic/claude-opus-4.1"]
+    "executive": ["openai/gpt-5", "anthropic/claude-opus-4.1"],
 }
 ```
 
@@ -157,7 +157,7 @@ model = selector.get_best_model_for_org_role("lead_architect", "executive")
 ```python
 # Find best free models for development work
 free_models = selector.get_models_by_tier("free")
-coding_free = [m for m in free_models if m['specialization'] == 'coding']
+coding_free = [m for m in free_models if m["specialization"] == "coding"]
 # Returns: Free coding specialists like qwen/qwen-2.5-coder-32b-instruct:free
 ```
 
@@ -209,14 +209,9 @@ if context_changes or cost_changes:
 **Automatic Tier Detection:**
 ```python
 # Models automatically classified by quantitative criteria
-model_data = {
-    'input_cost': 3.0,
-    'output_cost': 15.0,
-    'humaneval_score': 88.0,
-    'context_window': 400000
-}
+model_data = {"input_cost": 3.0, "output_cost": 15.0, "humaneval_score": 88.0, "context_window": 400000}
 
-tier = selector._determine_price_tier(model_data['input_cost'])
+tier = selector._determine_price_tier(model_data["input_cost"])
 # Returns: "premium" (based on cost thresholds)
 
 org_level = selector._classify_org_level(model_data)
@@ -226,9 +221,9 @@ org_level = selector._classify_org_level(model_data)
 **Specialization Detection:**
 ```python
 # Automatic capability classification
-if model_data.get('has_coding') or 'code' in description:
+if model_data.get("has_coding") or "code" in description:
     specialization = "coding"
-elif model_data.get('has_vision') or 'vision' in description:
+elif model_data.get("has_vision") or "vision" in description:
     specialization = "vision"
 # ... additional logic for reasoning, conversation, general
 ```
@@ -295,17 +290,17 @@ if csv_mtime != DynamicModelSelector._csv_file_mtime:
 ```python
 def _select_with_fallback_recovery(self, org_level):
     """Implement cascading fallback strategies"""
-    
+
     # Fallback 1: Cross-tier selection
     all_org_models = self._get_cross_tier_models(org_level)
     if sufficient_models(all_org_models):
         return all_org_models
-    
-    # Fallback 2: Price-tier based selection  
+
+    # Fallback 2: Price-tier based selection
     price_tier_models = self._select_by_price_tier(org_level)
     if sufficient_models(price_tier_models):
         return price_tier_models
-    
+
     # Fallback 3: Emergency selection
     emergency_models = self._get_any_available_models()
     return emergency_models

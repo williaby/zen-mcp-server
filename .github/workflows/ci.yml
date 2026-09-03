@@ -27,6 +27,15 @@ jobs:
     with:
       python-version: "3.12"
       coverage-threshold: 80
+      # #EDGE: this repo has no src/ layout; Python packages (tools/,
+      # providers/, systemprompts/, utils/, conf/, clink/) plus server.py and
+      # config.py live at repo root. The reusable workflow's source-directory
+      # default is "src", which does not exist here, so `ruff format --check
+      # src/ tests/` always failed with exit 2 (missing directory) rather
+      # than reporting real formatting drift. Point it at the repo root.
+      # #VERIFY: if a src/ layout is adopted later, drop this override.
+      source-directory: "."
+      test-directory: "tests"
 
   # ==========================================================================
   # CI Gate: aggregates the CI result; must pass for branch protection

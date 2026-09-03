@@ -343,13 +343,18 @@ class SecurityConsensusTool(WorkflowTool):
             return ["security_checker", "vulnerability_scanner", "compliance_validator"]
         elif tier == 2:
             return [
-                "security_checker", "vulnerability_scanner", "compliance_validator",
-                "penetration_tester", "security_architect", "threat_modeler",
+                "security_checker",
+                "vulnerability_scanner",
+                "compliance_validator",
+                "penetration_tester",
+                "security_architect",
+                "threat_modeler",
             ]
         elif tier == 3:
             return [
                 # Tier 1 + 2 roles
-                "security_chief", "risk_analyst",
+                "security_chief",
+                "risk_analyst",
             ]
 
     # Inherits ALL BandSelector logic
@@ -624,6 +629,7 @@ PREMIUM_MODELS = ["anthropic/claude-opus-4.1", ...]
 
 # After
 from tools.custom.band_selector import BandSelector
+
 selector = BandSelector()
 free_models = selector.get_models_by_cost_tier("free", limit=5)
 premium_models = selector.get_models_by_cost_tier("premium", limit=5)
@@ -718,7 +724,7 @@ selector.get_models_with_fallback("senior_developer", "senior")
 selector.get_models_by_org_level(
     "enterprise",
     limit=8,
-    max_cost_per_million=25.0  # Budget constraint
+    max_cost_per_million=25.0,  # Budget constraint
 )
 ```
 

@@ -143,11 +143,10 @@ The basic_consensus tool provided structured feedback on its own implementation:
                return ConsensusTool().execute_workflow(model_assignment)
            except ModelUnavailableError:
                replacement = self.selector.get_immediate_replacement(
-                   model_assignment['model'], 
-                   model_assignment['org_level']
+                   model_assignment["model"], model_assignment["org_level"]
                )
                if replacement:
-                   model_assignment['model'] = replacement
+                   model_assignment["model"] = replacement
                    continue
                raise
    ```
@@ -158,10 +157,11 @@ The basic_consensus tool provided structured feedback on its own implementation:
    ```python
    class ConsensusOrchestrator:
        """Shared orchestration logic"""
+
        def __init__(self, selector: ModelSelector, role_mapper: RoleMapper):
            self.selector = selector
            self.role_mapper = role_mapper
-       
+
        def prepare_consensus(self, proposal: str, level: str) -> dict:
            models = self.selector.select_for_level(level)
            roles = self.role_mapper.assign_roles(models, level)
@@ -642,17 +642,17 @@ class EnterprisebudgetManager:
 ```python
 class IndustryRoleMapper:
     """Industry-specific consensus roles for specialized domains"""
-    
+
     HEALTHCARE_ROLES = [
         {"role": "Clinical Data Scientist", "focus": "Patient safety and data privacy"},
         {"role": "Healthcare Compliance Officer", "focus": "HIPAA and regulatory compliance"},
-        {"role": "Medical Director", "focus": "Clinical decision accuracy"}
+        {"role": "Medical Director", "focus": "Clinical decision accuracy"},
     ]
-    
+
     FINANCIAL_ROLES = [
         {"role": "Risk Management Specialist", "focus": "Financial risk assessment"},
         {"role": "Compliance Officer", "focus": "SOX and regulatory compliance"},
-        {"role": "Quantitative Analyst", "focus": "Model accuracy and validation"}
+        {"role": "Quantitative Analyst", "focus": "Model accuracy and validation"},
     ]
 ```
 

@@ -139,10 +139,7 @@ Use our [PR template](../.github/pull_request_template.md) and ensure:
 
 #### Example:
 ```python
-def process_model_response(
-    response: ModelResponse,
-    max_tokens: Optional[int] = None
-) -> ProcessedResult:
+def process_model_response(response: ModelResponse, max_tokens: Optional[int] = None) -> ProcessedResult:
     """Process and validate model response.
 
     Args:

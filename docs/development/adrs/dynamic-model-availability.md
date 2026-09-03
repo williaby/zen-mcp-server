@@ -159,7 +159,7 @@ def is_available(model: str, timeout: int = 5) -> bool:
             model=model,
             prompt="test",  # Minimal prompt
             max_tokens=1,
-            timeout=timeout
+            timeout=timeout,
         )
         return response.status_code == 200
 
@@ -191,6 +191,7 @@ class AvailabilityCache:
     """
     Cache model availability to avoid repeated health checks.
     """
+
     def __init__(self, ttl: int = 300):  # 5 minute TTL
         self.cache = {}
         self.ttl = ttl
@@ -210,12 +211,7 @@ class AvailabilityCache:
 
 **Retry Strategy:**
 ```python
-def call_model_with_retry(
-    model: str,
-    prompt: str,
-    max_retries: int = 2,
-    backoff: float = 1.0
-) -> Response:
+def call_model_with_retry(model: str, prompt: str, max_retries: int = 2, backoff: float = 1.0) -> Response:
     """
     Call model with exponential backoff retry.
 
@@ -233,8 +229,8 @@ def call_model_with_retry(
             return call_model(model, prompt)
         except TransientError as e:
             if attempt < max_retries:
-                delay = backoff * (2 ** attempt)  # Exponential backoff
-                logger.info(f"Retry {attempt+1}/{max_retries} after {delay}s")
+                delay = backoff * (2**attempt)  # Exponential backoff
+                logger.info(f"Retry {attempt + 1}/{max_retries} after {delay}s")
                 time.sleep(delay)
             else:
                 raise  # Max retries exceeded
@@ -271,10 +267,7 @@ class FailoverMetrics:
             "free_tier_failures": self.failovers["free"],
             "economy_tier_failures": self.failovers["economy"],
             "additional_cost": self.cost_delta,
-            "model_success_rates": {
-                model: self.successes[model] / self.attempts[model]
-                for model in self.attempts
-            }
+            "model_success_rates": {model: self.successes[model] / self.attempts[model] for model in self.attempts},
         }
 ```
 
@@ -292,12 +285,7 @@ class BandSelector:
         self.availability_cache = AvailabilityCache(ttl=300)
         self.metrics = FailoverMetrics()
 
-    def get_available_models_with_failover(
-        self,
-        tier: int,
-        role: str,
-        max_attempts: int = 10
-    ) -> List[str]:
+    def get_available_models_with_failover(self, tier: int, role: str, max_attempts: int = 10) -> List[str]:
         """
         Get models for tier with automatic failover.
 
@@ -364,12 +352,7 @@ class BandSelector:
         """
         try:
             # Call model with minimal prompt
-            response = call_model(
-                model=model,
-                prompt="test",
-                max_tokens=1,
-                timeout=5
-            )
+            response = call_model(model=model, prompt="test", max_tokens=1, timeout=5)
             return response.status_code == 200
         except HTTPError as e:
             # Check if this is a paid model
@@ -392,10 +375,10 @@ class BandSelector:
 
     def _is_paid_model(self, model: str) -> bool:
         """Check if model is in paid tier (not free)."""
-        model_data = self.models_df[self.models_df['model'] == model]
+        model_data = self.models_df[self.models_df["model"] == model]
         if model_data.empty:
             return False
-        return model_data.iloc[0]['status'] != 'free'
+        return model_data.iloc[0]["status"] != "free"
 
     def _alert_paid_model_failure(self, model: str, error_code: int):
         """Alert about paid model failure requiring manual intervention."""
@@ -404,7 +387,7 @@ class BandSelector:
             "model": model,
             "error_code": error_code,
             "action_required": "Update models.csv status to 'deprecated'",
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
         # Log to dedicated alert channel
         logger.critical(f"Paid model failure alert: {alert_message}")
@@ -430,13 +413,12 @@ class SmartConsensusTool(WorkflowTool):
         available_models = self.band_selector.get_available_models_with_failover(
             tier=tier,
             role=None,  # Get all models, assign to roles after
-            max_attempts=15  # Try up to 15 models
+            max_attempts=15,  # Try up to 15 models
         )
 
         if len(available_models) < len(roles):
             logger.warning(
-                f"Only {len(available_models)} models available for {len(roles)} roles. "
-                f"Some roles will share models."
+                f"Only {len(available_models)} models available for {len(roles)} roles. Some roles will share models."
             )
 
         # Assign models to roles (round-robin if needed)
@@ -575,7 +557,7 @@ Failover (3 models): +300-1500ms
 # User can enforce strict free-tier mode
 config = {
     "allow_paid_fallback": False,  # Fail rather than use paid models
-    "max_cost_per_request": 0.0
+    "max_cost_per_request": 0.0,
 }
 ```
 
@@ -601,11 +583,11 @@ smart_consensus_v2(
     question="Should we use TypeScript?",
     org_level="startup",
     failover_config={
-        "allow_paid_fallback": True,      # Allow fallback to economy tier
-        "max_cost_per_request": 0.50,     # Budget constraint
-        "retry_attempts": 2,               # Retries per model
-        "prefer_reliability": False        # If True, favor high-success-rate models
-    }
+        "allow_paid_fallback": True,  # Allow fallback to economy tier
+        "max_cost_per_request": 0.50,  # Budget constraint
+        "retry_attempts": 2,  # Retries per model
+        "prefer_reliability": False,  # If True, favor high-success-rate models
+    },
 )
 ```
 
