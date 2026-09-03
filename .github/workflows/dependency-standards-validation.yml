@@ -1,0 +1,33 @@
+# Dependency and Standards Validation
+#
+# Emits the `Dependency & Standards Validation` required status check that the
+# williaby-default-branch-baseline ruleset expects. Without a normal job named
+# exactly that string the context never reports, and every pull request stays
+# BLOCKED on a check that can never arrive.
+#
+# No step consumes attacker-controlled event data, so there is no workflow
+# injection surface here.
+#
+# #ASSUME: this is the fleet-standard placeholder, matching
+# williaby/exercise-competition/.github/workflows/dependency-standards-validation.yml;
+# the real dependency and standards checks are still to be implemented here.
+# #VERIFY: replace the placeholder step with the actual dependency audit before
+# treating this gate as a security assurance.
+name: Dependency and Standards Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  dep-standards:
+    name: Dependency & Standards Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Dependency and Standards Validation stub - implementation pending"
