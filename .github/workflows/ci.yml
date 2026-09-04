@@ -23,7 +23,7 @@ jobs:
       contents: read
       pull-requests: write
       checks: write
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-ci.yml@16979833c433ecb375f884552312b9fdf8c5ba6a # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-ci.yml@28a710b8c7d52311ff9d44cce1feb4ce20f9fcba # main
     with:
       python-version: "3.12"
       coverage-threshold: 80
@@ -36,6 +36,15 @@ jobs:
       # #VERIFY: if a src/ layout is adopted later, drop this override.
       source-directory: "."
       test-directory: "tests"
+      # #EDGE: python-ci.yml defaults no-build to true (blocks uv sync/run
+      # from invoking any PEP 517 build backend). This repo installs itself
+      # editable (build-backend = "setuptools.build_meta" in pyproject.toml),
+      # which requires a build step, so --no-build makes `uv sync --frozen`
+      # fail with "marked as --no-build but has no binary distribution".
+      # #VERIFY: confirmed locally: `uv sync --all-extras --frozen --no-build`
+      # fails on pal-mcp-server==1.0.0 (editable+.); the same command without
+      # --no-build succeeds.
+      no-build: false
 
   # ==========================================================================
   # CI Gate: aggregates the CI result; must pass for branch protection
