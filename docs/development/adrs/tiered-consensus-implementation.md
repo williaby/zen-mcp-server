@@ -73,20 +73,17 @@ From `/docs/development/adrs/future.md`:
 
 **Minimal (what users want):**
 ```python
-{
-  "prompt": "Should we migrate from PostgreSQL to MongoDB?",
-  "level": 2
-}
+{"prompt": "Should we migrate from PostgreSQL to MongoDB?", "level": 2}
 ```
 
 **Advanced (optional):**
 ```python
 {
-  "prompt": "Should we migrate from PostgreSQL to MongoDB?",
-  "level": 2,
-  "domain": "architecture",  # code_review, security, architecture, general
-  "include_synthesis": true,
-  "max_cost": 1.0
+    "prompt": "Should we migrate from PostgreSQL to MongoDB?",
+    "level": 2,
+    "domain": "architecture",  # code_review, security, architecture, general
+    "include_synthesis": true,
+    "max_cost": 1.0,
 }
 ```
 
@@ -171,15 +168,20 @@ DOMAIN_ROLES["security"] = {
     1: ["security_checker", "vulnerability_scanner", "compliance_validator"],
     2: [
         # Level 1 roles (ADDITIVE)
-        "security_checker", "vulnerability_scanner", "compliance_validator",
+        "security_checker",
+        "vulnerability_scanner",
+        "compliance_validator",
         # Level 2 additions
-        "penetration_tester", "security_architect", "threat_modeler",
+        "penetration_tester",
+        "security_architect",
+        "threat_modeler",
     ],
     3: [
         # Level 1 + 2 roles (ADDITIVE)
         ...,
         # Level 3 additions
-        "security_director", "compliance_officer",
+        "security_director",
+        "compliance_officer",
     ],
 }
 ```

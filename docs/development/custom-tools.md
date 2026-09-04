@@ -42,29 +42,33 @@ touch tools/custom/your_custom_tool.py
 """
 Self-contained custom tool implementation
 """
+
 from tools.workflow.base import WorkflowTool  # or SimpleTool
 from tools.shared.base_models import WorkflowRequest
 
+
 class YourCustomToolRequest(WorkflowRequest):
     """Custom request model with tool-specific fields"""
+
     # Define your parameters here
     pass
 
+
 class YourCustomTool(WorkflowTool):  # or SimpleTool
     """Self-contained custom tool with embedded system prompt"""
-    
+
     # Embedded system prompt (no external files needed)
     SYSTEM_PROMPT = """Your custom system prompt here..."""
-    
+
     def get_name(self) -> str:
         return "your_custom_tool"
-    
+
     def get_description(self) -> str:
         return "Your tool description"
-    
+
     def get_system_prompt(self) -> str:
         return self.SYSTEM_PROMPT
-    
+
     # Implement all required methods...
 ```
 
@@ -86,6 +90,7 @@ Only **5 lines** added to `server.py` for all custom tools:
 # Load custom tools from tools/custom directory
 try:
     from tools.custom import get_custom_tools
+
     custom_tools = get_custom_tools()
     TOOLS.update(custom_tools)
 except ImportError:
@@ -103,7 +108,7 @@ except ImportError:
 def get_input_schema(self) -> dict[str, Any]:
     """Generate clean input schema with minimal user-facing parameters."""
     from tools.workflow.schema_builders import WorkflowSchemaBuilder
-    
+
     # Tool-specific fields - only essential user parameters
     tool_field_overrides = {
         "your_param": {
@@ -114,17 +119,17 @@ def get_input_schema(self) -> dict[str, Any]:
 
     # Hide complex internal fields from MCP interface
     excluded_workflow_fields = [
-        "files_checked",         # Managed internally
-        "relevant_context",      # Managed internally  
-        "issues_found",          # Managed internally
-        "hypothesis",            # Internal workflow state
-        "backtrack_from_step",   # Advanced workflow control
-        "confidence",            # Internal assessment
-        "use_assistant_model",   # Tool-specific behavior
+        "files_checked",  # Managed internally
+        "relevant_context",  # Managed internally
+        "issues_found",  # Managed internally
+        "hypothesis",  # Internal workflow state
+        "backtrack_from_step",  # Advanced workflow control
+        "confidence",  # Internal assessment
+        "use_assistant_model",  # Tool-specific behavior
     ]
-    
+
     excluded_common_fields = [
-        "use_websearch",         # Always enabled by default
+        "use_websearch",  # Always enabled by default
     ]
 
     return WorkflowSchemaBuilder.build_schema(
@@ -172,29 +177,33 @@ Create self-contained test files in the custom directory:
 ```python
 # tools/custom/test_your_custom_tool.py
 """Self-contained test for custom tool"""
+
 import tempfile
 from pathlib import Path
 
+
 class CustomYourToolTest:
     """Test custom tool functionality"""
-    
+
     def run_basic_test(self) -> bool:
         """Run basic validation test"""
         try:
             # Test tool instantiation
             from tools.custom.your_custom_tool import YourCustomTool
+
             tool = YourCustomTool()
-            
+
             # Test tool properties
             assert tool.get_name() == "your_custom_tool"
             assert tool.get_description()
-            
+
             # Test successful
             return True
-            
+
         except Exception as e:
             print(f"Custom tool test failed: {e}")
             return False
+
 
 if __name__ == "__main__":
     test = CustomYourToolTest()
@@ -209,10 +218,7 @@ Add simulator tests for end-to-end validation:
 # Add to communication_simulator_test.py
 def test_your_custom_tool_validation(self):
     """Test your custom tool with real API calls"""
-    response = self.call_tool("your_custom_tool", {
-        "param1": "test_value",
-        "model": "flash"
-    })
+    response = self.call_tool("your_custom_tool", {"param1": "test_value", "model": "flash"})
     self.validate_response_structure(response)
 ```
 

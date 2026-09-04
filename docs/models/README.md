@@ -243,7 +243,7 @@ selector = DynamicModelSelector()
 model = selector.find_models(
     specialization="coding",
     org_level="junior",  # Automatically uses cost_tier_bands: free/economy
-    max_results=1
+    max_results=1,
 )[0]
 # Returns: qwen/qwen-2.5-coder-32b-instruct:free
 # Role automatically assigned via role_assignment_bands: technical_roles
@@ -252,9 +252,9 @@ model = selector.find_models(
 ### Get Executive-Level Reasoning Model (Automatic Band Assignment)
 ```python
 model = selector.find_models(
-    specialization="reasoning", 
+    specialization="reasoning",
     org_level="executive",  # Automatically uses org_level_assignment_bands criteria
-    max_results=1
+    max_results=1,
 )[0]
 # Returns: openai/gpt-5 or anthropic/claude-opus-4.1
 # Rank automatically assigned via rank_assignment_bands: tier1_flagship
@@ -268,7 +268,7 @@ model = selector.find_models(
 # Context window selection (uses context_window_bands)
 large_models = selector.get_large_context_models()
 
-# Cost optimization (uses cost_tier_bands) 
+# Cost optimization (uses cost_tier_bands)
 economy_models = selector.find_models(cost_tier="economy")
 
 # Performance targeting (uses performance_bands)
@@ -286,7 +286,7 @@ selector = DynamicModelSelector()
 # Check for context window band changes
 context_changes = selector.detect_and_apply_band_changes()
 
-# Check for cost tier band changes  
+# Check for cost tier band changes
 cost_changes = selector.detect_and_apply_cost_tier_changes()
 
 # New: Check for role assignment changes
@@ -411,13 +411,13 @@ Threshold for Replacement: Score ≥ 7.5/10
 **Replacement Analysis vs Claude Opus 4:**
 ```python
 score_breakdown = {
-    "performance": 7.8,     # +5.6% HumanEval, +2.8% MMLU improvement
-    "cost_efficiency": 9.2, # 80% cost reduction ($75 → $15 output)  
-    "strategic_value": 8.1, # Larger context (400K vs 200K)
-    "operational_benefit": 6.5 # Slight availability improvement
+    "performance": 7.8,  # +5.6% HumanEval, +2.8% MMLU improvement
+    "cost_efficiency": 9.2,  # 80% cost reduction ($75 → $15 output)
+    "strategic_value": 8.1,  # Larger context (400K vs 200K)
+    "operational_benefit": 6.5,  # Slight availability improvement
 }
 
-weighted_score = 8.05/10  # Exceeds 7.5 threshold
+weighted_score = 8.05 / 10  # Exceeds 7.5 threshold
 ```
 
 **Result:** ✅ **REPLACEMENT RECOMMENDED**
@@ -491,7 +491,7 @@ selected_model = router.select_model(
     complexity=analysis.complexity_score,
     task_type=analysis.task_type,
     user_tier="free",  # or "premium", "enterprise"
-    cost_optimization=True
+    cost_optimization=True,
 )
 ```
 

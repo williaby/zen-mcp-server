@@ -481,7 +481,7 @@ def configure_providers():
                 len(openai_key),
             )
         else:
-            logger.warning("OpenAI API key does not match expected format. " "OpenAI provider will not be registered.")
+            logger.warning("OpenAI API key does not match expected format. OpenAI provider will not be registered.")
 
     # Check for Azure OpenAI configuration
     azure_key = get_env("AZURE_OPENAI_API_KEY")

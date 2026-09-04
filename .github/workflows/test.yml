@@ -29,7 +29,18 @@ jobs:
         run: |
           # Run only unit tests (exclude simulation tests and integration tests)
           # Integration tests require local-llama which isn't available in CI
-          python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration" --timeout=60 --cov=tools --cov=utils --cov=providers --cov=routing --cov=systemprompts --cov=server.py --cov=config.py --cov-report=xml --cov-report=term-missing
+          # #EDGE: --cov targets use module names (server, config), not file paths
+          # (server.py, config.py). tools/custom/__init__.py auto-imports every
+          # tool module at package-import time, including band_selector.py's
+          # import of pandas. A file-path coverage target makes coverage.py load
+          # the module through a second, separate loader in addition to pytest's
+          # normal import, so pandas (and numpy underneath it) gets initialized
+          # twice in one process; numpy's C extension refuses a second init and
+          # raises "cannot load module more than once per process", failing
+          # collection of tests/test_consensus_models.py.
+          # #VERIFY: if coverage.py changes how it resolves bare-name versus
+          # file-path targets, re-check this still avoids the double import.
+          python -m pytest tests/ -v --ignore=simulator_tests/ -m "not integration" --timeout=60 --cov=tools --cov=utils --cov=providers --cov=routing --cov=systemprompts --cov=server --cov=config --cov-report=xml --cov-report=term-missing
         env:
           # Ensure no API key is accidentally used in CI
           GEMINI_API_KEY: ""

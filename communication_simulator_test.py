@@ -554,7 +554,7 @@ def main():
     if not any(os.environ.get(k) for k in _API_KEY_VARS):
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         logging.getLogger(__name__).warning(
-            "No API keys detected; skipping simulator tests. " "Set at least one of: %s",
+            "No API keys detected; skipping simulator tests. Set at least one of: %s",
             ", ".join(_API_KEY_VARS),
         )
         sys.exit(0)

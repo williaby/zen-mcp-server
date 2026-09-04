@@ -2,14 +2,30 @@
 name = "pal-mcp-server"
 version = "1.0.0"
 description = "AI-powered MCP server with multiple model providers"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "mcp>=1.0.0",
+    # #CRITICAL: mcp 2.x is a breaking API change; server.py targets the 1.x
+    # `Server` interface, and an unbounded `>=1.0.0` resolves to 2.x, which
+    # fails at import/collection time.
+    # #VERIFY: lift the ceiling only alongside a port of server.py to mcp 2.x.
+    "mcp>=1.0.0,<2",
     "google-genai>=1.19.0",
     "openai>=1.55.2",
     "pydantic>=2.0.0",
     "python-dotenv>=1.0.0",
-    "infisical-python>=2.0.0",
+    # PromptCraft integration; kept in sync with requirements.txt so that
+    # `uv sync` produces the same environment as `pip install -r requirements.txt`.
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "slowapi>=0.1.9",
+    "requests>=2.31.0",
+    "pandas>=1.5.0",
+    # #CRITICAL: 2.3.6 is a broken release: it ships no sdist and no
+    # manylinux x86_64 wheel, so `uv sync` fails on ubuntu-latest runners.
+    # 2.3.5 has full sdist + manylinux_2_28_x86_64 coverage.
+    # #VERIFY: drop the exclusion once a release after 2.3.6 restores
+    # linux x86_64 wheels on PyPI.
+    "infisical-python>=2.0.0,!=2.3.6",
 ]
 
 [tool.setuptools.packages.find]
@@ -175,3 +191,16 @@ env = "GH_TOKEN"
 [build-system]
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+    "pytest-cov>=4.0.0",
+    "pytest-timeout>=2.1.0",
+    "psutil>=5.9.0",
+    "ruff>=0.1.0",
+    "coverage[toml]>=7.0.0",
+    "bandit>=1.7.0",
+]
